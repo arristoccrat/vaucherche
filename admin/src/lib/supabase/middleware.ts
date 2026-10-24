@@ -43,7 +43,11 @@ export async function updateSession(request: NextRequest) {
 
   const { pathname, search } = request.nextUrl;
 
-  if (!user && !isPublicPath(pathname)) {
+  // Server Actions authorise themselves and answer "not signed in" as data;
+  // redirecting their POST would hand the caller an HTML page instead.
+  const isServerAction = request.headers.has("next-action");
+
+  if (!user && !isPublicPath(pathname) && !isServerAction) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.search = "";
