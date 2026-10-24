@@ -16,7 +16,7 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "Vaucherche.bg — Очаквайте скоро",
   description:
-    "Всички ваучери, отстъпки и промо кодове в България — на едно място. Очаквайте скоро.",
+    "Подаръчни ваучери от магазините в България — на едно място. Очаквайте скоро.",
 };
 
 export default function RootLayout({
