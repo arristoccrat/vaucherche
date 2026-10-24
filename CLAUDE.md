@@ -4,23 +4,33 @@ Directory of gift vouchers sold by Bulgarian online shops.
 
 ## Repo layout
 
-- `/` — public site (vaucherche.bg). Next.js 14 App Router. Reads Supabase with
-  the publishable/anon key only; RLS limits it to `published = true`.
-- `/admin` — internal admin (`vaucherche-admin`). Next.js 14 App Router,
-  TypeScript strict, Tailwind, shadcn/ui, `src/` layout. Deployed as its own
-  Vercel project with Root Directory `admin`. Reads and writes Supabase; does
-  not crawl and does not call the Anthropic API.
+One Next.js 14 App Router app (TypeScript strict, Tailwind, shadcn/ui,
+`src/` layout), deployed as one Vercel project:
+
+- `src/app/page.tsx` etc. — public site (vaucherche.bg). Reads Supabase only
+  through `src/lib/supabase/public.ts` (publishable key); RLS limits it to
+  `published = true`.
+- `src/app/admin/` — internal admin at `/admin`. Reads and writes Supabase;
+  does not crawl and does not call the Anthropic API. `(auth)/login` is
+  public, `(console)/` requires a session; `auth/callback` and
+  `api/products/[id]/raw` are route handlers. The middleware
+  (`src/middleware.ts`) runs only for `/admin`.
+- Admin code: `src/actions/` (Server Actions), `src/lib/` (queries, domain,
+  Supabase clients), `src/components/`.
+- `sql/` — schema changes run by hand in the Supabase SQL Editor.
 - The crawler / AI pipeline (`~/Desktop/Vaucherche/scripts/`) lives outside
   this repo and runs locally or on a persistent worker, never on Vercel.
 
-The two apps have separate `package.json`, lockfile, ESLint and TS configs. Run
-commands from the app's own directory.
+Every admin path is prefixed with `/admin` (links, redirects,
+`revalidatePath`, `fetch`). Admin styles live under `.admin-root` in
+`src/app/globals.css` and stay light; don't change the public `:root` colours
+to suit the admin.
 
 ## Data model notes
 
 - `shops.status` is a workflow: `candidate`, `confirmed`, `ai_confirmed`,
   `needs_review`, `rejected`, `unreachable`. Use the `ShopStatus` union in
-  `admin/src/lib/domain.ts`, never bare strings.
+  `src/lib/domain.ts`, never bare strings.
 - `ai_confirmed` is a machine verdict (≥0.8 confidence); `confirmed` has crawler
   evidence or a human behind it. Never merge them in queries or UI.
 - Three independent booleans: `shops.voucher_url_verified` (human confirmed the
@@ -35,24 +45,24 @@ commands from the app's own directory.
   `verified_by_human = false`. A human can never set `ai_confirmed`. Bulk
   confirm is refused outright if any target's `status_reason` starts with
   `AI rejected`.
-- Publishing is gated by `admin/src/lib/publish.ts` (checked in the UI and
+- Publishing is gated by `src/lib/publish.ts` (checked in the UI and
   again in the Server Action); bulk publish skips shops that fail it. The
   gate: status confirmed/ai_confirmed, verified voucher URL, category, a
   human-written name (not the domain), and a description.
 - Editorial fields (`name`, `description`, `logo_url`, `category`,
   `subcategory`, `gift_appeal`) autosave one at a time via
-  `admin/src/actions/editorial.ts`. `description` is our own copy written
+  `src/actions/editorial.ts`. `description` is our own copy written
   from the facts, never the merchant's text.
-- Schema changes the admin depends on live in `admin/sql/` and are run by
-  hand in the Supabase SQL Editor before deploying; update
-  `admin/src/lib/database.types.ts` to match.
-- URL verification (`admin/src/actions/products.ts`): first line becomes
+- Schema changes the admin depends on live in `sql/` and are run by hand in
+  the Supabase SQL Editor before deploying; update
+  `src/lib/database.types.ts` to match.
+- URL verification (`src/actions/products.ts`): first line becomes
   `shops.voucher_url` with `voucher_url_verified = true`; every line is added
   to `voucher_products` as `source: 'manual'` with no price, only if that
   (shop, url) is not already there. Existing product rows are never updated
   or removed, so crawler prices survive re-verification.
 - Heavy product columns (`raw_text`, `meta`, `links`, `description`) are
-  fetched on demand from `/api/products/[id]/raw`, never in list queries.
+  fetched on demand from `/admin/api/products/[id]/raw`, never in list queries.
 - `status_reason` carries the AI evidence, e.g.
   `AI confirmed (0.92): подаръчен ваучер 50 лв`. Split on the first colon and
   show the quote prominently.
@@ -76,12 +86,13 @@ commands from the app's own directory.
 ### Do not
 
 - **Do not put the service-role key anywhere a browser can reach it.** No
-  `NEXT_PUBLIC_` prefix, no import of `admin/src/lib/supabase/admin.ts` into a
-  Client Component. Keep `import 'server-only'` at the top of that file so a
+  `NEXT_PUBLIC_` prefix, no import of `src/lib/supabase/admin.ts` into a
+  Client Component, and never import it (or `server.ts`) from public-site
+  pages — they use `src/lib/supabase/public.ts` only. Keep `import 'server-only'` at the top of that file so a
   mistake fails the build instead of leaking silently. Use it only in Server
   Actions after `getUser()`, or in `unstable_cache`d aggregate reads (which
   cannot see the session cookie) behind a `requireUser()` wrapper — see
-  `admin/src/lib/queries/shops.ts`.
+  `src/lib/queries/shops.ts`.
 - **Do not port the crawler to a Vercel route handler.** `02a-fetch.js` runs for
   hours across thousands of hosts. Serverless functions cap at 60 seconds on
   Hobby, 300 on Pro. If the admin ever triggers a crawl, it inserts a job row
@@ -104,14 +115,14 @@ commands from the app's own directory.
 
 - `npm run build` runs `check:secrets` as `postbuild`; never remove it. It
   fails the build if the service key (name or value) is in `.next/static`.
-- Security headers live in `admin/next.config.mjs`; the full deploy checklist
-  is in `admin/README.md`.
+- Security headers for `/admin` live in `next.config.mjs`; the deploy
+  checklist is in `README.md`.
 
-### Checks before a phase is called done (run in `admin/`)
+### Checks before a change is called done
 
 - `npm run typecheck` clean, no `any` on Supabase responses.
 - `npm run lint` clean.
 - `npm run build && npm run check:secrets` — no `SUPABASE_SERVICE_ROLE` in
   `.next/static`.
-- Signed out, every admin route redirects to `/login`.
+- Signed out, every admin route redirects to `/admin/login`.
 - The slowest list query runs under 300ms with filters applied.
