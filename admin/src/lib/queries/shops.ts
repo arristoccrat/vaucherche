@@ -10,15 +10,20 @@ import { createClient } from "@/lib/supabase/server";
 
 export const SHOPS_PAGE_SIZE = 50;
 
+// Status changes invalidate counts; category/appeal edits invalidate facets.
+export const SHOP_COUNTS_TAG = "shop-counts";
+export const SHOP_FACETS_TAG = "shop-facets";
+
 // One round trip: shops plus their offer summary and product prices.
 // `source_match` is a second embed of voucher_products used only to filter by
 // product source without narrowing the `voucher_products` list itself.
 const LIST_SELECT = `
   id, domain, name, slug, status, status_reason, category, subcategory,
   gift_appeal, confidence, published, voucher_url, voucher_url_verified,
-  updated_at,
+  voucher_url_note, voucher_type, updated_at,
   voucher_offers ( denominations, currency, min_value, max_value,
-    custom_amount, is_digital, is_physical, validity_months, verified_by_human ),
+    custom_amount, is_digital, is_physical, delivery_methods, validity_months,
+    personalisable, terms_url, verified_by_human, verified_at ),
   voucher_products ( id, url, price, currency, price_bgn, availability, source ),
   source_match:voucher_products ( source )
 `;
@@ -32,24 +37,44 @@ function escapeLike(term: string) {
   return term.replace(/[\\%_]/g, (match) => `\\${match}`);
 }
 
+// Structural type so the same filters apply to any shops query, whatever it
+// selects (the list, or the id-only scan behind bulk actions).
+interface FilterableShopsQuery<Self> {
+  in(column: "status", values: string[]): Self;
+  eq(column: string, value: string | boolean): Self;
+  not(column: string, operator: "is", value: boolean | null): Self;
+  ilike(column: "domain", pattern: string): Self;
+}
+
+export function applyShopFilters<Q extends FilterableShopsQuery<Q>>(
+  query: Q,
+  filters: Omit<ShopFilters, "page" | "sort">
+): Q {
+  let q = query;
+  if (filters.status.length) q = q.in("status", filters.status);
+  if (filters.category) q = q.eq("category", filters.category);
+  if (filters.giftAppeal) q = q.eq("gift_appeal", filters.giftAppeal);
+  if (filters.published === "yes") q = q.eq("published", true);
+  if (filters.published === "no") q = q.not("published", "is", true);
+  if (filters.urlVerified === "yes") q = q.eq("voucher_url_verified", true);
+  if (filters.urlVerified === "no")
+    q = q.not("voucher_url_verified", "is", true);
+  if (filters.search)
+    q = q.ilike("domain", `%${escapeLike(filters.search)}%`);
+  // Needs `source_match:voucher_products(source)` in the select.
+  if (filters.source)
+    q = q
+      .eq("source_match.source", filters.source)
+      .not("source_match", "is", null);
+  return q;
+}
+
 function buildListQuery(params: ListShopsParams) {
   const supabase = createClient();
-  let query = supabase.from("shops").select(LIST_SELECT, { count: "exact" });
-
-  if (params.status.length) query = query.in("status", params.status);
-  if (params.category) query = query.eq("category", params.category);
-  if (params.giftAppeal) query = query.eq("gift_appeal", params.giftAppeal);
-  if (params.published === "yes") query = query.eq("published", true);
-  if (params.published === "no") query = query.not("published", "is", true);
-  if (params.urlVerified === "yes") query = query.eq("voucher_url_verified", true);
-  if (params.urlVerified === "no")
-    query = query.not("voucher_url_verified", "is", true);
-  if (params.search)
-    query = query.ilike("domain", `%${escapeLike(params.search)}%`);
-  if (params.source)
-    query = query
-      .eq("source_match.source", params.source)
-      .not("source_match", "is", null);
+  let query = applyShopFilters(
+    supabase.from("shops").select(LIST_SELECT, { count: "exact" }),
+    params
+  );
 
   switch (params.sort) {
     case "domain":
@@ -138,7 +163,7 @@ const cachedStatusCounts = unstable_cache(
     };
   },
   ["shop-status-counts"],
-  { revalidate: 60, tags: ["shops"] }
+  { revalidate: 60, tags: [SHOP_COUNTS_TAG] }
 );
 
 export async function getStatusCounts() {
@@ -194,7 +219,7 @@ const cachedShopFacets = unstable_cache(
     };
   },
   ["shop-facets"],
-  { revalidate: 600, tags: ["shops"] }
+  { revalidate: 600, tags: [SHOP_FACETS_TAG] }
 );
 
 export type ShopFacets = Awaited<ReturnType<typeof cachedShopFacets>>;
@@ -206,4 +231,46 @@ export async function getShopFacets(): Promise<ShopFacets> {
   } catch {
     return { categories: [], giftAppeals: [] };
   }
+}
+
+const ID_SCAN_PAGE = 1000;
+// Upper bound for "select all matching this filter", so one click can never
+// run a serverless function past its time limit.
+export const MAX_BULK_ROWS = 5000;
+
+export type ShopTarget = {
+  id: string;
+  status: string;
+  status_reason: string | null;
+};
+
+// Every shop matching the filters, read in pages of 1,000 (the API row cap).
+// Uses the admin client: call only from a Server Action that checked the user.
+export async function resolveShopTargets(
+  filters: Omit<ShopFilters, "page" | "sort">
+): Promise<ShopTarget[] | { tooMany: number }> {
+  const supabase = createAdminClient();
+  const rows: ShopTarget[] = [];
+
+  for (let from = 0; ; from += ID_SCAN_PAGE) {
+    const { data, count, error } = await applyShopFilters(
+      supabase
+        .from("shops")
+        .select("id, status, status_reason, source_match:voucher_products(source)", {
+          count: from === 0 ? "exact" : undefined,
+        }),
+      filters
+    )
+      .order("id")
+      .range(from, from + ID_SCAN_PAGE - 1);
+    if (error) throw new Error(error.message);
+    if (from === 0 && (count ?? 0) > MAX_BULK_ROWS) return { tooMany: count ?? 0 };
+
+    rows.push(
+      ...data.map(({ id, status, status_reason }) => ({ id, status, status_reason }))
+    );
+    if (data.length < ID_SCAN_PAGE) break;
+  }
+
+  return rows;
 }

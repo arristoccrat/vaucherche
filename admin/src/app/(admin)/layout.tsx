@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Toaster } from "sonner";
 
 import { signOut } from "@/actions/auth";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ export default async function AdminLayout({
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-4 py-6">{children}</main>
+      <Toaster richColors position="bottom-right" />
     </div>
   );
 }

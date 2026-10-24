@@ -29,6 +29,14 @@ commands from the app's own directory.
 - `voucher_products.source`: `og` / `jsonld` are structured and reliable,
   `text` was regex-scraped and needs a glance, `manual` is a human-pasted URL
   with no price fetched yet. Surface it.
+- Human verdicts from the admin: confirming writes `status_reason =
+  'потвърден от човек'` and sets `voucher_offers.verified_by_human = true` +
+  `verified_at`; rejecting writes `'отхвърлен от човек'` and
+  `verified_by_human = false`. A human can never set `ai_confirmed`. Bulk
+  confirm is refused outright if any target's `status_reason` starts with
+  `AI rejected`.
+- Publishing is gated by `admin/src/lib/publish.ts` (checked in the UI and
+  again in the Server Action); bulk publish skips shops that fail it.
 - `status_reason` carries the AI evidence, e.g.
   `AI confirmed (0.92): подаръчен ваучер 50 лв`. Split on the first colon and
   show the quote prominently.

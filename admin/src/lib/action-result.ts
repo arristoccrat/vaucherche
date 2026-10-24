@@ -4,5 +4,5 @@ export type ActionResult<T = undefined> =
 
 export const NOT_SIGNED_IN: ActionResult<never> = {
   ok: false,
-  error: "Не сте влезли в профила си.",
+  error: "Сесията е изтекла. Влезте отново — промяната не е записана.",
 };

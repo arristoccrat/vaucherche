@@ -11,7 +11,7 @@ import { parseShopFilters, serializeShopFilters } from "@/lib/search-params";
 
 import { FilterBar } from "./_components/filter-bar";
 import { Pagination } from "./_components/pagination";
-import { ShopsTable } from "./_components/shops-table";
+import { ShopsBrowser } from "./_components/shops-browser";
 import { StatusChips } from "./_components/status-chips";
 
 export default async function ShopsPage({
@@ -54,7 +54,11 @@ export default async function ShopsPage({
         </Link>
       ) : null}
 
-      <ShopsTable rows={result.rows} />
+      <ShopsBrowser
+        rows={result.rows}
+        total={result.total}
+        filterQuery={serializeShopFilters({ ...filters, page: 1 }).toString()}
+      />
 
       <Pagination
         filters={filters}
