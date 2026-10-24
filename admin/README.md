@@ -39,6 +39,9 @@ Supabase SQL Editor **before** deploying the admin version that needs it:
   (Phase 5: editorial fields and the publish queue).
 - `sql/002_ops_indexes.sql` — indexes for the `/ops` counts and the list
   joins (Phase 6).
+- `sql/003_shop_voucher_range.sql` — listing-card view: BGN-only prices
+  ignoring zeros, normalised availability, card fields. Check what the
+  static site generator (`08`) reads from this view before running it.
 
 ## Types
 
