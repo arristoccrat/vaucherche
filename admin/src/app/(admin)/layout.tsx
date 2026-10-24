@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 
 const NAV = [
   { href: "/shops", label: "Магазини" },
+  { href: "/queue", label: "Опашка" },
   { href: "/ops", label: "Операции" },
 ];
 

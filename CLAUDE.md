@@ -36,7 +36,16 @@ commands from the app's own directory.
   confirm is refused outright if any target's `status_reason` starts with
   `AI rejected`.
 - Publishing is gated by `admin/src/lib/publish.ts` (checked in the UI and
-  again in the Server Action); bulk publish skips shops that fail it.
+  again in the Server Action); bulk publish skips shops that fail it. The
+  gate: status confirmed/ai_confirmed, verified voucher URL, category, a
+  human-written name (not the domain), and a description.
+- Editorial fields (`name`, `description`, `logo_url`, `category`,
+  `subcategory`, `gift_appeal`) autosave one at a time via
+  `admin/src/actions/editorial.ts`. `description` is our own copy written
+  from the facts, never the merchant's text.
+- Schema changes the admin depends on live in `admin/sql/` and are run by
+  hand in the Supabase SQL Editor before deploying; update
+  `admin/src/lib/database.types.ts` to match.
 - URL verification (`admin/src/actions/products.ts`): first line becomes
   `shops.voucher_url` with `voucher_url_verified = true`; every line is added
   to `voucher_products` as `source: 'manual'` with no price, only if that

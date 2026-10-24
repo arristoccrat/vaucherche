@@ -97,6 +97,7 @@ export async function verifyVoucherUrls(
     if (shopError) throw new Error(shopError.message);
 
     revalidatePath("/shops");
+    revalidatePath("/queue");
     revalidatePath(`/shops/${input.data.shopId}`);
     return {
       ok: true,
