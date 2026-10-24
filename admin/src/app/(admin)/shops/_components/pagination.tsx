@@ -2,17 +2,24 @@ import Link from "next/link";
 
 import { buttonVariants } from "@/components/ui/button";
 import { formatCount } from "@/lib/format";
-import { shopsHref, type ShopFilters } from "@/lib/search-params";
+import {
+  SHOPS_VIEW,
+  shopsHref,
+  type ShopFilters,
+  type ShopsView,
+} from "@/lib/search-params";
 import { cn } from "@/lib/utils";
 
 export function Pagination({
   filters,
   total,
   pageSize,
+  view = SHOPS_VIEW,
 }: {
   filters: ShopFilters;
   total: number;
   pageSize: number;
+  view?: ShopsView;
 }) {
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const page = filters.page;
@@ -31,7 +38,7 @@ export function Pagination({
       </span>
     ) : (
       <Link
-        href={shopsHref(filters, { page: target })}
+        href={shopsHref(filters, { page: target }, view)}
         className={buttonVariants({ variant: "outline", size: "sm" })}
       >
         {label}

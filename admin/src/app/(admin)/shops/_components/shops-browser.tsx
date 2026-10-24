@@ -93,14 +93,46 @@ function resultMessage({ updated, skipped }: Counted) {
     : `Обновени: ${formatCount(updated)}`;
 }
 
+// The queue's work list: what is still missing before a shop can go live.
+function PublishChecklistInline({
+  shop,
+  onPublish,
+}: {
+  shop: ShopListRow;
+  onPublish: () => void;
+}) {
+  const missing = publishChecks(shop).filter((check) => !check.ok);
+  if (!missing.length) {
+    return (
+      <div className="mt-1 flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400">
+        ✓ Готов за публикуване
+        <Button size="sm" className="h-6 px-2 text-xs" onClick={onPublish}>
+          Публикувай
+        </Button>
+      </div>
+    );
+  }
+  return (
+    <ul className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-rose-600 dark:text-rose-400">
+      {missing.map((check) => (
+        <li key={check.label}>✗ {check.label}</li>
+      ))}
+    </ul>
+  );
+}
+
 export function ShopsBrowser({
   rows,
   total,
   filterQuery,
+  categories,
+  showPublishChecklist = false,
 }: {
   rows: ShopListRow[];
   total: number;
   filterQuery: string;
+  categories: string[];
+  showPublishChecklist?: boolean;
 }) {
   const [optimisticRows, applyOptimistic] = useOptimistic(
     rows,
@@ -169,6 +201,18 @@ export function ShopsBrowser({
   const actionsFor = (shop: ShopListRow): ShopActions => {
     const index = optimisticRows.findIndex((r) => r.id === shop.id);
     const nextId = optimisticRows[index + 1]?.id ?? shop.id;
+    const publishTo = (publish: boolean) => {
+      if (publish) {
+        const missing = publishChecks(shop).filter((c) => !c.ok);
+        if (missing.length) {
+          toast.error(`Не може да се публикува: ${missing.map((c) => c.label).join("; ")}.`);
+          return;
+        }
+      }
+      run([shop.id], { published: publish }, () => setPublished(shop.id, publish), () =>
+        toast.success(publish ? "Публикуван" : "Свален от сайта")
+      );
+    };
     const verdict = (status: ShopStatus, reason: string) => () => {
       run([shop.id], { status, status_reason: reason }, () => setStatus(shop.id, status));
       setFocusedId(nextId);
@@ -182,19 +226,8 @@ export function ShopsBrowser({
         setFocusedId(nextId);
         if (expandedId === shop.id) setExpandedId(nextId);
       },
-      togglePublished: () => {
-        const publish = !shop.published;
-        if (publish) {
-          const missing = publishChecks(shop).filter((c) => !c.ok);
-          if (missing.length) {
-            toast.error(`Не може да се публикува: ${missing.map((c) => c.label).join("; ")}.`);
-            return;
-          }
-        }
-        run([shop.id], { published: publish }, () => setPublished(shop.id, publish), () =>
-          toast.success(publish ? "Публикуван" : "Свален от сайта")
-        );
-      },
+      setPublished: publishTo,
+      togglePublished: () => publishTo(!shop.published),
       open: () => {
         window.open(shop.voucher_url ?? `https://${shop.domain}`, "_blank", "noopener,noreferrer");
       },
@@ -380,6 +413,9 @@ export function ShopsBrowser({
                       {shop.name && shop.name !== shop.domain ? (
                         <div className="text-xs text-muted-foreground">{shop.name}</div>
                       ) : null}
+                      {showPublishChecklist ? (
+                        <PublishChecklistInline shop={shop} onPublish={() => actionsFor(shop).setPublished(true)} />
+                      ) : null}
                       {!expanded && (quote || verdict) ? (
                         <p className="mt-1 line-clamp-2 text-xs" title={shop.status_reason ?? undefined}>
                           {quote ? <span className="italic">„{quote}“</span> : null}
@@ -422,7 +458,7 @@ export function ShopsBrowser({
                   {expanded ? (
                     <tr>
                       <td colSpan={8} className="p-0">
-                        <ShopDetail shop={shop} actions={actionsFor(shop)} />
+                        <ShopDetail shop={shop} actions={actionsFor(shop)} categories={categories} />
                       </td>
                     </tr>
                   ) : null}

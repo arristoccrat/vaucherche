@@ -1,4 +1,4 @@
-// Hand-written from the live schema (24 Oct 2026) until `npm run gen:types`
+// Hand-written from the live schema (24 Oct 2026, plus admin/sql/*) until `npm run gen:types`
 // can be run against the project; that command overwrites this file.
 // shop_voucher_range is not included yet: its column list was not available.
 
@@ -51,9 +51,11 @@ export type Database = {
           category_confidence: number | null;
           confidence: number | null;
           created_at: string | null;
+          description: string | null;
           discovery_source: string;
           domain: string;
           gift_appeal: string | null;
+          gift_appeal_rank: number | null;
           id: string;
           logo_url: string | null;
           name: string;
@@ -75,9 +77,11 @@ export type Database = {
           category_confidence?: number | null;
           confidence?: number | null;
           created_at?: string | null;
+          description?: string | null;
           discovery_source: string;
           domain: string;
           gift_appeal?: string | null;
+          gift_appeal_rank?: never;
           id?: string;
           logo_url?: string | null;
           name: string;
@@ -99,9 +103,11 @@ export type Database = {
           category_confidence?: number | null;
           confidence?: number | null;
           created_at?: string | null;
+          description?: string | null;
           discovery_source?: string;
           domain?: string;
           gift_appeal?: string | null;
+          gift_appeal_rank?: never;
           id?: string;
           logo_url?: string | null;
           name?: string;

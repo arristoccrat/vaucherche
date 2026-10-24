@@ -11,11 +11,13 @@ import {
   type ProductSource,
 } from "@/lib/domain";
 import {
+  SHOPS_VIEW,
   SHOP_SORTS,
   SHOP_SORT_LABELS,
   shopsHref,
   type ShopFilters,
   type ShopSort,
+  type ShopsView,
   type YesNo,
 } from "@/lib/search-params";
 import { cn } from "@/lib/utils";
@@ -59,10 +61,14 @@ export function FilterBar({
   filters,
   categories,
   giftAppeals,
+  view = SHOPS_VIEW,
+  hidePublished = false,
 }: {
   filters: ShopFilters;
   categories: Facet[];
   giftAppeals: Facet[];
+  view?: ShopsView;
+  hidePublished?: boolean;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -71,7 +77,7 @@ export function FilterBar({
 
   const go = (changes: Partial<ShopFilters>, replace = false) =>
     startTransition(() => {
-      const href = shopsHref(filters, changes);
+      const href = shopsHref(filters, changes, view);
       if (replace) router.replace(href);
       else router.push(href);
     });
@@ -146,15 +152,17 @@ export function FilterBar({
         ) : null}
       </Select>
 
-      <Select
-        label="Публикуван"
-        value={filters.published ?? ""}
-        onChange={(value) => go({ published: yesNo(value) })}
-      >
-        <option value="">Всички</option>
-        <option value="yes">Да</option>
-        <option value="no">Не</option>
-      </Select>
+      {hidePublished ? null : (
+        <Select
+          label="Публикуван"
+          value={filters.published ?? ""}
+          onChange={(value) => go({ published: yesNo(value) })}
+        >
+          <option value="">Всички</option>
+          <option value="yes">Да</option>
+          <option value="no">Не</option>
+        </Select>
+      )}
 
       <Select
         label="URL потвърден"

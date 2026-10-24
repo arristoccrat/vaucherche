@@ -7,6 +7,7 @@ import { publishChecks } from "@/lib/publish";
 import type { ShopListRow } from "@/lib/queries/shops";
 import { cn } from "@/lib/utils";
 
+import { EditorialForm } from "./editorial-form";
 import { minMax, offerValuesBgn } from "./price-cell";
 import { ProductsPanel } from "./products-panel";
 
@@ -27,6 +28,7 @@ export type ShopActions = {
   confirm: () => void;
   reject: () => void;
   skip: () => void;
+  setPublished: (published: boolean) => void;
   togglePublished: () => void;
   open: () => void;
 };
@@ -34,9 +36,11 @@ export type ShopActions = {
 export function ShopDetail({
   shop,
   actions,
+  categories,
 }: {
   shop: ShopListRow;
   actions: ShopActions;
+  categories: string[];
 }) {
   const { verdict, quote } = parseStatusReason(shop.status_reason);
   const offer = shop.voucher_offers[0];
@@ -183,6 +187,7 @@ export function ShopDetail({
           </Link>
         </div>
       </div>
+      <EditorialForm key={shop.id} shop={shop} categories={categories} />
       <ProductsPanel shop={shop} />
     </div>
   );

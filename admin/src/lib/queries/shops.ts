@@ -18,7 +18,8 @@ export const SHOP_FACETS_TAG = "shop-facets";
 // `source_match` is a second embed of voucher_products used only to filter by
 // product source without narrowing the `voucher_products` list itself.
 const LIST_SELECT = `
-  id, domain, name, slug, status, status_reason, category, subcategory,
+  id, domain, name, slug, description, logo_url, status, status_reason,
+  category, subcategory,
   gift_appeal, confidence, published, voucher_url, voucher_url_verified,
   voucher_url_note, voucher_type, updated_at,
   voucher_offers ( denominations, currency, min_value, max_value,
@@ -83,6 +84,12 @@ function buildListQuery(params: ListShopsParams) {
       break;
     case "updated":
       query = query.order("updated_at", { ascending: false, nullsFirst: false });
+      break;
+    case "appeal":
+      query = query
+        .order("gift_appeal_rank", { nullsFirst: false })
+        .order("category", { nullsFirst: false })
+        .order("domain");
       break;
     case "category":
       query = query
@@ -274,4 +281,43 @@ export async function resolveShopTargets(
   }
 
   return rows;
+}
+
+export const QUEUE_STATUSES = ["confirmed", "ai_confirmed"] as const satisfies readonly ShopStatus[];
+
+// Confirmed-but-unpublished counts for the queue chips; same caching rules as
+// getStatusCounts().
+const cachedQueueCounts = unstable_cache(
+  async () => {
+    const supabase = createAdminClient();
+    const counts = await Promise.all(
+      QUEUE_STATUSES.map(async (status) => {
+        const { count, error } = await supabase
+          .from("shops")
+          .select("id", { count: "exact", head: true })
+          .eq("status", status)
+          .not("published", "is", true);
+        if (error) throw new Error(error.message);
+        return count ?? 0;
+      })
+    );
+    const byStatus = Object.fromEntries(
+      SHOP_STATUSES.map((status) => {
+        const i = QUEUE_STATUSES.indexOf(status as (typeof QUEUE_STATUSES)[number]);
+        return [status, i === -1 ? 0 : counts[i]];
+      })
+    ) as Record<ShopStatus, number>;
+    return { total: counts.reduce((a, b) => a + b, 0), byStatus };
+  },
+  ["queue-counts"],
+  { revalidate: 60, tags: [SHOP_COUNTS_TAG] }
+);
+
+export async function getQueueCounts() {
+  await requireUser();
+  try {
+    return await cachedQueueCounts();
+  } catch {
+    return null;
+  }
 }

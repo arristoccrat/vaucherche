@@ -30,6 +30,14 @@ npm run dev
    `https://<admin-domain>/auth/callback` (plus the Vercel preview pattern if
    you sign in on previews).
 
+## Database changes
+
+SQL the admin depends on lives in `sql/`, numbered. Run each file once in the
+Supabase SQL Editor **before** deploying the admin version that needs it:
+
+- `sql/001_editorial.sql` — `shops.description` and `shops.gift_appeal_rank`
+  (Phase 5: editorial fields and the publish queue).
+
 ## Types
 
 `src/lib/database.types.ts` is currently hand-written from the schema.

@@ -67,6 +67,7 @@ function failed(error: unknown): ActionResult<never> {
 
 function refresh() {
   revalidatePath("/shops");
+  revalidatePath("/queue");
   revalidateTag(SHOP_COUNTS_TAG);
 }
 
@@ -205,7 +206,7 @@ async function applyPublished(ids: string[], published: boolean): Promise<Counte
       // Re-check the publish gate on the server, row by row.
       const { data, error } = await supabase
         .from("shops")
-        .select("id, status, domain, name, category, voucher_url, voucher_url_verified")
+        .select("id, status, domain, name, description, category, voucher_url, voucher_url_verified")
         .in("id", chunk);
       if (error) throw new Error(error.message);
       eligible = data.filter(canPublish).map((shop) => shop.id);
@@ -238,7 +239,7 @@ export async function setPublished(
       const supabase = createAdminClient();
       const { data: shop, error } = await supabase
         .from("shops")
-        .select("status, domain, name, category, voucher_url, voucher_url_verified")
+        .select("status, domain, name, description, category, voucher_url, voucher_url_verified")
         .eq("id", parsed.data.id)
         .maybeSingle();
       if (error) throw new Error(error.message);

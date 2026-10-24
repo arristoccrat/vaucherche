@@ -4,6 +4,7 @@ export type PublishCheckInput = {
   status: string;
   domain: string;
   name: string | null;
+  description: string | null;
   category: string | null;
   voucher_url: string | null;
   voucher_url_verified: boolean | null;
@@ -15,7 +16,6 @@ const PUBLISHABLE_STATUSES: readonly ShopStatus[] = ["confirmed", "ai_confirmed"
 
 // The conditions a shop must meet before a human may publish it. Shown as a
 // checklist in the UI and enforced again in the Server Action.
-// TODO(Phase 5): add "description is filled in" once the column exists.
 export function publishChecks(shop: PublishCheckInput): PublishCheck[] {
   const name = shop.name?.trim() ?? "";
   return [
@@ -32,6 +32,7 @@ export function publishChecks(shop: PublishCheckInput): PublishCheck[] {
       label: "Име, въведено от човек (не домейнът)",
       ok: name !== "" && name.toLowerCase() !== shop.domain.toLowerCase(),
     },
+    { label: "Има описание", ok: Boolean(shop.description?.trim()) },
   ];
 }
 

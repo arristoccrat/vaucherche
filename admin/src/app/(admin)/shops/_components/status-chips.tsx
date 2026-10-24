@@ -3,7 +3,12 @@ import Link from "next/link";
 import { STATUS_STYLES } from "@/components/status-badge";
 import { SHOP_STATUSES, STATUS_LABELS, type ShopStatus } from "@/lib/domain";
 import { formatCount } from "@/lib/format";
-import { shopsHref, type ShopFilters } from "@/lib/search-params";
+import {
+  SHOPS_VIEW,
+  shopsHref,
+  type ShopFilters,
+  type ShopsView,
+} from "@/lib/search-params";
 import { cn } from "@/lib/utils";
 
 type Counts = { total: number; byStatus: Record<ShopStatus, number> } | null;
@@ -12,9 +17,17 @@ type Counts = { total: number; byStatus: Record<ShopStatus, number> } | null;
 export function StatusChips({
   filters,
   counts,
+  view = SHOPS_VIEW,
+  statuses = SHOP_STATUSES,
+  allLabel = "Всички",
+  allCount,
 }: {
   filters: ShopFilters;
   counts: Counts;
+  view?: ShopsView;
+  statuses?: readonly ShopStatus[];
+  allLabel?: string;
+  allCount?: number;
 }) {
   const toggle = (status: ShopStatus) =>
     filters.status.includes(status)
@@ -24,7 +37,7 @@ export function StatusChips({
   return (
     <div className="flex flex-wrap gap-2">
       <Link
-        href={shopsHref(filters, { status: [] })}
+        href={shopsHref(filters, { status: [] }, view)}
         className={cn(
           "rounded-full border px-3 py-1 text-sm transition-colors",
           filters.status.length === 0
@@ -32,19 +45,19 @@ export function StatusChips({
             : "hover:bg-accent"
         )}
       >
-        Всички
-        {counts ? (
+        {allLabel}
+        {counts || allCount != null ? (
           <span className="ml-1.5 tabular-nums opacity-70">
-            {formatCount(counts.total)}
+            {formatCount(allCount ?? counts?.total ?? 0)}
           </span>
         ) : null}
       </Link>
-      {SHOP_STATUSES.map((status) => {
+      {statuses.map((status) => {
         const active = filters.status.includes(status);
         return (
           <Link
             key={status}
-            href={shopsHref(filters, { status: toggle(status) })}
+            href={shopsHref(filters, { status: toggle(status) }, view)}
             aria-pressed={active}
             className={cn(
               "rounded-full border px-3 py-1 text-sm transition-colors",
