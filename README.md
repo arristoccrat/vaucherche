@@ -32,14 +32,13 @@ Supabase clients:
 
 ## Supabase setup (once)
 
-1. Authentication → Sign In / Providers → Email → turn off **Allow new users to
-   sign up** (do this before the RLS policies: signed-in users get full access).
-2. Authentication → Users → add your own user.
-3. Authentication → URL Configuration → add redirect URLs:
-   `http://localhost:3000/admin/auth/callback`,
-   `https://vaucherche.bg/admin/auth/callback`, and the Vercel URL's
-   `…/admin/auth/callback` (plus the preview pattern if you sign in on
-   previews).
+1. Authentication → Sign In / Providers → Email: keep the provider enabled
+   and turn off **Allow new users to sign up** (do this before the RLS
+   policies: signed-in users get full access).
+2. Authentication → Users → **Add user → Create new user**: your email and a
+   strong password, with **Auto Confirm User** ticked. That account signs in
+   at `/admin/login`. To change the password later, use the user's menu in
+   the same list.
 
 ## Database changes
 
@@ -77,7 +76,7 @@ site. In that project:
 2. **Protect previews** — Settings → Deployment Protection → Vercel
    Authentication on, so branch URLs are not publicly readable.
 3. Redeploy, then check: signed out, `/admin/shops`, `/admin/queue` and
-   `/admin/ops` redirect to `/admin/login`; the magic link signs you in;
+   `/admin/ops` redirect to `/admin/login`; email and password sign you in;
    `/admin/shops` shows the full shop count (about 19,974) with its query time
    in the header.
 
