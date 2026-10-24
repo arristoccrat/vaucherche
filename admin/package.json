@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "gen:types": "supabase gen types typescript --project-id \"$SUPABASE_PROJECT_ID\" --schema public > src/lib/database.types.ts",
+    "gen:types": "supabase gen types typescript --project-id \"$SUPABASE_PROJECT_ID\" --schema public > src/lib/database.types.new.ts && mv src/lib/database.types.new.ts src/lib/database.types.ts",
     "check:secrets": "! grep -rl SUPABASE_SERVICE_ROLE .next/static && ( [ -z \"$SUPABASE_SERVICE_ROLE_KEY\" ] || ! grep -rlF \"$SUPABASE_SERVICE_ROLE_KEY\" .next/static )"
   },
   "dependencies": {

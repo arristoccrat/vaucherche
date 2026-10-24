@@ -12,7 +12,7 @@ export const SHOP_STATUSES = [
 ] as const;
 export type ShopStatus = (typeof SHOP_STATUSES)[number];
 
-// TODO: confirm against `select distinct gift_appeal from shops`.
+// Enum in the 06-categorise.js prompt; NULL means not yet categorised.
 export const GIFT_APPEALS = ["high", "medium", "low"] as const;
 export type GiftAppeal = (typeof GIFT_APPEALS)[number];
 
