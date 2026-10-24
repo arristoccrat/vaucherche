@@ -35,3 +35,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# partial output of npm run gen:types
+src/lib/database.types.new.ts

@@ -1,50 +1,107 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vaucherche.bg
 
-## Getting Started
+Directory of gift vouchers sold by Bulgarian online shops. One Next.js 14
+(App Router) app, one Vercel project:
 
-First, run the development server:
+- `/` — the public site (currently the coming soon page).
+- `/admin` — internal admin: triage, verify, edit and publish shops. It reads
+  and writes Supabase only; the crawler and AI pipeline run elsewhere.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+See `CLAUDE.md` for the rules both parts follow.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-## Supabase
-
-Copy `.env.example` to `.env.local` and fill in your project's values (Supabase dashboard → Project Settings → API):
+## Local setup
 
 ```bash
-cp .env.example .env.local
+cp .env.example .env.local   # fill in values
+npm install
+npm run dev                  # public site at /, admin at /admin
 ```
 
-Then import the client anywhere:
+| Variable | Scope | Notes |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | client | Safe |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client | Publishable key, RLS-bound |
+| `SUPABASE_SERVICE_ROLE_KEY` | server only | Secret key. Never `NEXT_PUBLIC_`. Used only by the admin |
+| `SUPABASE_PROJECT_ID` | local only | For `npm run gen:types` |
 
-```ts
-import { supabase } from "@/lib/supabase";
+Supabase clients:
+
+- `src/lib/supabase/public.ts` — publishable key, for the public site.
+- `src/lib/supabase/server.ts` — admin pages; the signed-in user's session, RLS applies.
+- `src/lib/supabase/admin.ts` — service role, `server-only`, admin Server Actions only.
+
+## Supabase setup (once)
+
+1. Authentication → Sign In / Providers → Email → turn off **Allow new users to
+   sign up** (do this before the RLS policies: signed-in users get full access).
+2. Authentication → Users → add your own user.
+3. Authentication → URL Configuration → add redirect URLs:
+   `http://localhost:3000/admin/auth/callback`,
+   `https://vaucherche.bg/admin/auth/callback`, and the Vercel URL's
+   `…/admin/auth/callback` (plus the preview pattern if you sign in on
+   previews).
+
+## Database changes
+
+SQL the admin depends on lives in `sql/`, numbered. Run each file once in the
+Supabase SQL Editor **before** deploying the version that needs it (after the
+Phase 0 RLS policies and indexes from the admin spec):
+
+- `sql/001_editorial.sql` — `shops.description` and `shops.gift_appeal_rank`
+  (editorial fields and the publish queue).
+- `sql/002_ops_indexes.sql` — indexes for the `/admin/ops` counts and the list
+  joins.
+- `sql/003_shop_voucher_range.sql` — listing-card view: BGN-only prices
+  ignoring zeros, normalised availability, card fields. Check what the
+  static site generator (`08`) reads from this view before running it.
+
+## Types
+
+`src/lib/database.types.ts` is hand-written from the schema. To regenerate it
+from the live database:
+
+```bash
+npx supabase login
+SUPABASE_PROJECT_ID=<ref> npm run gen:types
+npm run typecheck && npm run build   # if this fails: git checkout -- src/lib/database.types.ts
+```
+
+## Deploy (Vercel)
+
+The existing Vercel project builds the repo root, so `/admin` deploys with the
+site. In that project:
+
+1. **Environment variables** (Production and Preview): add
+   `SUPABASE_SERVICE_ROLE_KEY` (the secret key, never with `NEXT_PUBLIC_`)
+   next to the two public ones.
+2. **Protect previews** — Settings → Deployment Protection → Vercel
+   Authentication on, so branch URLs are not publicly readable.
+3. Redeploy, then check: signed out, `/admin/shops`, `/admin/queue` and
+   `/admin/ops` redirect to `/admin/login`; the magic link signs you in;
+   `/admin/shops` shows the full shop count (about 19,974) with its query time
+   in the header.
+
+Built in:
+
+- `npm run build` runs `check:secrets` afterwards (`postbuild`). It fails the
+  build if `SUPABASE_SERVICE_ROLE` or the service key's value appears anywhere
+  in `.next/static`, so a leak cannot deploy.
+- `/admin` responses carry `X-Robots-Tag: noindex`, `X-Frame-Options: DENY`,
+  `Referrer-Policy: no-referrer`; `robots.txt` disallows `/admin`.
+- The middleware only runs on `/admin`; admin pages are `force-dynamic`.
+- The admin theme is scoped to `.admin-root` and always light; the public site
+  keeps its own colours and follows the OS dark mode.
+
+## What does not run here
+
+The crawler and AI pipeline stay outside Vercel (they run for hours; Vercel
+functions stop after 60–300 seconds). To trigger a crawl from the admin later,
+add a jobs table the worker polls: the admin inserts a row, the worker picks
+it up.
+
+## Checks
+
+```bash
+npm run typecheck && npm run lint
+npm run build      # includes the secret check
 ```
