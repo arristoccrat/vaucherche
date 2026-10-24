@@ -81,8 +81,10 @@ to suit the admin.
   `revalidatePath`.
 - Interface language is Bulgarian; category slugs, status values and column
   names stay English.
-- Prices display in BGN and EUR both. `price_bgn` is the sort key; the EUR peg
-  is 1.95583.
+- All amounts display in euros only (`src/lib/format.ts`: `productEur`,
+  `toEur`, `formatEur*`). Stored values stay as scraped (`price` +
+  `currency`, and `price_bgn`); use the scraped price when it is already in
+  EUR, otherwise convert at the fixed 1.95583. `price_bgn` stays the sort key.
 
 ### Do not
 

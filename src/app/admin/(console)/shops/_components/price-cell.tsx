@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { formatBgnRange, formatEurRange, toBgn } from "@/lib/format";
+import { formatEurRange, productEur, toEur } from "@/lib/format";
 import type { ShopListRow } from "@/lib/queries/shops";
 
 const SOURCE_STYLES: Record<string, string> = {
@@ -23,17 +23,20 @@ export function minMax(values: number[]) {
     : null;
 }
 
-export function offerValuesBgn(offer: ShopListRow["voucher_offers"][number] | undefined) {
+export function offerValuesEur(offer: ShopListRow["voucher_offers"][number] | undefined) {
   if (!offer) return [];
   return [offer.min_value, offer.max_value, ...(offer.denominations ?? [])]
-    .map((v) => toBgn(v, offer.currency))
+    .map((v) => toEur(v, offer.currency))
     .filter((v): v is number => v != null);
 }
 
 export function PriceCell({ shop }: { shop: ShopListRow }) {
   const products = shop.voucher_products;
   const prices = minMax(
-    products.flatMap((p) => (p.price_bgn == null ? [] : [p.price_bgn]))
+    products.flatMap((p) => {
+      const eur = productEur(p);
+      return eur == null ? [] : [eur];
+    })
   );
   const sources = Array.from(
     new Set(products.flatMap((p) => (p.source ? [p.source] : [])))
@@ -43,9 +46,6 @@ export function PriceCell({ shop }: { shop: ShopListRow }) {
     return (
       <div className="space-y-1">
         <div className="font-medium tabular-nums">
-          {formatBgnRange(prices.min, prices.max)}
-        </div>
-        <div className="text-xs tabular-nums text-muted-foreground">
           {formatEurRange(prices.min, prices.max)}
         </div>
         <div className="flex flex-wrap gap-1">
@@ -61,13 +61,13 @@ export function PriceCell({ shop }: { shop: ShopListRow }) {
   }
 
   // No real prices yet: fall back to the AI-extracted offer, clearly marked.
-  const offerRange = minMax(offerValuesBgn(shop.voucher_offers[0]));
+  const offerRange = minMax(offerValuesEur(shop.voucher_offers[0]));
 
   return (
     <div className="space-y-1 text-muted-foreground">
       {offerRange ? (
         <div className="tabular-nums" title="Извлечено от AI, без реални цени">
-          ≈ {formatBgnRange(offerRange.min, offerRange.max)}{" "}
+          ≈ {formatEurRange(offerRange.min, offerRange.max)}{" "}
           <span className="text-xs">(AI)</span>
         </div>
       ) : (

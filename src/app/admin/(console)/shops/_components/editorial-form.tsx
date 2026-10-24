@@ -178,7 +178,7 @@ export function EditorialForm({
               onChange={(event) => description.change(event.target.value)}
               onBlur={description.flush}
               className={fieldClass}
-              placeholder="Напр.: Подаръчни ваучери за масажи и СПА процедури в София. Изберете сума от 50 до 300 лв, валидни 12 месеца."
+              placeholder="Напр.: Подаръчни ваучери за масажи и СПА процедури в София. Изберете сума от 25 до 150 €, валидни 12 месеца."
             />
           </div>
         </div>

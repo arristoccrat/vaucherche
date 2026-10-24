@@ -2,13 +2,13 @@ import { Check, ExternalLink, X } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { formatBgnRange, formatEurRange, parseStatusReason, toBgn } from "@/lib/format";
+import { formatEur, formatEurRange, parseStatusReason, toEur } from "@/lib/format";
 import { publishChecks } from "@/lib/publish";
 import type { ShopListRow } from "@/lib/queries/shops";
 import { cn } from "@/lib/utils";
 
 import { EditorialForm } from "./editorial-form";
-import { minMax, offerValuesBgn } from "./price-cell";
+import { minMax, offerValuesEur } from "./price-cell";
 import { ProductsPanel } from "./products-panel";
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
@@ -44,7 +44,7 @@ export function ShopDetail({
 }) {
   const { verdict, quote } = parseStatusReason(shop.status_reason);
   const offer = shop.voucher_offers[0];
-  const offerRange = minMax(offerValuesBgn(offer));
+  const offerRange = minMax(offerValuesEur(offer));
   const checks = publishChecks(shop);
 
   return (
@@ -67,23 +67,14 @@ export function ShopDetail({
             <Fact label="Номинали">
               {offer?.denominations?.length
                 ? offer.denominations
-                    .map((d) => toBgn(d, offer.currency))
+                    .map((d) => toEur(d, offer.currency))
                     .filter((d): d is number => d != null)
-                    .map((d) => formatBgnRange(d, d))
+                    .map(formatEur)
                     .join(", ")
                 : "—"}
             </Fact>
             <Fact label="Диапазон (AI)">
-              {offerRange ? (
-                <>
-                  {formatBgnRange(offerRange.min, offerRange.max)}
-                  <span className="block text-xs text-muted-foreground">
-                    {formatEurRange(offerRange.min, offerRange.max)}
-                  </span>
-                </>
-              ) : (
-                "—"
-              )}
+              {offerRange ? formatEurRange(offerRange.min, offerRange.max) : "—"}
             </Fact>
             <Fact label="Свободна сума">{yesNo(offer?.custom_amount)}</Fact>
             <Fact label="Дигитален / физически">
