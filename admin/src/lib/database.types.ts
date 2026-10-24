@@ -1,6 +1,5 @@
 // Hand-written from the live schema (24 Oct 2026, plus admin/sql/*) until `npm run gen:types`
 // can be run against the project; that command overwrites this file.
-// shop_voucher_range is not included yet: its column list was not available.
 
 export type Json =
   | string
@@ -277,7 +276,28 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      shop_voucher_range: {
+        Row: {
+          any_in_stock: boolean | null;
+          category: string | null;
+          currency: string | null;
+          denominations: number[] | null;
+          description: string | null;
+          domain: string | null;
+          gift_appeal: string | null;
+          id: string | null;
+          logo_url: string | null;
+          max_bgn: number | null;
+          min_bgn: number | null;
+          name: string | null;
+          priced_count: number | null;
+          product_count: number | null;
+          published: boolean | null;
+          slug: string | null;
+          subcategory: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       [_ in never]: never;
