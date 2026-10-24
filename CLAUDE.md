@@ -100,6 +100,13 @@ commands from the app's own directory.
 - **Do not copy merchant product descriptions into listings.** Use the facts,
   write the copy.
 
+### Deployment (admin)
+
+- `npm run build` runs `check:secrets` as `postbuild`; never remove it. It
+  fails the build if the service key (name or value) is in `.next/static`.
+- Security headers live in `admin/next.config.mjs`; the full deploy checklist
+  is in `admin/README.md`.
+
 ### Checks before a phase is called done (run in `admin/`)
 
 - `npm run typecheck` clean, no `any` on Supabase responses.
