@@ -12,8 +12,9 @@ One Next.js 14 App Router app (TypeScript strict, Tailwind, shadcn/ui,
   `published = true`.
 - `src/app/admin/` — internal admin at `/admin`. Reads and writes Supabase;
   does not crawl and does not call the Anthropic API. `(auth)/login` is
-  public, `(console)/` requires a session; `auth/callback` and
-  `api/products/[id]/raw` are route handlers. The middleware
+  public (email + password via Supabase Auth; sign-ups disabled, users are
+  created in the dashboard), `(console)/` requires a session;
+  `api/products/[id]/raw` is a route handler. The middleware
   (`src/middleware.ts`) runs only for `/admin`.
 - Admin code: `src/actions/` (Server Actions), `src/lib/` (queries, domain,
   Supabase clients), `src/components/`.

@@ -1,6 +1,5 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
@@ -8,47 +7,47 @@ import type { ActionResult } from "@/lib/action-result";
 import { safeNextPath } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-const magicLinkSchema = z.object({
+const signInSchema = z.object({
   email: z.string().trim().email(),
+  password: z.string().min(1).max(200),
   next: z.string().optional(),
 });
 
-export type MagicLinkState = ActionResult<{ email: string }> | null;
+export type SignInState = ActionResult<never> | null;
 
-export async function sendMagicLink(
-  _prev: MagicLinkState,
+// Email + password. Users are created in the Supabase dashboard; sign-ups are
+// disabled, so there is no registration path here.
+export async function signIn(
+  _prev: SignInState,
   formData: FormData
-): Promise<MagicLinkState> {
-  const parsed = magicLinkSchema.safeParse({
+): Promise<SignInState> {
+  const parsed = signInSchema.safeParse({
     email: formData.get("email"),
+    password: formData.get("password"),
     next: formData.get("next") ?? undefined,
   });
   if (!parsed.success) {
-    return { ok: false, error: "Въведете валиден имейл адрес." };
+    return { ok: false, error: "Въведете имейл и парола." };
   }
 
-  const { email, next } = parsed.data;
-  const headerList = headers();
-  const host = headerList.get("x-forwarded-host") ?? headerList.get("host");
-  const protocol = headerList.get("x-forwarded-proto") ?? "https";
-  const callback = new URL("/admin/auth/callback", `${protocol}://${host}`);
-  callback.searchParams.set("next", safeNextPath(next));
-
   const supabase = createClient();
-  const { error } = await supabase.auth.signInWithOtp({
-    email,
-    // Signups are disabled: only existing users get a link.
-    options: { shouldCreateUser: false, emailRedirectTo: callback.toString() },
+  const { error } = await supabase.auth.signInWithPassword({
+    email: parsed.data.email,
+    password: parsed.data.password,
   });
 
   if (error) {
+    // Same message for unknown email and wrong password.
     return {
       ok: false,
-      error: "Не успяхме да изпратим линк. Проверете имейла и опитайте пак.",
+      error:
+        error.status === 429
+          ? "Твърде много опити. Изчакайте малко и опитайте пак."
+          : "Грешен имейл или парола.",
     };
   }
 
-  return { ok: true, data: { email } };
+  redirect(safeNextPath(parsed.data.next));
 }
 
 export async function signOut() {
