@@ -37,6 +37,13 @@ commands from the app's own directory.
   `AI rejected`.
 - Publishing is gated by `admin/src/lib/publish.ts` (checked in the UI and
   again in the Server Action); bulk publish skips shops that fail it.
+- URL verification (`admin/src/actions/products.ts`): first line becomes
+  `shops.voucher_url` with `voucher_url_verified = true`; every line is added
+  to `voucher_products` as `source: 'manual'` with no price, only if that
+  (shop, url) is not already there. Existing product rows are never updated
+  or removed, so crawler prices survive re-verification.
+- Heavy product columns (`raw_text`, `meta`, `links`, `description`) are
+  fetched on demand from `/api/products/[id]/raw`, never in list queries.
 - `status_reason` carries the AI evidence, e.g.
   `AI confirmed (0.92): подаръчен ваучер 50 лв`. Split on the first colon and
   show the quote prominently.

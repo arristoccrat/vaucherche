@@ -47,6 +47,12 @@ export async function updateSession(request: NextRequest) {
   // redirecting their POST would hand the caller an HTML page instead.
   const isServerAction = request.headers.has("next-action");
 
+  // API routes answer in JSON; a redirect to an HTML login page is useless
+  // to a fetch() caller.
+  if (!user && pathname.startsWith("/api/")) {
+    return NextResponse.json({ error: "Не сте влезли." }, { status: 401 });
+  }
+
   if (!user && !isPublicPath(pathname) && !isServerAction) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

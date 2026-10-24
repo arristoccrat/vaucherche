@@ -24,7 +24,8 @@ const LIST_SELECT = `
   voucher_offers ( denominations, currency, min_value, max_value,
     custom_amount, is_digital, is_physical, delivery_methods, validity_months,
     personalisable, terms_url, verified_by_human, verified_at ),
-  voucher_products ( id, url, price, currency, price_bgn, availability, source ),
+  voucher_products ( id, url, title, price, currency, price_bgn, availability,
+    source ),
   source_match:voucher_products ( source )
 `;
 
