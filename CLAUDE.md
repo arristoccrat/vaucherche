@@ -54,7 +54,10 @@ commands from the app's own directory.
 - **Do not put the service-role key anywhere a browser can reach it.** No
   `NEXT_PUBLIC_` prefix, no import of `admin/src/lib/supabase/admin.ts` into a
   Client Component. Keep `import 'server-only'` at the top of that file so a
-  mistake fails the build instead of leaking silently.
+  mistake fails the build instead of leaking silently. Use it only in Server
+  Actions after `getUser()`, or in `unstable_cache`d aggregate reads (which
+  cannot see the session cookie) behind a `requireUser()` wrapper — see
+  `admin/src/lib/queries/shops.ts`.
 - **Do not port the crawler to a Vercel route handler.** `02a-fetch.js` runs for
   hours across thousands of hosts. Serverless functions cap at 60 seconds on
   Hobby, 300 on Pro. If the admin ever triggers a crawl, it inserts a job row

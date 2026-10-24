@@ -1,26 +1,66 @@
-import { createClient } from "@/lib/supabase/server";
+import Link from "next/link";
 
-// Phase 2 replaces this with the shops browser. For now it confirms that the
-// session client reaches Supabase and that RLS lets a signed-in user see
-// every shop.
-export default async function ShopsPage() {
-  const supabase = createClient();
-  const { count, error } = await supabase
-    .from("shops")
-    .select("id", { count: "exact", head: true });
+import { formatCount } from "@/lib/format";
+import {
+  SHOPS_PAGE_SIZE,
+  getShopFacets,
+  getStatusCounts,
+  listShops,
+} from "@/lib/queries/shops";
+import { parseShopFilters, serializeShopFilters } from "@/lib/search-params";
+
+import { FilterBar } from "./_components/filter-bar";
+import { Pagination } from "./_components/pagination";
+import { ShopsTable } from "./_components/shops-table";
+import { StatusChips } from "./_components/status-chips";
+
+export default async function ShopsPage({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}) {
+  const filters = parseShopFilters(searchParams);
+  const [result, counts, facets] = await Promise.all([
+    listShops({ ...filters, pageSize: SHOPS_PAGE_SIZE }),
+    getStatusCounts(),
+    getShopFacets(),
+  ]);
+  const hasFilters =
+    serializeShopFilters({ ...filters, page: 1 }).toString() !== "";
 
   return (
-    <div className="space-y-2">
-      <h1 className="text-2xl font-semibold">Магазини</h1>
-      {error ? (
-        <p className="text-sm text-destructive">
-          Грешка при четене от Supabase: {error.message}
-        </p>
-      ) : (
-        <p className="text-sm text-muted-foreground">
-          Видими магазини: {count?.toLocaleString("bg-BG") ?? 0}
-        </p>
-      )}
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h1 className="text-2xl font-semibold">Магазини</h1>
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {formatCount(result.total)} резултата · {result.durationMs} ms
+        </span>
+      </div>
+
+      <StatusChips filters={filters} counts={counts} />
+
+      <FilterBar
+        filters={filters}
+        categories={facets.categories}
+        giftAppeals={facets.giftAppeals}
+      />
+
+      {hasFilters ? (
+        <Link
+          href="/shops"
+          className="inline-block text-sm text-muted-foreground underline-offset-4 hover:underline"
+        >
+          Изчисти филтрите
+        </Link>
+      ) : null}
+
+      <ShopsTable rows={result.rows} />
+
+      <Pagination
+        filters={filters}
+        total={result.total}
+        pageSize={result.pageSize}
+      />
     </div>
   );
 }
