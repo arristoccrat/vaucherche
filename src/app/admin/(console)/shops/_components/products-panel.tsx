@@ -7,8 +7,7 @@ import { toast } from "sonner";
 import { verifyVoucherUrls } from "@/actions/products";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BGN_PER_EUR } from "@/lib/domain";
-import { formatBgnRange, formatEurRange } from "@/lib/format";
+import { formatEur, formatEurRange, productEur } from "@/lib/format";
 import type { ShopListRow } from "@/lib/queries/shops";
 import { cn } from "@/lib/utils";
 
@@ -29,28 +28,23 @@ function shortUrl(url: string) {
 }
 
 function ProductRow({ product }: { product: Product }) {
-  const waiting = product.price_bgn == null;
+  const eur = productEur(product);
   const currency = (product.currency ?? "").toUpperCase();
   return (
     <li
       className={cn(
         "space-y-1 rounded-md border bg-background p-2",
-        waiting && "border-dashed"
+        eur == null && "border-dashed"
       )}
     >
       <div className="flex flex-wrap items-center gap-2">
         <div className="min-w-24 font-medium tabular-nums">
-          {waiting ? (
+          {eur == null ? (
             <Badge variant="outline" className="border-dashed text-muted-foreground">
               чака
             </Badge>
           ) : (
-            <>
-              {number.format(product.price_bgn!)} лв
-              <span className="ml-1 text-xs font-normal text-muted-foreground">
-                {number.format(product.price_bgn! / BGN_PER_EUR)} €
-              </span>
-            </>
+            formatEur(eur)
           )}
         </div>
         {product.price != null && currency && currency !== "BGN" && currency !== "EUR" ? (
@@ -138,9 +132,12 @@ export function ProductsPanel({ shop }: { shop: ShopListRow }) {
     (a, b) => (a.price_bgn ?? Infinity) - (b.price_bgn ?? Infinity)
   );
   const range = minMax(
-    products.flatMap((p) => (p.price_bgn == null ? [] : [p.price_bgn]))
+    products.flatMap((p) => {
+      const eur = productEur(p);
+      return eur == null ? [] : [eur];
+    })
   );
-  const waiting = products.filter((p) => p.price_bgn == null).length;
+  const waiting = products.filter((p) => productEur(p) == null).length;
 
   return (
     <div className="grid gap-6 border-t px-4 py-4 md:grid-cols-[2fr_1fr]">
@@ -149,10 +146,7 @@ export function ProductsPanel({ shop }: { shop: ShopListRow }) {
           <div className="text-xs text-muted-foreground">Продукти ({products.length})</div>
           {range ? (
             <div className="text-lg font-semibold tabular-nums">
-              {formatBgnRange(range.min, range.max)}
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                {formatEurRange(range.min, range.max)}
-              </span>
+              {formatEurRange(range.min, range.max)}
             </div>
           ) : (
             <div className="text-sm text-muted-foreground">Няма реални цени</div>

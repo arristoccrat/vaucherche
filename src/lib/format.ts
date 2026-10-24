@@ -2,26 +2,37 @@ import { BGN_PER_EUR } from "@/lib/domain";
 
 const number = new Intl.NumberFormat("bg-BG", { maximumFractionDigits: 2 });
 
-export function toBgn(value: number | null, currency: string | null) {
+// All amounts are shown in euros. Stored values stay as scraped (price +
+// currency, plus price_bgn as the sort key); conversion happens here.
+export function toEur(value: number | null, currency: string | null) {
   if (value == null) return null;
   const code = (currency ?? "BGN").toUpperCase();
-  if (code === "BGN") return value;
-  if (code === "EUR") return value * BGN_PER_EUR;
+  if (code === "EUR") return value;
+  if (code === "BGN") return value / BGN_PER_EUR;
   return null;
 }
 
-function range(min: number, max: number, suffix: string) {
+// A product's euro price: exact when it was scraped in euros, otherwise
+// derived from price_bgn.
+export function productEur(product: {
+  price: number | null;
+  currency: string | null;
+  price_bgn: number | null;
+}) {
+  if (product.price != null && (product.currency ?? "").toUpperCase() === "EUR") {
+    return product.price;
+  }
+  return product.price_bgn == null ? null : product.price_bgn / BGN_PER_EUR;
+}
+
+export function formatEur(value: number) {
+  return `${number.format(value)} €`;
+}
+
+export function formatEurRange(min: number, max: number) {
   return min === max
-    ? `${number.format(min)} ${suffix}`
-    : `${number.format(min)}–${number.format(max)} ${suffix}`;
-}
-
-export function formatBgnRange(min: number, max: number) {
-  return range(min, max, "лв");
-}
-
-export function formatEurRange(minBgn: number, maxBgn: number) {
-  return range(minBgn / BGN_PER_EUR, maxBgn / BGN_PER_EUR, "€");
+    ? formatEur(min)
+    : `${number.format(min)}–${number.format(max)} €`;
 }
 
 export function formatConfidence(value: number | null) {
