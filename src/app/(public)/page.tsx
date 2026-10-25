@@ -1,17 +1,12 @@
 import Link from "next/link";
 
 import { CATEGORIES, CATEGORY_KEYS, onColorHex } from "@/lib/categories";
-import { isSiteLaunched } from "@/lib/site";
-
-import { ComingSoon } from "./_components/coming-soon";
 
 export const revalidate = 3600;
 
 // Phase 1 shell: the browse page replaces this in Phase 2. It exercises all
 // three faces in Cyrillic and the category palette.
 export default function HomePage() {
-  if (!isSiteLaunched()) return <ComingSoon />;
-
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 md:px-10">
       <p className="text-[13.5px] font-medium md:hidden">Подарък, който никога не е сгрешен</p>

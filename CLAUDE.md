@@ -39,9 +39,12 @@ Every admin path is prefixed with `/admin` (links, redirects,
 `src/app/globals.css` and stay light; don't change the public `:root` colours
 to suit the admin.
 
-Pre-launch: production shows the coming soon page until `SITE_LAUNCHED=true`
-is set in Vercel (`src/lib/site.ts`); previews and `next dev` show the real
-site.
+Pre-launch: `src/middleware.ts` rewrites every public URL on production to
+`/coming-soon` (`src/app/(prelaunch)/`) until `SITE_LAUNCHED=true` is set in
+Vercel; previews and `next dev` show the real site. `/?preview=<PREVIEW_TOKEN>`
+sets a 30-day cookie that shows the real site on production; `/?preview=off`
+clears it. This gate decides presentation, not access: public pages only
+ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
 
 ## Data model notes
 

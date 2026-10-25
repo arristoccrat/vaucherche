@@ -24,6 +24,7 @@ npm run dev                  # public site at /, admin at /admin
 | `SUPABASE_SERVICE_ROLE_KEY` | server only | Secret key. Never `NEXT_PUBLIC_`. Used only by the admin |
 | `SUPABASE_PROJECT_ID` | local only | For `npm run gen:types` |
 | `SITE_LAUNCHED` | server | `true` in Production to replace the coming soon page with the site. Previews and `next dev` always show the site |
+| `PREVIEW_TOKEN` | server | Before launch, opening `/?preview=<token>` once shows the real site in that browser for 30 days; `/?preview=off` switches back |
 
 Supabase clients:
 
