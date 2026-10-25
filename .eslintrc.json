@@ -2,7 +2,7 @@
   "extends": ["next/core-web-vitals", "next/typescript"],
   "overrides": [
     {
-      "files": ["src/app/(public)/**/*.{ts,tsx}"],
+      "files": ["src/app/(public)/**/*.{ts,tsx}", "src/app/(prelaunch)/**/*.{ts,tsx}"],
       "rules": {
         "no-restricted-imports": [
           "error",
