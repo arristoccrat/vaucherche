@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { QueryError } from "@/components/query-error";
-import { SourceBadge } from "@/app/admin/(console)/shops/_components/price-cell";
+import { SourceBadge } from "@/app/(admin)/admin/(console)/shops/_components/price-cell";
 import { PRODUCT_SOURCES, SHOP_STATUSES, STATUS_LABELS } from "@/lib/domain";
 import { formatCount } from "@/lib/format";
 import { getOpsStats } from "@/lib/queries/ops";

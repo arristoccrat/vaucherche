@@ -5,27 +5,43 @@ Directory of gift vouchers sold by Bulgarian online shops.
 ## Repo layout
 
 One Next.js 14 App Router app (TypeScript strict, Tailwind, shadcn/ui,
-`src/` layout), deployed as one Vercel project:
+`src/` layout), deployed as one Vercel project. Two route groups, no group
+name in any URL:
 
-- `src/app/page.tsx` etc. — public site (vaucherche.bg). Reads Supabase only
+- `src/app/(public)/` — public site (vaucherche.bg). Reads Supabase only
   through `src/lib/supabase/public.ts` (publishable key); RLS limits it to
-  `published = true`.
-- `src/app/admin/` — internal admin at `/admin`. Reads and writes Supabase;
-  does not crawl and does not call the Anthropic API. `(auth)/login` is
-  public (email + password via Supabase Auth; sign-ups disabled, users are
-  created in the dashboard), `(console)/` requires a session;
-  `api/products/[id]/raw` is a route handler. The middleware
+  `published = true`. Writes nothing. Its own fonts, header and footer live
+  in `(public)/layout.tsx` and `(public)/_components/`.
+- `src/app/(admin)/admin/` — internal admin at `/admin`. Reads and writes
+  Supabase; does not crawl and does not call the Anthropic API.
+  `(auth)/login` is public (email + password via Supabase Auth; sign-ups
+  disabled, users are created in the dashboard), `(console)/` requires a
+  session; `api/products/[id]/raw` is a route handler. The middleware
   (`src/middleware.ts`) runs only for `/admin`.
-- Admin code: `src/actions/` (Server Actions), `src/lib/` (queries, domain,
-  Supabase clients), `src/components/`.
+- Admin code: `src/actions/` (Server Actions), `src/lib/queries/`,
+  `src/lib/supabase/{server,admin}.ts`.
+- Shared: `src/lib/brand.ts` (public palette), `src/lib/categories.ts` (the
+  18 categories: colour, Bulgarian label, URL path), `src/components/`.
+  Shared code imports no Supabase client and takes data as props.
 - `sql/` — schema changes run by hand in the Supabase SQL Editor.
 - The crawler / AI pipeline (`~/Desktop/Vaucherche/scripts/`) lives outside
   this repo and runs locally or on a persistent worker, never on Vercel.
+
+**The import boundary is the security model.** ESLint
+(`no-restricted-imports` in `.eslintrc.json`) fails lint and the build if
+anything under `src/app/(public)/` imports the admin client, the session
+client, `src/lib/queries/*`, `src/actions/*` or `(admin)` code, or if shared
+code imports any Supabase client. `server-only` on `admin.ts` stops a Client
+Component from importing it. Keep both.
 
 Every admin path is prefixed with `/admin` (links, redirects,
 `revalidatePath`, `fetch`). Admin styles live under `.admin-root` in
 `src/app/globals.css` and stay light; don't change the public `:root` colours
 to suit the admin.
+
+Pre-launch: production shows the coming soon page until `SITE_LAUNCHED=true`
+is set in Vercel (`src/lib/site.ts`); previews and `next dev` show the real
+site.
 
 ## Data model notes
 
@@ -86,6 +102,13 @@ to suit the admin.
   `currency`, and `price_bgn`); use the scraped price when it is already in
   EUR, otherwise convert at the fixed 1.95583. `price_bgn` stays the sort key.
 
+- Public design: colours only via `brand-*` Tailwind tokens and
+  `src/lib/categories.ts`; a hex code in a component is a bug. Fonts:
+  Unbounded (`font-display`), Manrope (`font-ui`), IBM Plex Mono
+  (`font-num`, all amounts, counts and dates), all with the Cyrillic subset.
+  2px `brand-ink` borders; amber only for selected state and the primary
+  CTA. `npm test` checks every category and text token clears 4.5:1.
+
 ### Do not
 
 - **Do not put the service-role key anywhere a browser can reach it.** No
@@ -124,7 +147,8 @@ to suit the admin.
 ### Checks before a change is called done
 
 - `npm run typecheck` clean, no `any` on Supabase responses.
-- `npm run lint` clean.
+- `npm run lint` clean (includes the import boundary).
+- `npm test` green (contrast).
 - `npm run build && npm run check:secrets` — no `SUPABASE_SERVICE_ROLE` in
   `.next/static`.
 - Signed out, every admin route redirects to `/admin/login`.
