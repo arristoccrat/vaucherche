@@ -17,7 +17,8 @@ name in any URL:
   `(auth)/login` is public (email + password via Supabase Auth; sign-ups
   disabled, users are created in the dashboard), `(console)/` requires a
   session; `api/products/[id]/raw` is a route handler. The middleware
-  (`src/middleware.ts`) runs only for `/admin`.
+  (`src/middleware.ts`) handles the admin session for `/admin` and the
+  pre-launch gate for public URLs.
 - Admin code: `src/actions/` (Server Actions), `src/lib/queries/`,
   `src/lib/supabase/{server,admin}.ts`.
 - Shared: `src/lib/brand.ts` (public palette), `src/lib/categories.ts` (the
@@ -104,6 +105,8 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
   `toEur`, `formatEur*`). Stored values stay as scraped (`price` +
   `currency`, and `price_bgn`); use the scraped price when it is already in
   EUR, otherwise convert at the fixed 1.95583. `price_bgn` stays the sort key.
+  The public site reads euro amounts from `shop_voucher_range`
+  (`min_eur`, `max_eur`, `denominations_eur`, same rule, `sql/004`).
 
 - Public design: colours only via `brand-*` Tailwind tokens and
   `src/lib/categories.ts`; a hex code in a component is a bug. Fonts:
