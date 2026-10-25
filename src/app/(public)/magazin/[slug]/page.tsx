@@ -168,7 +168,13 @@ export default async function ShopPage({ params }: { params: { slug: string } })
         </article>
 
         <aside className="mt-6 lg:sticky lg:top-6 lg:mt-0 lg:rounded-[22px] lg:border-2 lg:border-brand-ink lg:bg-brand-card lg:p-6" aria-label="Купи ваучер">
-          <BuyPanel amounts={amounts} customAmount={Boolean(offer?.custom_amount)} voucherUrl={shop.voucher_url} domain={shop.domain} />
+          <BuyPanel
+            slug={shop.slug}
+            amounts={amounts.map((a) => a.eur)}
+            customAmount={Boolean(offer?.custom_amount)}
+            canBuy={Boolean(shop.voucher_url || amounts.length)}
+            domain={shop.domain}
+          />
           <p className="mt-4 text-center text-[12.5px] leading-snug text-brand-body">
             Не продаваме ваучери — пращаме те директно на магазина.
             {lastChecked ? (
