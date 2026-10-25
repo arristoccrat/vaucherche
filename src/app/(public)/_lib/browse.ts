@@ -2,6 +2,7 @@ import { CATEGORY_KEYS, type CategoryKey } from "@/lib/categories";
 import { publicClient } from "@/lib/supabase/public";
 
 import { AMOUNT_BUCKETS, type BrowseFilters } from "./browse-params";
+import { searchFilter } from "./search-query";
 
 export const PAGE_SIZE = 24;
 
@@ -111,4 +112,22 @@ export async function publishedShopSlugs() {
     if (data.length < 1000) break;
   }
   return rows;
+}
+
+// Search results: same cards and order as browse, matched on name, domain,
+// subcategory and our description (see search-query.ts).
+export async function searchPublishedShops(query: string, page: number) {
+  const from = (page - 1) * PAGE_SIZE;
+  const { data, count, error } = await publicClient()
+    .from("shop_voucher_range")
+    .select(CARD_SELECT, { count: "exact" })
+    .eq("published", true)
+    .or(searchFilter(query))
+    .order("gift_appeal_rank", { ascending: true, nullsFirst: false })
+    .order("name")
+    .order("id")
+    .range(from, from + PAGE_SIZE - 1);
+  if (error?.code === "PGRST103") return { shops: [], total: null };
+  if (error) throw new Error(error.message);
+  return { shops: data ?? [], total: count ?? 0 };
 }
