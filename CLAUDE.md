@@ -12,6 +12,12 @@ name in any URL:
   through `src/lib/supabase/public.ts` (publishable key); RLS limits it to
   `published = true`. Writes nothing. Its own fonts, header and footer live
   in `(public)/layout.tsx` and `(public)/_components/`.
+  Every public fetch is cached for an hour under the `public-data` tag
+  (`PUBLIC_DATA_TAG` in `src/lib/site.ts`); every admin action that changes
+  shop data calls `revalidateTag(PUBLIC_DATA_TAG)`, so keep that in new
+  actions. Browse filters live in the URL (`(public)/_lib/browse-params.ts`)
+  and the queries in `(public)/_lib/browse.ts` read `shop_voucher_range`
+  (`sql/006`), always paginated with `.range()`.
 - `src/app/(admin)/admin/` — internal admin at `/admin`. Reads and writes
   Supabase; does not crawl and does not call the Anthropic API.
   `(auth)/login` is public (email + password via Supabase Auth; sign-ups

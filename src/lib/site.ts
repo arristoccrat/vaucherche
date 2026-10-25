@@ -16,5 +16,11 @@ export const COMING_SOON_PATH = "/coming-soon";
 
 export const SITE_NAME = "vaucherche.bg";
 
+// Cache tag on every public-site Supabase read (src/lib/supabase/public.ts).
+// Admin writes revalidate it so a publish shows up immediately instead of
+// after the hourly revalidation.
+export const PUBLIC_DATA_TAG = "public-data";
+export const PUBLIC_REVALIDATE_SECONDS = 3600;
+
 // Shown in the footer once set. TODO: the public contact address.
 export const CONTACT_EMAIL: string | null = null;

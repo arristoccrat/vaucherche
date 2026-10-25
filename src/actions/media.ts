@@ -1,10 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { NOT_SIGNED_IN, type ActionResult } from "@/lib/action-result";
 import { getUser } from "@/lib/auth";
+import { PUBLIC_DATA_TAG } from "@/lib/site";
 import { MAX_IMAGE_BYTES, isSafeRemoteUrl, sniffImage } from "@/lib/images";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -18,6 +19,7 @@ type ImageKind = z.infer<typeof kindSchema>;
 const fail = (error: string): ActionResult<never> => ({ ok: false, error });
 
 function refresh(shopId: string) {
+  revalidateTag(PUBLIC_DATA_TAG);
   revalidatePath("/admin/shops");
   revalidatePath("/admin/queue");
   revalidatePath(`/admin/shops/${shopId}`);
