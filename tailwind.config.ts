@@ -1,6 +1,8 @@
 import type { Config } from "tailwindcss";
 import animate from "tailwindcss-animate";
 
+import { BRAND } from "./src/lib/brand";
+
 const config: Config = {
   // The public site follows the OS dark setting; the admin (inside
   // .admin-root) is always light, so its dark: variants never fire.
@@ -17,8 +19,14 @@ const config: Config = {
       fontFamily: {
         sans: ["var(--font-geist-sans)", "Arial", "Helvetica", "sans-serif"],
         mono: ["var(--font-geist-mono)", "monospace"],
+        // Public site (fonts loaded in src/app/(public)/layout.tsx)
+        display: ["var(--font-display)", "system-ui", "sans-serif"],
+        ui: ["var(--font-ui)", "system-ui", "sans-serif"],
+        num: ["var(--font-num)", "ui-monospace", "monospace"],
       },
       colors: {
+        // Public site palette: bg-brand-ground, text-brand-ink, border-brand-ink, …
+        brand: BRAND,
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {

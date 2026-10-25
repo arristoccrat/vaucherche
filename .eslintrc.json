@@ -1,3 +1,48 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "overrides": [
+    {
+      "files": ["src/app/(public)/**/*.{ts,tsx}"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": [
+                  "@/lib/supabase/admin",
+                  "**/supabase/admin",
+                  "@/lib/supabase/server",
+                  "**/supabase/server",
+                  "@/lib/queries/*",
+                  "**/lib/queries/*",
+                  "@/actions/*",
+                  "**/actions/*",
+                  "@/app/(admin)/*",
+                  "**/(admin)/*"
+                ],
+                "message": "Public routes read Supabase only through @/lib/supabase/public (publishable key). The admin client, session client, admin queries and Server Actions are off limits."
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "files": ["src/components/**/*.{ts,tsx}", "src/lib/categories.ts", "src/lib/brand.ts", "src/lib/site.ts"],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@/lib/supabase/*", "**/supabase/*", "@/lib/queries/*", "**/lib/queries/*", "@/actions/*", "**/actions/*"],
+                "message": "Shared components and modules import no Supabase client: take data as props."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }

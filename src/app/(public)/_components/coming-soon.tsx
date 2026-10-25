@@ -1,4 +1,4 @@
-export default function Home() {
+export function ComingSoon() {
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-16 text-center">
       <div

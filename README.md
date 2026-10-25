@@ -23,6 +23,7 @@ npm run dev                  # public site at /, admin at /admin
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | client | Publishable key, RLS-bound |
 | `SUPABASE_SERVICE_ROLE_KEY` | server only | Secret key. Never `NEXT_PUBLIC_`. Used only by the admin |
 | `SUPABASE_PROJECT_ID` | local only | For `npm run gen:types` |
+| `SITE_LAUNCHED` | server | `true` in Production to replace the coming soon page with the site. Previews and `next dev` always show the site |
 
 Supabase clients:
 
@@ -101,6 +102,7 @@ it up.
 ## Checks
 
 ```bash
-npm run typecheck && npm run lint
-npm run build      # includes the secret check
+npm run typecheck && npm run lint   # lint enforces the public/admin import boundary
+npm test                            # colour contrast of every category and text token
+npm run build                       # includes the secret check
 ```
