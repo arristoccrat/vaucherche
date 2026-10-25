@@ -58,6 +58,18 @@ Phase 0 RLS policies and indexes from the admin spec):
 - `sql/004_shop_voucher_range_eur.sql` — the same view plus `min_eur`,
   `max_eur`, `denominations_eur` (merchant's euro price when listed in euros,
   otherwise converted). Supersedes 003: if 003 was never run, run only 004.
+- `sql/005_admin_media_and_edits.sql` — `shops.cover_url`,
+  `voucher_offers.human_edited_at`, the public `shop-media` storage bucket
+  (PNG/JPEG/WebP/GIF/ICO, 2 MB) for logos and covers, and `cover_url` in the
+  listing view.
+
+**Pipeline rules the admin relies on** (in the crawler / AI scripts, outside
+this repo):
+
+- Never overwrite a `voucher_offers` row where `human_edited_at` is set —
+  those facts were corrected by a person.
+- Never write `shops.name`, `description`, `logo_url` or `cover_url`; they are
+  editorial and owned by the admin.
 
 ## Types
 

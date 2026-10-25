@@ -1,5 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    // Logo / cover uploads go through a Server Action (images capped at 2 MB
+    // in src/lib/images.ts; this leaves room for the form encoding).
+    serverActions: { bodySizeLimit: "3mb" },
+  },
   async headers() {
     // The admin is an internal tool: never indexed, never framed, no
     // referrer leaks to the merchant sites it links out to.

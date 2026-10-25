@@ -1,168 +1,136 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { toast } from "sonner";
+import { Sparkles } from "lucide-react";
+import { useState } from "react";
 
-import {
-  updateShopEditorial,
-  type EditorialField,
-} from "@/actions/editorial";
+import { updateShopEditorial, type EditorialField } from "@/actions/editorial";
+import { Button } from "@/components/ui/button";
 import { GIFT_APPEALS, GIFT_APPEAL_LABELS, isGiftAppeal } from "@/lib/domain";
 import type { ShopListRow } from "@/lib/queries/shops";
-import { cn } from "@/lib/utils";
+import type { CrawlSuggestions } from "@/lib/suggestions";
 
-type SaveState = "idle" | "saving" | "saved" | "error";
+import { FieldLabel, fieldClass, useAutosave } from "./autosave";
+import { ImagePicker } from "./image-picker";
 
-const AUTOSAVE_DELAY_MS = 1000;
+type SuggestionsState =
+  | { kind: "idle" }
+  | { kind: "loading" }
+  | { kind: "error"; message: string }
+  | { kind: "loaded"; data: CrawlSuggestions };
 
-const fieldClass =
-  "w-full rounded-md border border-input bg-background px-3 py-1.5 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring";
-
-// Saves a field a second after typing stops, and immediately on blur.
-function useAutosave(shopId: string, field: EditorialField, initial: string) {
-  const [value, setValue] = useState(initial);
-  const [state, setState] = useState<SaveState>("idle");
-  const saved = useRef(initial);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => () => {
-    if (timer.current) clearTimeout(timer.current);
-  }, []);
-
-  const save = async (next: string) => {
-    if (timer.current) clearTimeout(timer.current);
-    if (next.trim() === saved.current.trim()) return;
-    setState("saving");
-    try {
-      const result = await updateShopEditorial(shopId, { [field]: next });
-      if (result?.ok) {
-        saved.current = next;
-        setState("saved");
-      } else {
-        setState("error");
-        toast.error(result?.error ?? "Няма отговор от сървъра.");
-      }
-    } catch {
-      setState("error");
-      toast.error("Връзката със сървъра прекъсна. Промяната не е записана.");
-    }
-  };
-
-  const change = (next: string, immediate = false) => {
-    setValue(next);
-    if (timer.current) clearTimeout(timer.current);
-    if (immediate) void save(next);
-    else timer.current = setTimeout(() => void save(next), AUTOSAVE_DELAY_MS);
-  };
-
-  return { value, state, change, flush: () => void save(value) };
-}
-
-function SaveIndicator({ state }: { state: SaveState }) {
-  if (state === "idle") return null;
-  return (
-    <span
-      className={cn(
-        "text-[11px]",
-        state === "error" ? "text-destructive" : "text-muted-foreground"
-      )}
-    >
-      {state === "saving" ? "Записване…" : state === "saved" ? "Записано ✓" : "Грешка"}
-    </span>
-  );
-}
-
-function FieldLabel({
-  htmlFor,
-  label,
-  hint,
-  state,
-}: {
-  htmlFor: string;
-  label: string;
-  hint?: string;
-  state: SaveState;
-}) {
-  return (
-    <div className="flex items-baseline justify-between gap-2">
-      <label htmlFor={htmlFor} className="text-xs font-medium">
-        {label}
-        {hint ? <span className="ml-1 font-normal text-muted-foreground">{hint}</span> : null}
-      </label>
-      <SaveIndicator state={state} />
-    </div>
-  );
+function useEditorial(shopId: string, field: EditorialField, initial: string) {
+  return useAutosave((value) => updateShopEditorial(shopId, { [field]: value }), initial);
 }
 
 function TextField({
-  shopId,
-  field,
+  id,
   label,
   hint,
-  initial,
   placeholder,
+  field,
   listId,
 }: {
-  shopId: string;
-  field: EditorialField;
+  id: string;
   label: string;
   hint?: string;
-  initial: string;
   placeholder?: string;
+  field: ReturnType<typeof useAutosave>;
   listId?: string;
 }) {
-  const { value, state, change, flush } = useAutosave(shopId, field, initial);
-  const id = `${field}-${shopId}`;
   return (
     <div className="space-y-1">
-      <FieldLabel htmlFor={id} label={label} hint={hint} state={state} />
+      <FieldLabel htmlFor={id} label={label} hint={hint} state={field.state} />
       <input
         id={id}
-        value={value}
+        value={field.value}
         list={listId}
         placeholder={placeholder}
-        onChange={(event) => change(event.target.value)}
-        onBlur={flush}
+        onChange={(event) => field.change(event.target.value)}
+        onBlur={field.flush}
         className={fieldClass}
       />
     </div>
   );
 }
 
-export function EditorialForm({
-  shop,
-  categories,
-}: {
-  shop: ShopListRow;
-  categories: string[];
-}) {
+export function EditorialForm({ shop, categories }: { shop: ShopListRow; categories: string[] }) {
   const id = shop.id;
-  const description = useAutosave(id, "description", shop.description ?? "");
-  const appeal = useAutosave(id, "gift_appeal", shop.gift_appeal ?? "");
-  const logo = shop.logo_url;
-  const appealOptions = Array.from(
-    new Set([...GIFT_APPEALS, ...(shop.gift_appeal ? [shop.gift_appeal] : [])])
-  );
+  const name = useEditorial(id, "name", shop.name === shop.domain ? "" : shop.name);
+  const description = useEditorial(id, "description", shop.description ?? "");
+  const category = useEditorial(id, "category", shop.category ?? "");
+  const subcategory = useEditorial(id, "subcategory", shop.subcategory ?? "");
+  const appeal = useEditorial(id, "gift_appeal", shop.gift_appeal ?? "");
+  const [suggestions, setSuggestions] = useState<SuggestionsState>({ kind: "idle" });
+
+  const appealOptions = Array.from(new Set([...GIFT_APPEALS, ...(shop.gift_appeal ? [shop.gift_appeal] : [])]));
+  const loaded = suggestions.kind === "loaded" ? suggestions.data : null;
+
+  // Loaded on request from a click, not on render.
+  const loadSuggestions = async () => {
+    setSuggestions({ kind: "loading" });
+    try {
+      const response = await fetch(`/admin/api/shops/${id}/suggestions`, { cache: "no-store" });
+      const body: unknown = await response.json();
+      if (!response.ok) {
+        const message = typeof body === "object" && body && "error" in body ? String(body.error) : response.statusText;
+        setSuggestions({ kind: "error", message });
+        return;
+      }
+      setSuggestions({ kind: "loaded", data: body as CrawlSuggestions });
+    } catch {
+      setSuggestions({ kind: "error", message: "Неуспешно зареждане." });
+    }
+  };
 
   return (
-    <div className="space-y-3 border-t px-4 py-4">
-      <div className="flex flex-wrap items-baseline gap-2">
+    <div className="space-y-4 border-t px-4 py-4">
+      <div className="flex flex-wrap items-center gap-2">
         <h3 className="text-sm font-semibold">Редакция</h3>
         <span className="text-xs text-muted-foreground">
           Записва се автоматично. Пишете собствен текст по фактите — не копирайте описанието на търговеца.
         </span>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="ml-auto"
+          disabled={suggestions.kind === "loading"}
+          onClick={loadSuggestions}
+        >
+          <Sparkles />
+          {suggestions.kind === "loading" ? "Зареждане…" : loaded ? "Обнови предложенията" : "Предложения от обхождането"}
+        </Button>
       </div>
+      {suggestions.kind === "error" ? <p className="text-xs text-destructive">{suggestions.message}</p> : null}
 
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-6 md:grid-cols-2">
         <div className="space-y-3">
-          <TextField
-            shopId={id}
-            field="name"
-            label="Име"
-            hint="както го пише човек, не домейнът"
-            initial={shop.name === shop.domain ? "" : shop.name}
-            placeholder={shop.domain}
-          />
+          <div className="space-y-1">
+            <TextField id={`name-${id}`} label="Име" hint="както го пише човек, не домейнът" placeholder={shop.domain} field={name} />
+            {loaded ? (
+              loaded.names.length ? (
+                <ul className="flex flex-wrap gap-1.5">
+                  {loaded.names.map((s) => (
+                    <li key={s.value}>
+                      <button
+                        type="button"
+                        title={s.source}
+                        onClick={() => name.change(s.value, true)}
+                        className="rounded-full border bg-background px-2.5 py-0.5 text-xs hover:bg-accent"
+                      >
+                        {s.value}
+                        {s.count > 1 ? <span className="ml-1 text-muted-foreground">×{s.count}</span> : null}
+                        <span className="ml-1.5 font-medium text-primary">Използвай</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[11px] text-muted-foreground">Няма предложено име от обхождането.</p>
+              )
+            ) : null}
+          </div>
+
           <div className="space-y-1">
             <FieldLabel
               htmlFor={`description-${id}`}
@@ -181,37 +149,19 @@ export function EditorialForm({
               placeholder="Напр.: Подаръчни ваучери за масажи и СПА процедури в София. Изберете сума от 25 до 150 €, валидни 12 месеца."
             />
           </div>
-        </div>
 
-        <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <TextField
-              shopId={id}
-              field="category"
-              label="Категория"
-              initial={shop.category ?? ""}
-              listId={`categories-${id}`}
-            />
-            <TextField
-              shopId={id}
-              field="subcategory"
-              label="Подкатегория"
-              initial={shop.subcategory ?? ""}
-            />
+            <TextField id={`category-${id}`} label="Категория" field={category} listId={`categories-${id}`} />
+            <TextField id={`subcategory-${id}`} label="Подкатегория" field={subcategory} />
           </div>
           <datalist id={`categories-${id}`}>
-            {categories.map((category) => (
-              <option key={category} value={category} />
+            {categories.map((c) => (
+              <option key={c} value={c} />
             ))}
           </datalist>
 
           <div className="space-y-1">
-            <FieldLabel
-              htmlFor={`gift_appeal-${id}`}
-              label="Подаръчна привлекателност"
-              hint="подрежда началната страница"
-              state={appeal.state}
-            />
+            <FieldLabel htmlFor={`gift_appeal-${id}`} label="Подаръчна привлекателност" hint="подрежда началната страница" state={appeal.state} />
             <select
               id={`gift_appeal-${id}`}
               value={appeal.value}
@@ -226,36 +176,11 @@ export function EditorialForm({
               ))}
             </select>
           </div>
+        </div>
 
-          <div className="flex items-end gap-3">
-            <div className="flex-1">
-              <TextField
-                shopId={id}
-                field="logo_url"
-                label="Лого (URL)"
-                hint="замества favicon"
-                initial={logo ?? ""}
-                placeholder="https://…/logo.png"
-              />
-            </div>
-            <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-md border bg-background">
-              {logo ? (
-                // External merchant logo; a plain img avoids next/image domain config.
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={logo} alt="" className="size-full object-contain" />
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={`https://www.google.com/s2/favicons?domain=${encodeURIComponent(shop.domain)}&sz=64`}
-                  alt=""
-                  className="size-5 opacity-70"
-                  onError={(event) => {
-                    event.currentTarget.style.visibility = "hidden";
-                  }}
-                />
-              )}
-            </div>
-          </div>
+        <div className="space-y-5">
+          <ImagePicker shopId={id} kind="logo" url={shop.logo_url} suggestions={loaded?.logos ?? null} />
+          <ImagePicker shopId={id} kind="cover" url={shop.cover_url} suggestions={loaded?.covers ?? null} />
         </div>
       </div>
     </div>

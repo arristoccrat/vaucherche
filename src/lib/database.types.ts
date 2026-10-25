@@ -49,6 +49,7 @@ export type Database = {
           category: string | null;
           category_confidence: number | null;
           confidence: number | null;
+          cover_url: string | null;
           created_at: string | null;
           description: string | null;
           discovery_source: string;
@@ -75,6 +76,7 @@ export type Database = {
           category?: string | null;
           category_confidence?: number | null;
           confidence?: number | null;
+          cover_url?: string | null;
           created_at?: string | null;
           description?: string | null;
           discovery_source: string;
@@ -101,6 +103,7 @@ export type Database = {
           category?: string | null;
           category_confidence?: number | null;
           confidence?: number | null;
+          cover_url?: string | null;
           created_at?: string | null;
           description?: string | null;
           discovery_source?: string;
@@ -131,6 +134,7 @@ export type Database = {
           denominations: number[] | null;
           extracted_at: string | null;
           extraction_confidence: number | null;
+          human_edited_at: string | null;
           id: string;
           is_digital: boolean | null;
           is_physical: boolean | null;
@@ -151,6 +155,7 @@ export type Database = {
           denominations?: number[] | null;
           extracted_at?: string | null;
           extraction_confidence?: number | null;
+          human_edited_at?: string | null;
           id?: string;
           is_digital?: boolean | null;
           is_physical?: boolean | null;
@@ -171,6 +176,7 @@ export type Database = {
           denominations?: number[] | null;
           extracted_at?: string | null;
           extraction_confidence?: number | null;
+          human_edited_at?: string | null;
           id?: string;
           is_digital?: boolean | null;
           is_physical?: boolean | null;
@@ -280,6 +286,7 @@ export type Database = {
         Row: {
           any_in_stock: boolean | null;
           category: string | null;
+          cover_url: string | null;
           currency: string | null;
           denominations: number[] | null;
           description: string | null;
