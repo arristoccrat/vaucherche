@@ -15,6 +15,7 @@ export const PREVIEW_COOKIE = "vc_preview";
 export const COMING_SOON_PATH = "/coming-soon";
 
 export const SITE_NAME = "vaucherche.bg";
+export const SITE_URL = "https://vaucherche.bg";
 
 // Cache tag on every public-site Supabase read (src/lib/supabase/public.ts).
 // Admin writes revalidate it so a publish shows up immediately instead of
