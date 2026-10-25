@@ -286,9 +286,12 @@ export type Database = {
           domain: string | null;
           gift_appeal: string | null;
           id: string | null;
+          denominations_eur: number[] | null;
           logo_url: string | null;
           max_bgn: number | null;
+          max_eur: number | null;
           min_bgn: number | null;
+          min_eur: number | null;
           name: string | null;
           priced_count: number | null;
           product_count: number | null;

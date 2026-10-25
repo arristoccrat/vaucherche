@@ -55,6 +55,9 @@ Phase 0 RLS policies and indexes from the admin spec):
 - `sql/003_shop_voucher_range.sql` — listing-card view: BGN-only prices
   ignoring zeros, normalised availability, card fields. Check what the
   static site generator (`08`) reads from this view before running it.
+- `sql/004_shop_voucher_range_eur.sql` — the same view plus `min_eur`,
+  `max_eur`, `denominations_eur` (merchant's euro price when listed in euros,
+  otherwise converted). Supersedes 003: if 003 was never run, run only 004.
 
 ## Types
 
