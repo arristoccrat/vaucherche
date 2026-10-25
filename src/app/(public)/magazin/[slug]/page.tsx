@@ -8,6 +8,8 @@ import { getCategory, onColorHex } from "@/lib/categories";
 import { CATEGORY_ICONS } from "@/lib/category-icons";
 import { formatEurRange } from "@/lib/format";
 
+import { BreadcrumbJsonLd } from "../../_components/json-ld";
+import { browsePath } from "../../_lib/browse-params";
 import { getPublishedShop, type PublishedShop } from "../../_lib/shop";
 
 import { BuyPanel } from "./buy-panel";
@@ -79,13 +81,20 @@ export default async function ShopPage({ params }: { params: { slug: string } })
 
   return (
     <div className="mx-auto max-w-[1440px] px-4 pb-32 pt-3 lg:px-10 lg:pb-16 lg:pt-6">
+      <BreadcrumbJsonLd
+        items={[
+          { name: "Всички ваучери", path: "/" },
+          { name: category.label, path: browsePath(category.key) },
+          { name, path: `/magazin/${shop.slug}` },
+        ]}
+      />
       <nav aria-label="Навигация" className="flex items-center gap-2 text-[13.5px] font-semibold">
         <Link href="/" className="flex min-h-11 items-center gap-1 text-brand-ink hover:underline">
           <ChevronLeft className="size-4" aria-hidden />
           Всички ваучери
         </Link>
         <span aria-hidden className="text-brand-quiet">/</span>
-        <Link href={`/?kategoriya=${category.key}`} className="flex min-h-11 items-center text-brand-mint-deep hover:underline">
+        <Link href={browsePath(category.key)} className="flex min-h-11 items-center text-brand-mint-deep hover:underline">
           {category.label}
         </Link>
       </nav>
