@@ -1,5 +1,5 @@
 import { CATEGORY_KEYS, type CategoryKey } from "@/lib/categories";
-import { supabase } from "@/lib/supabase/public";
+import { publicClient } from "@/lib/supabase/public";
 
 import { AMOUNT_BUCKETS, type BrowseFilters } from "./browse-params";
 
@@ -38,7 +38,7 @@ function applyFilters<Q extends Filterable<Q>>(query: Q, filters: FilterParts): 
 export async function listPublishedShops(filters: BrowseFilters) {
   const from = (filters.stranitsa - 1) * PAGE_SIZE;
   let query = applyFilters(
-    supabase.from("shop_voucher_range").select(CARD_SELECT, { count: "exact" }),
+    publicClient().from("shop_voucher_range").select(CARD_SELECT, { count: "exact" }),
     filters
   );
   switch (filters.podredba) {
@@ -66,7 +66,7 @@ export type CardShop = Awaited<ReturnType<typeof listPublishedShops>>["shops"][n
 
 export async function countPublishedShops(filters: FilterParts) {
   const { count, error } = await applyFilters(
-    supabase.from("shop_voucher_range").select("id", { count: "exact", head: true }),
+    publicClient().from("shop_voucher_range").select("id", { count: "exact", head: true }),
     filters
   );
   if (error) throw new Error(error.message);
@@ -79,7 +79,7 @@ export async function categoryCounts() {
   const counts = Object.fromEntries(CATEGORY_KEYS.map((k) => [k, 0])) as Record<CategoryKey, number>;
   let total = 0;
   for (let from = 0; ; from += 1000) {
-    const { data, error } = await supabase
+    const { data, error } = await publicClient()
       .from("shops")
       .select("category")
       .eq("published", true)
