@@ -5,24 +5,29 @@ import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 
+import { outboundHref } from "../../_lib/outbound";
+
 const amount = new Intl.NumberFormat("bg-BG", { maximumFractionDigits: 2 });
 
-// The amount picker and the buy button: picking an amount points the button
-// at the merchant page that sells it ("друга" and no pick use the shop's
-// verified voucher page). Nothing is bought here.
+// The amount picker and the buy button. The button goes through
+// /out/[slug]?suma=, which sends the visitor to the merchant page for that
+// amount ("друга" and unknown amounts: the verified voucher page). Nothing
+// is bought here.
 export function BuyPanel({
+  slug,
   amounts,
   customAmount,
-  voucherUrl,
+  canBuy,
   domain,
 }: {
-  amounts: { eur: number; url: string }[];
+  slug: string;
+  amounts: number[];
   customAmount: boolean;
-  voucherUrl: string | null;
+  canBuy: boolean;
   domain: string;
 }) {
-  const [picked, setPicked] = useState<number | "other" | null>(amounts.length ? amounts[0].eur : null);
-  const href = (typeof picked === "number" && amounts.find((a) => a.eur === picked)?.url) || voucherUrl || amounts[0]?.url || null;
+  const [picked, setPicked] = useState<number | "other" | null>(amounts.length ? amounts[0] : null);
+  const href = canBuy ? outboundHref(slug, typeof picked === "number" ? picked : null) : null;
   const cell =
     "flex h-[50px] items-center justify-center rounded-[13px] border-2 font-num text-[15px] font-semibold text-brand-ink";
 
@@ -34,15 +39,15 @@ export function BuyPanel({
             Избери сума
           </legend>
           <div className="mt-3 grid grid-cols-4 gap-2 lg:grid-cols-3 lg:gap-2.5">
-            {amounts.map((a) => (
+            {amounts.map((eur) => (
               <button
-                key={a.eur}
+                key={eur}
                 type="button"
-                aria-pressed={picked === a.eur}
-                onClick={() => setPicked(a.eur)}
-                className={cn(cell, "border-brand-ink", picked === a.eur ? "bg-brand-amber" : "bg-brand-card")}
+                aria-pressed={picked === eur}
+                onClick={() => setPicked(eur)}
+                className={cn(cell, "border-brand-ink", picked === eur ? "bg-brand-amber" : "bg-brand-card")}
               >
-                {amount.format(a.eur)} €
+                {amount.format(eur)} €
               </button>
             ))}
             {customAmount ? (

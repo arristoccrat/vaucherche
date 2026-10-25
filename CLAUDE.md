@@ -27,7 +27,10 @@ name in any URL:
   preferred offer and product rows in a single embedded query
   (`(public)/_lib/shop.ts`). Merchant URLs reach an `href` only through
   `externalUrl()` (http/https only); links out carry
-  `rel="nofollow noopener noreferrer"`.
+  `rel="nofollow noopener noreferrer"`. Buy buttons link to
+  `/out/[slug]?suma=<eur>` (`(public)/_lib/outbound.ts`), which looks the
+  destination up in the database and 302s there; the query names an amount,
+  never a URL, so it is not an open redirect. Keep it that way.
   Search (`/tarsene?q=`) runs one `ilike` `or()` filter over name, domain,
   subcategory and description, in Cyrillic and transliterated Latin. The
   query passes `normalizeQuery()` first (letters, digits, spaces only), which
