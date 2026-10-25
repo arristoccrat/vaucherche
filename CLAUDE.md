@@ -28,6 +28,10 @@ name in any URL:
   (`(public)/_lib/shop.ts`). Merchant URLs reach an `href` only through
   `externalUrl()` (http/https only); links out carry
   `rel="nofollow noopener noreferrer"`.
+  Search (`/tarsene?q=`) runs one `ilike` `or()` filter over name, domain,
+  subcategory and description, in Cyrillic and transliterated Latin. The
+  query passes `normalizeQuery()` first (letters, digits, spaces only), which
+  is what makes putting it into the PostgREST filter safe; keep it.
 - `src/app/(admin)/admin/` — internal admin at `/admin`. Reads and writes
   Supabase; does not crawl and does not call the Anthropic API.
   `(auth)/login` is public (email + password via Supabase Auth; sign-ups

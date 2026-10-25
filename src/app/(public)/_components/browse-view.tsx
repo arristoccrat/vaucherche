@@ -94,7 +94,12 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
           </div>
         )}
 
-        <BrowsePagination filters={filters} total={total} pageSize={PAGE_SIZE} />
+        <BrowsePagination
+          page={filters.stranitsa}
+          total={total}
+          pageSize={PAGE_SIZE}
+          hrefFor={(stranitsa) => browseHref(filters, { stranitsa })}
+        />
       </div>
     </div>
   );
