@@ -13,6 +13,10 @@ export const BRAND = {
   amber: "#FBB03B", // selected state and the primary CTA only, ink text on it
   hair: "#E4D9CA", // dividers
   dashed: "#CFC3B4", // dashed borders on "more" chips
+  // The logo's own colours (from the master PNG), used only by the logo.
+  "logo-mint": "#7BC4A4",
+  "logo-cream": "#FFF8F0",
+  "logo-amber": "#FFB84D",
 } as const;
 
 export type BrandToken = keyof typeof BRAND;
