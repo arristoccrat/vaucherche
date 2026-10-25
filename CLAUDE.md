@@ -18,6 +18,11 @@ name in any URL:
   actions. Browse filters live in the URL (`(public)/_lib/browse-params.ts`)
   and the queries in `(public)/_lib/browse.ts` read `shop_voucher_range`
   (`sql/006`), always paginated with `.range()`.
+  The shop page `/magazin/[slug]` loads one published shop with its
+  preferred offer and product rows in a single embedded query
+  (`(public)/_lib/shop.ts`). Merchant URLs reach an `href` only through
+  `externalUrl()` (http/https only); links out carry
+  `rel="nofollow noopener noreferrer"`.
 - `src/app/(admin)/admin/` — internal admin at `/admin`. Reads and writes
   Supabase; does not crawl and does not call the Anthropic API.
   `(auth)/login` is public (email + password via Supabase Auth; sign-ups
