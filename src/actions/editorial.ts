@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { NOT_SIGNED_IN, type ActionResult } from "@/lib/action-result";
 import { getUser } from "@/lib/auth";
+import { PUBLIC_DATA_TAG } from "@/lib/site";
 import { SHOP_FACETS_TAG } from "@/lib/queries/shops";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -78,6 +79,7 @@ export async function updateShopEditorial(
 
   const fields = Object.keys(parsed.data) as EditorialField[];
   revalidatePath("/admin/shops");
+  revalidateTag(PUBLIC_DATA_TAG);
   revalidatePath("/admin/queue");
   revalidatePath(`/admin/shops/${parsedId.data}`);
   if (fields.some((field) => FACET_FIELDS.includes(field))) {

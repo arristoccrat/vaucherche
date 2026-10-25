@@ -1,10 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { z } from "zod";
 
 import { NOT_SIGNED_IN, type ActionResult } from "@/lib/action-result";
 import { getUser } from "@/lib/auth";
+import { PUBLIC_DATA_TAG } from "@/lib/site";
 import type { TablesUpdate } from "@/lib/database.types";
 import { toEur } from "@/lib/format";
 import { OFFER_FIELDS, type OfferField } from "@/lib/offer-fields";
@@ -142,6 +143,7 @@ export async function updateOfferFact(
   }
 
   revalidatePath("/admin/shops");
+  revalidateTag(PUBLIC_DATA_TAG);
   revalidatePath("/admin/queue");
   return { ok: true, data: { offerId: savedId } };
 }

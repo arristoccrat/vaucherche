@@ -1,5 +1,22 @@
+// Shop logos and covers are served from our own Supabase Storage bucket.
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL)
+  : null;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    remotePatterns: supabaseUrl
+      ? [
+          {
+            protocol: supabaseUrl.protocol.replace(":", ""),
+            hostname: supabaseUrl.hostname,
+            port: supabaseUrl.port,
+            pathname: "/storage/v1/object/public/shop-media/**",
+          },
+        ]
+      : [],
+  },
   experimental: {
     // Logo / cover uploads go through a Server Action (images capped at 2 MB
     // in src/lib/images.ts; this leaves room for the form encoding).

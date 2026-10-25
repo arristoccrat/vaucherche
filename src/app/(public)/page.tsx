@@ -1,41 +1,103 @@
 import Link from "next/link";
 
-import { CATEGORIES, CATEGORY_KEYS, onColorHex } from "@/lib/categories";
+import { ShopCard } from "@/components/shop-card";
+import { CATEGORY_KEYS } from "@/lib/categories";
+import { cn } from "@/lib/utils";
 
-export const revalidate = 3600;
+import { BrowseEmpty } from "./_components/browse-empty";
+import { ChipRows, FilterRail } from "./_components/browse-filters";
+import { BrowsePagination } from "./_components/browse-pagination";
+import { SortSelect } from "./_components/filter-button";
+import { PAGE_SIZE, categoryCounts, listPublishedShops } from "./_lib/browse";
+import {
+  DEFAULT_FILTERS,
+  SORTS,
+  browseHref,
+  hasActiveFilters,
+  parseBrowseFilters,
+  shopCountLabel,
+} from "./_lib/browse-params";
 
-// Phase 1 shell: the browse page replaces this in Phase 2. It exercises all
-// three faces in Cyrillic and the category palette.
-export default function HomePage() {
+// Browse: every filter lives in searchParams, every read is a cached
+// published-only query (src/lib/supabase/public.ts).
+export default async function BrowsePage({
+  searchParams,
+}: {
+  searchParams: Record<string, string | string[] | undefined>;
+}) {
+  const filters = parseBrowseFilters(searchParams);
+  const [{ shops, total }, { counts, total: published }] = await Promise.all([
+    listPublishedShops(filters),
+    categoryCounts(),
+  ]);
+  // Biggest categories first; ties keep the canonical order.
+  const categoryOrder = [...CATEGORY_KEYS].sort((a, b) => counts[b] - counts[a]);
+  const filtered = hasActiveFilters(filters);
+  const clearHref = browseHref(DEFAULT_FILTERS, { podredba: filters.podredba });
+  const sortOptions = SORTS.map((s) => ({ key: s.key, label: s.label, href: browseHref(filters, { podredba: s.key }) }));
+
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 md:px-10">
-      <p className="text-[13.5px] font-medium md:hidden">Подарък, който никога не е сгрешен</p>
-      <h1 className="mt-2 font-display text-[26px] font-extrabold tracking-[-0.02em] text-brand-ink md:text-[30px]">
-        Подаръчни ваучери
-      </h1>
-      <p className="mt-1 font-num text-xs font-semibold text-brand-ink">
-        {CATEGORY_KEYS.length} категории · проверени ръчно
-      </p>
+    <div className="mx-auto flex max-w-[1440px]">
+      <FilterRail filters={filters} counts={counts} total={published} categoryOrder={categoryOrder} />
 
-      <h2 className="mt-8 font-display text-[22px] font-bold tracking-[-0.01em] text-brand-ink">
-        За какъв повод?
-      </h2>
-      <ul className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">
-        {CATEGORY_KEYS.map((key) => {
-          const category = CATEGORIES[key];
-          return (
-            <li key={key}>
-              <Link
-                href={`/kategoriya/${category.path}`}
-                className="flex h-[104px] flex-col justify-end rounded-[18px] border-2 border-brand-ink p-4"
-                style={{ backgroundColor: category.bg, color: onColorHex(category.on) }}
-              >
-                <span className="font-ui text-[15px] font-extrabold leading-tight">{category.label}</span>
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+      <div className="min-w-0 flex-1 px-4 pb-10 pt-4 lg:px-9 lg:pt-[26px]">
+        <p className="text-[13.5px] font-medium text-brand-body lg:hidden">Подарък, който никога не е сгрешен</p>
+        <div className="mt-1 flex flex-wrap items-end justify-between gap-4 lg:mt-0">
+          <div>
+            <h1 className="font-display text-[26px] font-extrabold tracking-[-0.02em] text-brand-ink lg:text-[30px]">
+              Подаръчни ваучери
+            </h1>
+            <p className="mt-1 hidden font-num text-xs font-semibold text-brand-ink lg:block">
+              {published.toLocaleString("bg-BG")} {published === 1 ? "български магазин" : "български магазина"} · проверени ръчно
+            </p>
+          </div>
+          <div className="hidden lg:block">
+            <SortSelect value={filters.podredba} options={sortOptions} />
+          </div>
+        </div>
+
+        <div className="mt-4 lg:hidden">
+          <ChipRows filters={filters} categoryOrder={categoryOrder} />
+        </div>
+
+        <div className={cn("mt-4 flex min-h-11 items-center justify-between gap-3 lg:mt-5", !filtered && "lg:hidden")}>
+          <p className="font-num text-xs font-semibold text-brand-ink" aria-live="polite">
+            {shopCountLabel(total)}
+          </p>
+          {filtered ? (
+            <Link href={clearHref} className="flex min-h-11 items-center text-[13px] font-bold text-brand-mint-deep hover:underline">
+              Изчисти филтрите
+            </Link>
+          ) : (
+            <div className="lg:hidden">
+              <SortSelect value={filters.podredba} options={sortOptions} />
+            </div>
+          )}
+        </div>
+
+        {shops.length ? (
+          <ul className="mt-3 lg:mt-6 grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3 lg:gap-[18px]">
+            {shops.map((shop, i) => (
+              <li key={shop.id}>
+                <ShopCard shop={shop} priority={i < 3} />
+              </li>
+            ))}
+          </ul>
+        ) : total > 0 ? (
+          <p className="mt-6 text-[14px] text-brand-body">
+            Тази страница е празна.{" "}
+            <Link href={browseHref(filters)} className="font-bold text-brand-mint-deep hover:underline">
+              Към първата страница
+            </Link>
+          </p>
+        ) : (
+          <div className="mt-3">
+            <BrowseEmpty filters={filters} />
+          </div>
+        )}
+
+        <BrowsePagination filters={filters} total={total} pageSize={PAGE_SIZE} />
+      </div>
     </div>
   );
 }

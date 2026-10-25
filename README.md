@@ -62,6 +62,10 @@ Phase 0 RLS policies and indexes from the admin spec):
   `voucher_offers.human_edited_at`, the public `shop-media` storage bucket
   (PNG/JPEG/WebP/GIF/ICO, 2 MB) for logos and covers, and `cover_url` in the
   listing view.
+- `sql/006_shop_voucher_range_browse.sql` — the listing view plus
+  `gift_appeal_rank` and the latest offer's delivery, custom-amount and
+  validity facts (a human-edited offer wins), for the public browse filters
+  and cards. Run after 005.
 
 **Pipeline rules the admin relies on** (in the crawler / AI scripts, outside
 this repo):

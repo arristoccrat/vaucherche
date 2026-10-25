@@ -293,7 +293,12 @@ export type Database = {
           domain: string | null;
           gift_appeal: string | null;
           id: string | null;
+          custom_amount: boolean | null;
+          delivery_methods: string[] | null;
           denominations_eur: number[] | null;
+          gift_appeal_rank: number | null;
+          is_digital: boolean | null;
+          is_physical: boolean | null;
           logo_url: string | null;
           max_bgn: number | null;
           max_eur: number | null;
@@ -305,6 +310,7 @@ export type Database = {
           published: boolean | null;
           slug: string | null;
           subcategory: string | null;
+          validity_months: number | null;
         };
         Relationships: [];
       };

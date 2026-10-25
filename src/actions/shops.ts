@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { NOT_SIGNED_IN, type ActionResult } from "@/lib/action-result";
 import { getUser } from "@/lib/auth";
+import { PUBLIC_DATA_TAG } from "@/lib/site";
 import type { ShopStatus } from "@/lib/domain";
 import { canPublish, publishChecks } from "@/lib/publish";
 import {
@@ -66,6 +67,7 @@ function failed(error: unknown): ActionResult<never> {
 }
 
 function refresh() {
+  revalidateTag(PUBLIC_DATA_TAG);
   revalidatePath("/admin/shops");
   revalidatePath("/admin/queue");
   revalidateTag(SHOP_COUNTS_TAG);
