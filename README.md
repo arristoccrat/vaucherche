@@ -88,27 +88,68 @@ npm run typecheck && npm run build   # if this fails: git checkout -- src/lib/da
 
 ## Deploy (Vercel)
 
-The existing Vercel project builds the repo root, so `/admin` deploys with the
-site. In that project:
+One Vercel project builds the repo root: the public site, `/admin` and
+`/coming-soon` deploy together.
 
-1. **Environment variables** (Production and Preview): add
-   `SUPABASE_SERVICE_ROLE_KEY` (the secret key, never with `NEXT_PUBLIC_`)
-   next to the two public ones.
-2. **Protect previews** — Settings → Deployment Protection → Vercel
-   Authentication on, so branch URLs are not publicly readable.
-3. Redeploy, then check: signed out, `/admin/shops`, `/admin/queue` and
-   `/admin/ops` redirect to `/admin/login`; email and password sign you in;
-   `/admin/shops` shows the full shop count (about 19,974) with its query time
-   in the header.
+### Environment variables
 
-Built in:
+| Variable | Production | Preview | Notes |
+| --- | --- | --- | --- |
+| `NEXT_PUBLIC_SUPABASE_URL` | ✓ | ✓ | Without it in Preview, previews build but every page shows the error screen |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | ✓ | ✓ | Publishable key, RLS-bound |
+| `SUPABASE_SERVICE_ROLE_KEY` | ✓ | — | Secret key, never `NEXT_PUBLIC_`; the admin only |
+| `PREVIEW_TOKEN` | ✓ | — | `/?preview=<token>` shows the real site on production before launch |
+| `SITE_LAUNCHED` | `true` at launch | — | Until then production shows `/coming-soon` |
+
+Nothing queries Supabase at build time, so a build never needs these to
+succeed; pages read them per request.
+
+### Protect previews
+
+Settings → Deployment Protection → Vercel Authentication on, so branch URLs
+are not publicly readable.
+
+### Admin check after a deploy
+
+Signed out, `/admin/shops`, `/admin/queue` and `/admin/ops` redirect to
+`/admin/login`; email and password sign you in; `/admin/shops` shows the full
+shop count (about 19,974) with its query time in the header.
+
+### Launch checklist (public site)
+
+1. Every file in `sql/` up to `006` has been run (see **Database changes**).
+2. In `/admin/queue`, publish the shops that pass the gate. Nothing
+   publishes itself.
+3. Preview the real site on production with `/?preview=<PREVIEW_TOKEN>`:
+   browse, a category, a shop page, a "Купи от" click, search.
+4. Set `SITE_LAUNCHED=true` (Production) and redeploy. `/coming-soon` then
+   redirects to `/`.
+5. Point `vaucherche.bg` at the project (Settings → Domains). Canonical URLs,
+   Open Graph and the sitemap already use `https://vaucherche.bg`.
+6. Google Search Console: add the domain, submit
+   `https://vaucherche.bg/sitemap.xml` (empty before launch, every published
+   shop after).
+7. Optional: set `CONTACT_EMAIL` in `src/lib/site.ts` to show it in the
+   footer.
+
+### Built in
 
 - `npm run build` runs `check:secrets` afterwards (`postbuild`). It fails the
   build if `SUPABASE_SERVICE_ROLE` or the service key's value appears anywhere
   in `.next/static`, so a leak cannot deploy.
 - `/admin` responses carry `X-Robots-Tag: noindex`, `X-Frame-Options: DENY`,
-  `Referrer-Policy: no-referrer`; `robots.txt` disallows `/admin`.
-- The middleware only runs on `/admin`; admin pages are `force-dynamic`.
+  `Referrer-Policy: no-referrer`; public pages carry `nosniff`,
+  `X-Frame-Options: SAMEORIGIN`, `strict-origin-when-cross-origin` and a
+  `Permissions-Policy` that turns device APIs off. `robots.txt` disallows
+  `/admin` and `/out/`.
+- The middleware handles the admin session on `/admin` and the pre-launch
+  gate everywhere else; admin pages are `force-dynamic`.
+- Public reads are cached for an hour and revalidated by every admin save;
+  pages stream with skeletons (`loading.tsx`), failures show a retry screen
+  (`(public)/error.tsx`), unknown URLs a styled 404 (`src/app/not-found.tsx`).
+- Listing queries stay well under the 300 ms budget: measured in PGlite with
+  20,000 shops, 1,333 published and 100,000 products, the slowest browse query
+  (home page, sorted) took 46 ms.
 - The admin theme is scoped to `.admin-root` and always light; the public site
   keeps its own colours and follows the OS dark mode.
 
