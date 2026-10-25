@@ -82,6 +82,19 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
   to `voucher_products` as `source: 'manual'` with no price, only if that
   (shop, url) is not already there. Existing product rows are never updated
   or removed, so crawler prices survive re-verification.
+- Crawl suggestions (`src/lib/suggestions.ts`, served by
+  `/admin/api/shops/[id]/suggestions`): names, logos and covers read from
+  `voucher_products.meta` / `links` / `image_url` and `voucher_offers.raw_extract`.
+  Shown next to the editorial fields with a one-click "Използвай"; never
+  written automatically.
+- Logos and covers (`shops.logo_url`, `shops.cover_url`) always point at our
+  own copy in the `shop-media` storage bucket (`src/actions/media.ts`: upload,
+  copy from URL, clear). Never store a merchant image URL. Images are
+  identified by their bytes (`src/lib/images.ts`); SVG is refused; remote
+  fetches only to public hosts, every redirect re-checked, 2 MB / 10 s caps.
+- Voucher facts are editable (`src/actions/offers.ts`, one field per save,
+  amounts entered and stored in EUR). Every save stamps
+  `voucher_offers.human_edited_at`; the pipeline must not overwrite such rows.
 - Heavy product columns (`raw_text`, `meta`, `links`, `description`) are
   fetched on demand from `/admin/api/products/[id]/raw`, never in list queries.
 - `status_reason` carries the AI evidence, e.g.

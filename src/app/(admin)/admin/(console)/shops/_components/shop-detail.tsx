@@ -2,13 +2,14 @@ import { Check, ExternalLink, X } from "lucide-react";
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { formatEur, formatEurRange, parseStatusReason, toEur } from "@/lib/format";
+import { formatEurRange, parseStatusReason } from "@/lib/format";
 import { publishChecks } from "@/lib/publish";
 import type { ShopListRow } from "@/lib/queries/shops";
 import { cn } from "@/lib/utils";
 
 import { EditorialForm } from "./editorial-form";
 import { minMax, offerValuesEur } from "./price-cell";
+import { OfferFactsForm } from "./offer-facts-form";
 import { ProductsPanel } from "./products-panel";
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
@@ -20,9 +21,6 @@ function Fact({ label, children }: { label: string; children: React.ReactNode })
   );
 }
 
-function yesNo(value: boolean | null | undefined) {
-  return value == null ? "—" : value ? "Да" : "Не";
-}
 
 export type ShopActions = {
   confirm: () => void;
@@ -64,34 +62,16 @@ export function ShopDetail({
           </div>
 
           <dl className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm sm:grid-cols-3">
-            <Fact label="Номинали">
-              {offer?.denominations?.length
-                ? offer.denominations
-                    .map((d) => toEur(d, offer.currency))
-                    .filter((d): d is number => d != null)
-                    .map(formatEur)
-                    .join(", ")
-                : "—"}
-            </Fact>
-            <Fact label="Диапазон (AI)">
+            <Fact label="Диапазон">
               {offerRange ? formatEurRange(offerRange.min, offerRange.max) : "—"}
             </Fact>
-            <Fact label="Свободна сума">{yesNo(offer?.custom_amount)}</Fact>
-            <Fact label="Дигитален / физически">
-              {yesNo(offer?.is_digital)} / {yesNo(offer?.is_physical)}
-            </Fact>
-            <Fact label="Доставка">
-              {offer?.delivery_methods?.length ? offer.delivery_methods.join(", ") : "—"}
-            </Fact>
-            <Fact label="Валидност">
-              {offer?.validity_months ? `${offer.validity_months} мес.` : "—"}
-            </Fact>
-            <Fact label="Персонализиране">{yesNo(offer?.personalisable)}</Fact>
             <Fact label="Тип ваучер">{shop.voucher_type ?? "—"}</Fact>
             <Fact label="Проверен от човек">
               {offer?.verified_by_human ? "Да" : "Не"}
             </Fact>
           </dl>
+
+          <OfferFactsForm key={offer?.id ?? shop.id} shopId={shop.id} offer={offer} />
 
           <div className="space-y-1 text-sm">
             <div className="text-xs text-muted-foreground">URL на ваучерите</div>
@@ -109,16 +89,6 @@ export function ShopDetail({
             )}
             {shop.voucher_url_note ? (
               <p className="text-xs text-muted-foreground">{shop.voucher_url_note}</p>
-            ) : null}
-            {offer?.terms_url ? (
-              <a
-                href={offer.terms_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block text-xs underline-offset-4 hover:underline"
-              >
-                Условия
-              </a>
             ) : null}
           </div>
         </div>
