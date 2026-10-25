@@ -15,9 +15,14 @@ name in any URL:
   Every public fetch is cached for an hour under the `public-data` tag
   (`PUBLIC_DATA_TAG` in `src/lib/site.ts`); every admin action that changes
   shop data calls `revalidateTag(PUBLIC_DATA_TAG)`, so keep that in new
-  actions. Browse filters live in the URL (`(public)/_lib/browse-params.ts`)
-  and the queries in `(public)/_lib/browse.ts` read `shop_voucher_range`
-  (`sql/006`), always paginated with `.range()`.
+  actions. Browse filters live in the URL (`(public)/_lib/browse-params.ts`):
+  the category is the path (`/kategoriya/<path>`, built only by
+  `browseHref` / `browsePath`; `/?kategoriya=` redirects there), the rest
+  are query parameters. The queries in `(public)/_lib/browse.ts` read
+  `shop_voucher_range` (`sql/006`), always paginated with `.range()`.
+  Public pages and `sitemap.xml` render per request (fetches stay cached):
+  nothing may query Supabase at build time, because Preview builds have no
+  database variables.
   The shop page `/magazin/[slug]` loads one published shop with its
   preferred offer and product rows in a single embedded query
   (`(public)/_lib/shop.ts`). Merchant URLs reach an `href` only through

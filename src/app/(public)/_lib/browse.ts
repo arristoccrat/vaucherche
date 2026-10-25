@@ -94,3 +94,21 @@ export async function categoryCounts() {
   }
   return { counts, total };
 }
+
+// Every published shop's slug and last update, for the sitemap. Paged in
+// 1,000s like categoryCounts.
+export async function publishedShopSlugs() {
+  const rows: { slug: string; updated_at: string | null }[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await publicClient()
+      .from("shops")
+      .select("slug, updated_at")
+      .eq("published", true)
+      .order("id")
+      .range(from, from + 999);
+    if (error) throw new Error(error.message);
+    rows.push(...data);
+    if (data.length < 1000) break;
+  }
+  return rows;
+}

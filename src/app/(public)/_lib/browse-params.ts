@@ -1,7 +1,9 @@
-import { isCategoryKey, type CategoryKey } from "@/lib/categories";
+import { CATEGORIES, isCategoryKey, type CategoryKey } from "@/lib/categories";
+import { SITE_URL } from "@/lib/site";
 
-// Browse filters live in the URL (?kategoriya=spa-wellness&suma=50-100…), so
-// every view is shareable and the server renders it.
+// Browse filters live in the URL, so every view is shareable and the server
+// renders it. The category is the path (/kategoriya/spa-i-uelnes), the rest
+// are query parameters (?suma=50-100&dostavka=digital…).
 
 export const AMOUNT_BUCKETS = [
   { key: "0-25", label: "до 25 €", lo: 0, hi: 25 },
@@ -62,16 +64,29 @@ export function parseBrowseFilters(params: Raw): BrowseFilters {
   };
 }
 
+export function browsePath(kategoriya: CategoryKey | null) {
+  return kategoriya ? `/kategoriya/${CATEGORIES[kategoriya].path}` : "/";
+}
+
 export function browseHref(filters: BrowseFilters, changes: Partial<BrowseFilters> = {}) {
   const next = { ...filters, ...changes, stranitsa: changes.stranitsa ?? 1 };
   const params = new URLSearchParams();
-  if (next.kategoriya) params.set("kategoriya", next.kategoriya);
   if (next.suma) params.set("suma", next.suma);
   if (next.dostavka.length) params.set("dostavka", next.dostavka.join(","));
   if (next.podredba !== DEFAULT_FILTERS.podredba) params.set("podredba", next.podredba);
   if (next.stranitsa > 1) params.set("stranitsa", String(next.stranitsa));
   const query = params.toString();
-  return query ? `/?${query}` : "/";
+  const path = browsePath(next.kategoriya);
+  return query ? `${path}?${query}` : path;
+}
+
+// Search engines index the category and page only; amount, delivery and sort
+// variants point back at it. Absolute, because Next drops the query from a
+// relative "/?…" canonical.
+export function canonicalBrowseUrl(filters: BrowseFilters) {
+  const url = new URL(browsePath(filters.kategoriya), SITE_URL);
+  if (filters.stranitsa > 1) url.searchParams.set("stranitsa", String(filters.stranitsa));
+  return url.toString();
 }
 
 export function hasActiveFilters(filters: BrowseFilters) {
