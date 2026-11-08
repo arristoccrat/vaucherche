@@ -65,7 +65,6 @@ export default async function ShopsPage({
         rows={result.rows}
         total={result.total}
         filterQuery={serializeShopFilters({ ...filters, page: 1 }).toString()}
-        categories={facets.categories.map((c) => c.value)}
       />
 
       <Pagination

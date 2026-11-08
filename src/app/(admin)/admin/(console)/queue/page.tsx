@@ -96,7 +96,6 @@ export default async function QueuePage({
         rows={result.rows}
         total={result.total}
         filterQuery={serializeShopFilters({ ...effective, page: 1 }).toString()}
-        categories={facets.categories.map((c) => c.value)}
         showPublishChecklist
       />
 

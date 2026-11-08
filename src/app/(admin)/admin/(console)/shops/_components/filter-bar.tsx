@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 
 import { Input } from "@/components/ui/input";
+import { CATEGORIES, isCategoryKey } from "@/lib/categories";
 import {
   GIFT_APPEAL_LABELS,
   PRODUCT_SOURCES,
@@ -126,7 +127,7 @@ export function FilterBar({
         <option value="">Всички</option>
         {categories.map((c) => (
           <option key={c.value} value={c.value}>
-            {c.value} ({c.count})
+            {isCategoryKey(c.value) ? CATEGORIES[c.value].label : `${c.value} (невалидна)`} ({c.count})
           </option>
         ))}
         {filters.category &&

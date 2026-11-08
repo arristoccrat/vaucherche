@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { NOT_SIGNED_IN, type ActionResult } from "@/lib/action-result";
 import { getUser } from "@/lib/auth";
+import { isCategoryKey } from "@/lib/categories";
 import { PUBLIC_DATA_TAG } from "@/lib/site";
 import { SHOP_FACETS_TAG } from "@/lib/queries/shops";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -23,6 +24,16 @@ const slug = z
   .max(60)
   .refine((value) => value === "" || /^[a-z0-9][a-z0-9_-]*$/.test(value), {
     message: "Само малки латински букви, цифри, „-“ и „_“.",
+  })
+  .transform((value) => value || null);
+
+// One of the 18 site categories (src/lib/categories.ts) or empty. Anything
+// else would show as "Други" on the site and miss its category page.
+const category = z
+  .string()
+  .trim()
+  .refine((value) => value === "" || isCategoryKey(value), {
+    message: "Изберете категория от списъка.",
   })
   .transform((value) => value || null);
 
@@ -45,8 +56,9 @@ const editorialSchema = z
     name: z.string().trim().min(1, { message: "Името не може да е празно." }).max(120),
     description: optionalText(600),
     logo_url: httpUrl,
-    category: slug,
-    subcategory: slug,
+    category,
+    // Shown on the public cards, so plain Bulgarian text ("Масажи").
+    subcategory: optionalText(60),
     gift_appeal: slug,
   })
   .partial()
