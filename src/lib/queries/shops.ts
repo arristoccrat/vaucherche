@@ -321,3 +321,59 @@ export async function getQueueCounts() {
     return null;
   }
 }
+
+// /admin/categories: shops and published shops per category, plus the values
+// outside the 18 site categories. Paged like the facets; refreshed by
+// category edits (facets tag) and by publishing (counts tag).
+const cachedCategoryCounts = unstable_cache(
+  async () => {
+    const supabase = createAdminClient();
+    const byCategory = new Map<string, { total: number; published: number }>();
+
+    for (let page = 0; page < FACET_MAX_PAGES; page++) {
+      const from = page * FACET_PAGE;
+      const { data, error } = await supabase
+        .from("shops")
+        .select("id, category, published")
+        .not("category", "is", null)
+        .order("id")
+        .range(from, from + FACET_PAGE - 1);
+      if (error) throw new Error(error.message);
+
+      for (const row of data) {
+        const key = row.category?.trim();
+        if (!key) continue; // counted below as "без категория"
+        const entry = byCategory.get(key) ?? { total: 0, published: 0 };
+        entry.total += 1;
+        if (row.published) entry.published += 1;
+        byCategory.set(key, entry);
+      }
+      if (data.length < FACET_PAGE) break;
+    }
+
+    const countWithout = async (publishedOnly: boolean) => {
+      let query = supabase.from("shops").select("id", { count: "exact", head: true }).is("category", null);
+      if (publishedOnly) query = query.eq("published", true);
+      const { count, error } = await query;
+      if (error) throw new Error(error.message);
+      return count ?? 0;
+    };
+    const [withoutTotal, withoutPublished] = await Promise.all([countWithout(false), countWithout(true)]);
+
+    return {
+      byCategory: Array.from(byCategory, ([value, counts]) => ({ value, ...counts })),
+      without: { total: withoutTotal, published: withoutPublished },
+    };
+  },
+  ["shop-category-counts"],
+  { revalidate: 600, tags: [SHOP_FACETS_TAG, SHOP_COUNTS_TAG] }
+);
+
+export async function getCategoryCounts() {
+  await requireUser();
+  try {
+    return await cachedCategoryCounts();
+  } catch {
+    return null;
+  }
+}

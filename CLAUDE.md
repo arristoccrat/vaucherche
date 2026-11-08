@@ -97,6 +97,12 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
   `subcategory`, `gift_appeal`) autosave one at a time via
   `src/actions/editorial.ts`. `description` is our own copy written
   from the facts, never the merchant's text.
+  `category` must be one of the 18 keys in `src/lib/categories.ts` (a
+  select in the form, refused otherwise in the action and in the publish
+  gate); `subcategory` is free Bulgarian text shown on public cards.
+  `/admin/categories` shows shops and published shops per category and
+  lists any value outside the 18. Categories themselves (names, colours,
+  URLs) are code, not data: renaming one changes public URLs.
 - Schema changes the admin depends on live in `sql/` and are run by hand in
   the Supabase SQL Editor before deploying; update
   `src/lib/database.types.ts` to match.

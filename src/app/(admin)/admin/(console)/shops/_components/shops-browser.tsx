@@ -22,6 +22,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ActionResult } from "@/lib/action-result";
+import { CATEGORIES, isCategoryKey } from "@/lib/categories";
 import { GIFT_APPEAL_LABELS, isGiftAppeal, type ShopStatus } from "@/lib/domain";
 import { formatConfidence, formatCount, parseStatusReason } from "@/lib/format";
 import { publishChecks } from "@/lib/publish";
@@ -125,13 +126,11 @@ export function ShopsBrowser({
   rows,
   total,
   filterQuery,
-  categories,
   showPublishChecklist = false,
 }: {
   rows: ShopListRow[];
   total: number;
   filterQuery: string;
-  categories: string[];
   showPublishChecklist?: boolean;
 }) {
   const [optimisticRows, applyOptimistic] = useOptimistic(
@@ -429,7 +428,15 @@ export function ShopsBrowser({
                       <StatusBadge status={shop.status} />
                     </td>
                     <td className="px-3 py-2">
-                      <div>{shop.category ?? "—"}</div>
+                      <div>
+                        {!shop.category ? (
+                          "—"
+                        ) : isCategoryKey(shop.category) ? (
+                          CATEGORIES[shop.category].label
+                        ) : (
+                          <span className="text-destructive">{shop.category} (невалидна)</span>
+                        )}
+                      </div>
                       {shop.subcategory ? (
                         <div className="text-xs text-muted-foreground">{shop.subcategory}</div>
                       ) : null}
@@ -458,7 +465,7 @@ export function ShopsBrowser({
                   {expanded ? (
                     <tr>
                       <td colSpan={8} className="p-0">
-                        <ShopDetail shop={shop} actions={actionsFor(shop)} categories={categories} />
+                        <ShopDetail shop={shop} actions={actionsFor(shop)} />
                       </td>
                     </tr>
                   ) : null}

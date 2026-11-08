@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { updateShopEditorial, type EditorialField } from "@/actions/editorial";
 import { Button } from "@/components/ui/button";
+import { CATEGORIES, CATEGORY_KEYS, isCategoryKey } from "@/lib/categories";
 import { GIFT_APPEALS, GIFT_APPEAL_LABELS, isGiftAppeal } from "@/lib/domain";
 import type { ShopListRow } from "@/lib/queries/shops";
 import type { CrawlSuggestions } from "@/lib/suggestions";
@@ -28,14 +29,12 @@ function TextField({
   hint,
   placeholder,
   field,
-  listId,
 }: {
   id: string;
   label: string;
   hint?: string;
   placeholder?: string;
   field: ReturnType<typeof useAutosave>;
-  listId?: string;
 }) {
   return (
     <div className="space-y-1">
@@ -43,7 +42,6 @@ function TextField({
       <input
         id={id}
         value={field.value}
-        list={listId}
         placeholder={placeholder}
         onChange={(event) => field.change(event.target.value)}
         onBlur={field.flush}
@@ -53,7 +51,7 @@ function TextField({
   );
 }
 
-export function EditorialForm({ shop, categories }: { shop: ShopListRow; categories: string[] }) {
+export function EditorialForm({ shop }: { shop: ShopListRow }) {
   const id = shop.id;
   const name = useEditorial(id, "name", shop.name === shop.domain ? "" : shop.name);
   const description = useEditorial(id, "description", shop.description ?? "");
@@ -151,14 +149,34 @@ export function EditorialForm({ shop, categories }: { shop: ShopListRow; categor
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <TextField id={`category-${id}`} label="Категория" field={category} listId={`categories-${id}`} />
-            <TextField id={`subcategory-${id}`} label="Подкатегория" field={subcategory} />
+            <div className="space-y-1">
+              <FieldLabel htmlFor={`category-${id}`} label="Категория" state={category.state} />
+              {/* Only the 18 site categories; a value outside them (from the
+                  crawl or older edits) stays visible until it is replaced. */}
+              <select
+                id={`category-${id}`}
+                value={category.value}
+                onChange={(event) => category.change(event.target.value, true)}
+                className={fieldClass}
+              >
+                <option value="">—</option>
+                {CATEGORY_KEYS.map((key) => (
+                  <option key={key} value={key}>
+                    {CATEGORIES[key].label}
+                  </option>
+                ))}
+                {category.value && !isCategoryKey(category.value) ? (
+                  <option value={category.value}>{category.value} (невалидна)</option>
+                ) : null}
+              </select>
+            </div>
+            <TextField
+              id={`subcategory-${id}`}
+              label="Подкатегория"
+              hint="на български, напр. Масажи"
+              field={subcategory}
+            />
           </div>
-          <datalist id={`categories-${id}`}>
-            {categories.map((c) => (
-              <option key={c} value={c} />
-            ))}
-          </datalist>
 
           <div className="space-y-1">
             <FieldLabel htmlFor={`gift_appeal-${id}`} label="Подаръчна привлекателност" hint="подрежда началната страница" state={appeal.state} />

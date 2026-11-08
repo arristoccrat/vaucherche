@@ -34,11 +34,9 @@ export type ShopActions = {
 export function ShopDetail({
   shop,
   actions,
-  categories,
 }: {
   shop: ShopListRow;
   actions: ShopActions;
-  categories: string[];
 }) {
   const { verdict, quote } = parseStatusReason(shop.status_reason);
   const offer = shop.voucher_offers[0];
@@ -148,7 +146,7 @@ export function ShopDetail({
           </Link>
         </div>
       </div>
-      <EditorialForm key={shop.id} shop={shop} categories={categories} />
+      <EditorialForm key={shop.id} shop={shop} />
       <ProductsPanel shop={shop} />
     </div>
   );

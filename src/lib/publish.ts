@@ -1,3 +1,4 @@
+import { isCategoryKey } from "@/lib/categories";
 import type { ShopStatus } from "@/lib/domain";
 
 export type PublishCheckInput = {
@@ -27,7 +28,7 @@ export function publishChecks(shop: PublishCheckInput): PublishCheck[] {
       label: "Има URL на ваучерите и е потвърден",
       ok: Boolean(shop.voucher_url) && shop.voucher_url_verified === true,
     },
-    { label: "Има категория", ok: Boolean(shop.category) },
+    { label: "Има категория от списъка", ok: isCategoryKey(shop.category) },
     {
       label: "Име, въведено от човек (не домейнът)",
       ok: name !== "" && name.toLowerCase() !== shop.domain.toLowerCase(),
