@@ -4,12 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { getCategory, onColorHex } from "@/lib/categories";
-import { CATEGORY_ICONS } from "@/lib/category-icons";
+import { categoryOrFallback, onColorHex } from "@/lib/categories";
+import { categoryIcon } from "@/lib/category-icons";
 import { formatEurRange } from "@/lib/format";
 
 import { BreadcrumbJsonLd } from "../../_components/json-ld";
 import { browsePath } from "../../_lib/browse-params";
+import { getVisibleCategories } from "../../_lib/categories";
 import { getPublishedShop, type PublishedShop } from "../../_lib/shop";
 
 import { BuyPanel } from "./buy-panel";
@@ -71,8 +72,12 @@ export default async function ShopPage({ params }: { params: { slug: string } })
   if (!data) notFound();
   const { shop, offer, amounts, lastChecked } = data;
 
-  const category = getCategory(shop.category);
-  const Icon = CATEGORY_ICONS[category.key];
+  const { visible } = await getVisibleCategories();
+  // A published shop's category always has a page; an unknown or archived
+  // one shows the neutral fallback with no category link.
+  const category = categoryOrFallback(visible, shop.category);
+  const hasCategoryPage = category.key !== "";
+  const Icon = categoryIcon(category.icon);
   const onColor = onColorHex(category.on);
   const monogramColor = category.on === "ink" ? onColorHex("ink") : category.bg;
   const name = displayName(shop);
@@ -84,7 +89,7 @@ export default async function ShopPage({ params }: { params: { slug: string } })
       <BreadcrumbJsonLd
         items={[
           { name: "Всички ваучери", path: "/" },
-          { name: category.label, path: browsePath(category.key) },
+          ...(hasCategoryPage ? [{ name: category.label, path: browsePath(category) }] : []),
           { name, path: `/magazin/${shop.slug}` },
         ]}
       />
@@ -93,10 +98,14 @@ export default async function ShopPage({ params }: { params: { slug: string } })
           <ChevronLeft className="size-4" aria-hidden />
           Всички ваучери
         </Link>
-        <span aria-hidden className="text-brand-quiet">/</span>
-        <Link href={browsePath(category.key)} className="flex min-h-11 items-center text-brand-mint-deep hover:underline">
-          {category.label}
-        </Link>
+        {hasCategoryPage ? (
+          <>
+            <span aria-hidden className="text-brand-quiet">/</span>
+            <Link href={browsePath(category)} className="flex min-h-11 items-center text-brand-mint-deep hover:underline">
+              {category.label}
+            </Link>
+          </>
+        ) : null}
       </nav>
 
       <div className="mt-2 lg:mt-3 lg:grid lg:grid-cols-[minmax(0,1fr)_376px] lg:items-start lg:gap-8">

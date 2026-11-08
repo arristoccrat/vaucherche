@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 
 import { Input } from "@/components/ui/input";
-import { CATEGORIES, isCategoryKey } from "@/lib/categories";
+import { describeCategory, type CategoryOption } from "@/lib/categories";
 import {
   GIFT_APPEAL_LABELS,
   PRODUCT_SOURCES,
@@ -61,12 +61,14 @@ function Select({
 export function FilterBar({
   filters,
   categories,
+  categoryOptions,
   giftAppeals,
   view = SHOPS_VIEW,
   hidePublished = false,
 }: {
   filters: ShopFilters;
   categories: Facet[];
+  categoryOptions: CategoryOption[];
   giftAppeals: Facet[];
   view?: ShopsView;
   hidePublished?: boolean;
@@ -127,7 +129,7 @@ export function FilterBar({
         <option value="">Всички</option>
         {categories.map((c) => (
           <option key={c.value} value={c.value}>
-            {isCategoryKey(c.value) ? CATEGORIES[c.value].label : `${c.value} (невалидна)`} ({c.count})
+            {describeCategory(categoryOptions, c.value).text} ({c.count})
           </option>
         ))}
         {filters.category &&

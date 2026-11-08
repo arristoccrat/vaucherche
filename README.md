@@ -66,6 +66,10 @@ Phase 0 RLS policies and indexes from the admin spec):
   `gift_appeal_rank` and the latest offer's delivery, custom-amount and
   validity facts (a human-edited offer wins), for the public browse filters
   and cards. Run after 005.
+- `sql/007_categories.sql` — the `categories` table (seeded with the 18
+  categories) that `/admin/categories` edits: names, URLs (old ones
+  redirect), colours, icons, order, delete/restore. Run after 006; until
+  then the site and the admin use the built-in 18, read-only.
 
 **Pipeline rules the admin relies on** (in the crawler / AI scripts, outside
 this repo):
@@ -122,7 +126,7 @@ shop count (about 19,974) with its query time in the header.
 
 ### Launch checklist (public site)
 
-1. Every file in `sql/` up to `006` has been run (see **Database changes**).
+1. Every file in `sql/` up to `007` has been run (see **Database changes**).
 2. In `/admin/queue`, publish the shops that pass the gate. Nothing
    publishes itself.
 3. Preview the real site on production with `/?preview=<PREVIEW_TOKEN>`:

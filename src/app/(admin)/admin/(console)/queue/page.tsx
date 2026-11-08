@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { QueryError } from "@/components/query-error";
+import { categoryOptions } from "@/lib/categories";
 import { formatCount } from "@/lib/format";
 import {
   QUEUE_STATUSES,
@@ -9,6 +10,7 @@ import {
   getShopFacets,
   listShops,
 } from "@/lib/queries/shops";
+import { getAdminCategories } from "@/lib/queries/categories";
 import {
   QUEUE_VIEW,
   parseShopFilters,
@@ -39,7 +41,7 @@ export default async function QueuePage({
     published: "no",
   };
 
-  const [result, counts, facets] = await Promise.all([
+  const [result, counts, facets, adminCategories] = await Promise.all([
     listShops({ ...effective, pageSize: SHOPS_PAGE_SIZE }).catch(
       (error: unknown) => ({
         error: error instanceof Error ? error.message : String(error),
@@ -47,8 +49,10 @@ export default async function QueuePage({
     ),
     getQueueCounts(),
     getShopFacets(),
+    getAdminCategories(),
   ]);
   if ("error" in result) return <QueryError message={result.error} />;
+  const categories = categoryOptions(adminCategories.active, adminCategories.archived);
 
   const hasFilters =
     serializeShopFilters({ ...filters, page: 1 }, QUEUE_VIEW.defaults).toString() !== "";
@@ -78,6 +82,7 @@ export default async function QueuePage({
       <FilterBar
         filters={filters}
         categories={facets.categories}
+        categoryOptions={categories}
         giftAppeals={facets.giftAppeals}
         view={QUEUE_VIEW}
         hidePublished
@@ -93,6 +98,7 @@ export default async function QueuePage({
       ) : null}
 
       <ShopsBrowser
+        categories={categories}
         rows={result.rows}
         total={result.total}
         filterQuery={serializeShopFilters({ ...effective, page: 1 }).toString()}

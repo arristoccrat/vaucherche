@@ -1,7 +1,5 @@
 import Link from "next/link";
 
-import { CATEGORIES } from "@/lib/categories";
-
 import { countPublishedShops } from "../_lib/browse";
 import { AMOUNT_BUCKETS, DEFAULT_FILTERS, browseHref, shopCountLabel, type BrowseFilters } from "../_lib/browse-params";
 
@@ -12,7 +10,7 @@ const ctaClass =
 // shops, and offer to drop it or everything.
 export async function BrowseEmpty({ filters }: { filters: BrowseFilters }) {
   const candidates: { label: string; changes: Partial<BrowseFilters> }[] = [];
-  if (filters.kategoriya) candidates.push({ label: `„${CATEGORIES[filters.kategoriya].label}“`, changes: { kategoriya: null } });
+  if (filters.kategoriya) candidates.push({ label: `„${filters.kategoriya.label}“`, changes: { kategoriya: null } });
   if (filters.suma) {
     const bucket = AMOUNT_BUCKETS.find((b) => b.key === filters.suma);
     candidates.push({ label: `сума ${bucket?.label ?? ""}`.trim(), changes: { suma: null } });

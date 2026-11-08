@@ -22,7 +22,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { ActionResult } from "@/lib/action-result";
-import { CATEGORIES, isCategoryKey } from "@/lib/categories";
+import { activeKeys, describeCategory, type CategoryOption } from "@/lib/categories";
 import { GIFT_APPEAL_LABELS, isGiftAppeal, type ShopStatus } from "@/lib/domain";
 import { formatConfidence, formatCount, parseStatusReason } from "@/lib/format";
 import { publishChecks } from "@/lib/publish";
@@ -88,6 +88,11 @@ function isTyping(target: EventTarget | null) {
   );
 }
 
+function CategoryName({ categories, categoryKey }: { categories: CategoryOption[]; categoryKey: string }) {
+  const { text, ok } = describeCategory(categories, categoryKey);
+  return ok ? <>{text}</> : <span className="text-destructive">{text}</span>;
+}
+
 function resultMessage({ updated, skipped }: Counted) {
   return skipped
     ? `Обновени: ${formatCount(updated)} · пропуснати: ${formatCount(skipped)} (не отговарят на условията)`
@@ -97,12 +102,14 @@ function resultMessage({ updated, skipped }: Counted) {
 // The queue's work list: what is still missing before a shop can go live.
 function PublishChecklistInline({
   shop,
+  categoryKeys,
   onPublish,
 }: {
   shop: ShopListRow;
+  categoryKeys: string[];
   onPublish: () => void;
 }) {
-  const missing = publishChecks(shop).filter((check) => !check.ok);
+  const missing = publishChecks(shop, categoryKeys).filter((check) => !check.ok);
   if (!missing.length) {
     return (
       <div className="mt-1 flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400">
@@ -126,13 +133,16 @@ export function ShopsBrowser({
   rows,
   total,
   filterQuery,
+  categories,
   showPublishChecklist = false,
 }: {
   rows: ShopListRow[];
   total: number;
   filterQuery: string;
+  categories: CategoryOption[];
   showPublishChecklist?: boolean;
 }) {
+  const categoryKeys = activeKeys(categories);
   const [optimisticRows, applyOptimistic] = useOptimistic(
     rows,
     (state, update: OptimisticUpdate) =>
@@ -202,7 +212,7 @@ export function ShopsBrowser({
     const nextId = optimisticRows[index + 1]?.id ?? shop.id;
     const publishTo = (publish: boolean) => {
       if (publish) {
-        const missing = publishChecks(shop).filter((c) => !c.ok);
+        const missing = publishChecks(shop, categoryKeys).filter((c) => !c.ok);
         if (missing.length) {
           toast.error(`Не може да се публикува: ${missing.map((c) => c.label).join("; ")}.`);
           return;
@@ -413,7 +423,11 @@ export function ShopsBrowser({
                         <div className="text-xs text-muted-foreground">{shop.name}</div>
                       ) : null}
                       {showPublishChecklist ? (
-                        <PublishChecklistInline shop={shop} onPublish={() => actionsFor(shop).setPublished(true)} />
+                        <PublishChecklistInline
+                          shop={shop}
+                          categoryKeys={categoryKeys}
+                          onPublish={() => actionsFor(shop).setPublished(true)}
+                        />
                       ) : null}
                       {!expanded && (quote || verdict) ? (
                         <p className="mt-1 line-clamp-2 text-xs" title={shop.status_reason ?? undefined}>
@@ -429,12 +443,10 @@ export function ShopsBrowser({
                     </td>
                     <td className="px-3 py-2">
                       <div>
-                        {!shop.category ? (
-                          "—"
-                        ) : isCategoryKey(shop.category) ? (
-                          CATEGORIES[shop.category].label
+                        {shop.category ? (
+                          <CategoryName categories={categories} categoryKey={shop.category} />
                         ) : (
-                          <span className="text-destructive">{shop.category} (невалидна)</span>
+                          "—"
                         )}
                       </div>
                       {shop.subcategory ? (
@@ -465,7 +477,7 @@ export function ShopsBrowser({
                   {expanded ? (
                     <tr>
                       <td colSpan={8} className="p-0">
-                        <ShopDetail shop={shop} actions={actionsFor(shop)} />
+                        <ShopDetail shop={shop} actions={actionsFor(shop)} categories={categories} />
                       </td>
                     </tr>
                   ) : null}

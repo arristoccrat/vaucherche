@@ -8,6 +8,7 @@ import { getUser } from "@/lib/auth";
 import { PUBLIC_DATA_TAG } from "@/lib/site";
 import type { ShopStatus } from "@/lib/domain";
 import { canPublish, publishChecks } from "@/lib/publish";
+import { readCategoriesUncached } from "@/lib/queries/categories";
 import {
   MAX_BULK_ROWS,
   SHOP_COUNTS_TAG,
@@ -201,6 +202,7 @@ async function applyPublished(ids: string[], published: boolean): Promise<Counte
   const now = new Date().toISOString();
   let updated = 0;
   let skipped = 0;
+  const categoryKeys = published ? (await readCategoriesUncached()).active.map((c) => c.key) : [];
 
   for (const chunk of chunks(ids)) {
     let eligible = chunk;
@@ -211,7 +213,7 @@ async function applyPublished(ids: string[], published: boolean): Promise<Counte
         .select("id, status, domain, name, description, category, voucher_url, voucher_url_verified")
         .in("id", chunk);
       if (error) throw new Error(error.message);
-      eligible = data.filter(canPublish).map((shop) => shop.id);
+      eligible = data.filter((shop) => canPublish(shop, categoryKeys)).map((shop) => shop.id);
       skipped += chunk.length - eligible.length;
       if (!eligible.length) continue;
     }
@@ -246,7 +248,8 @@ export async function setPublished(
         .maybeSingle();
       if (error) throw new Error(error.message);
       if (!shop) return { ok: false, error: "Магазинът не е намерен." };
-      const missing = publishChecks(shop).filter((check) => !check.ok);
+      const categoryKeys = (await readCategoriesUncached()).active.map((c) => c.key);
+      const missing = publishChecks(shop, categoryKeys).filter((check) => !check.ok);
       if (missing.length) {
         return {
           ok: false,

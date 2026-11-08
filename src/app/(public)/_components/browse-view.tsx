@@ -1,11 +1,12 @@
 import Link from "next/link";
 
 import { ShopCard } from "@/components/shop-card";
-import { CATEGORIES, CATEGORY_KEYS } from "@/lib/categories";
+import { categoryOrFallback } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 
-import { PAGE_SIZE, categoryCounts, listPublishedShops } from "../_lib/browse";
+import { PAGE_SIZE, listPublishedShops } from "../_lib/browse";
 import { DEFAULT_FILTERS, SORTS, browseHref, hasActiveFilters, shopCountLabel, type BrowseFilters } from "../_lib/browse-params";
+import { getVisibleCategories } from "../_lib/categories";
 
 import { BrowseEmpty } from "./browse-empty";
 import { ChipRows, FilterRail } from "./browse-filters";
@@ -15,13 +16,14 @@ import { SortSelect } from "./filter-button";
 // The browse list shared by / and /kategoriya/[path]: every filter lives in
 // the URL, every read is a cached published-only query.
 export async function BrowseView({ filters }: { filters: BrowseFilters }) {
-  const [{ shops, total }, { counts, total: published }] = await Promise.all([
+  const [{ shops, total }, { categories, visible, counts, total: published }] = await Promise.all([
     listPublishedShops(filters),
-    categoryCounts(),
+    getVisibleCategories(),
   ]);
-  // Biggest categories first; ties keep the canonical order.
-  const categoryOrder = [...CATEGORY_KEYS].sort((a, b) => counts[b] - counts[a]);
-  const category = filters.kategoriya ? CATEGORIES[filters.kategoriya] : null;
+  // Only categories with published shops, biggest first; ties keep the
+  // admin's order.
+  const categoryOrder = [...visible].sort((a, b) => (counts[b.key] ?? 0) - (counts[a.key] ?? 0));
+  const category = filters.kategoriya;
   // On a category page the category is the page, not a filter: clearing
   // keeps it.
   const filtered = category ? Boolean(filters.suma || filters.dostavka.length) : hasActiveFilters(filters);
@@ -29,12 +31,12 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
     category ? { ...DEFAULT_FILTERS, kategoriya: filters.kategoriya } : DEFAULT_FILTERS,
     { podredba: filters.podredba }
   );
-  const headingCount = filters.kategoriya ? counts[filters.kategoriya] : published;
+  const headingCount = category ? (counts[category.key] ?? 0) : published;
   const sortOptions = SORTS.map((s) => ({ key: s.key, label: s.label, href: browseHref(filters, { podredba: s.key }) }));
 
   return (
     <div className="mx-auto flex max-w-[1440px]">
-      <FilterRail filters={filters} counts={counts} total={published} categoryOrder={categoryOrder} />
+      <FilterRail filters={filters} counts={counts} total={published} categories={categoryOrder} />
 
       <div className="min-w-0 flex-1 px-4 pb-10 pt-4 lg:px-9 lg:pt-[26px]">
         {category ? null : (
@@ -55,7 +57,7 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
         </div>
 
         <div className="mt-4 lg:hidden">
-          <ChipRows filters={filters} categoryOrder={categoryOrder} />
+          <ChipRows filters={filters} categories={categoryOrder} />
         </div>
 
         <div className={cn("mt-4 flex min-h-11 items-center justify-between gap-3 lg:mt-5", !filtered && "lg:hidden")}>
@@ -77,7 +79,7 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
           <ul className="mt-3 lg:mt-6 grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3 lg:gap-[18px]">
             {shops.map((shop, i) => (
               <li key={shop.id}>
-                <ShopCard shop={shop} priority={i < 3} />
+                <ShopCard shop={shop} category={categoryOrFallback(categories, shop.category)} priority={i < 3} />
               </li>
             ))}
           </ul>

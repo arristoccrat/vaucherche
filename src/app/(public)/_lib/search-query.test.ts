@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { DEFAULT_CATEGORIES } from "@/lib/categories";
+
 import { matchingCategories, normalizeQuery, searchFilter, searchPatterns, transliterate } from "./search-query";
 
 describe("normalizeQuery", () => {
@@ -38,8 +40,9 @@ describe("searchFilter", () => {
 
 describe("matchingCategories", () => {
   it("matches the Bulgarian label or the Latin path", () => {
-    expect(matchingCategories("спа")).toContain("spa-wellness");
-    expect(matchingCategories("knigi")).toContain("books-music");
-    expect(matchingCategories("")).toEqual([]);
+    const keys = (q: string) => matchingCategories(DEFAULT_CATEGORIES, q).map((c) => c.key);
+    expect(keys("спа")).toContain("spa-wellness");
+    expect(keys("knigi")).toContain("books-music");
+    expect(keys("")).toEqual([]);
   });
 });

@@ -1,101 +1,66 @@
 import Link from "next/link";
 
-import { CATEGORIES, CATEGORY_KEYS, isCategoryKey } from "@/lib/categories";
 import { formatCount } from "@/lib/format";
+import { getAdminCategories } from "@/lib/queries/categories";
 import { getCategoryCounts } from "@/lib/queries/shops";
 import { DEFAULT_SHOP_FILTERS, shopsHref } from "@/lib/search-params";
 
-// The 18 site categories with how many shops each has, and how many of
-// those are on the site. The categories themselves live in
-// src/lib/categories.ts (names, colours and URLs are code, not data).
-export default async function CategoriesPage() {
-  const counts = await getCategoryCounts();
-  if (!counts) {
-    return <p className="text-sm text-muted-foreground">Броят по категории не е наличен.</p>;
-  }
+import { CategoriesManager } from "./_components/categories-manager";
 
-  const byValue = new Map(counts.byCategory.map((c) => [c.value, c]));
-  const rows = CATEGORY_KEYS.map((key) => ({ key, ...(byValue.get(key) ?? { total: 0, published: 0 }) }));
-  const invalid = counts.byCategory.filter((c) => !isCategoryKey(c.value)).sort((a, b) => b.total - a.total);
-  const published = rows.reduce((sum, r) => sum + r.published, 0);
-  const emptyOnSite = rows.filter((r) => r.published === 0).length;
+// Categories: add, rename, recolour, reorder and delete (archive). A category
+// with no published shops stays here but is hidden on the site.
+export default async function CategoriesPage() {
+  const [{ active, archived, missingTable }, counts] = await Promise.all([getAdminCategories(), getCategoryCounts()]);
+
+  const byValue: Record<string, { total: number; published: number }> = {};
+  for (const c of counts?.byCategory ?? []) byValue[c.value] = { total: c.total, published: c.published };
+  const known = new Set([...active, ...archived].map((c) => c.key));
+  const invalid = (counts?.byCategory ?? []).filter((c) => !known.has(c.value)).sort((a, b) => b.total - a.total);
   const listHref = (category: string, onlyPublished = false) =>
     shopsHref(DEFAULT_SHOP_FILTERS, { category, ...(onlyPublished ? { published: "yes" as const } : {}) });
+  const hrefs = Object.fromEntries(
+    active.map((c) => [c.key, { all: listHref(c.key), published: listHref(c.key, true) }])
+  );
+  const published = active.reduce((sum, c) => sum + (byValue[c.key]?.published ?? 0), 0);
+  const hidden = active.filter((c) => !byValue[c.key]?.published).length;
 
   return (
     <div className="space-y-8">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold">Категории</h1>
         <p className="text-sm text-muted-foreground">
-          {formatCount(published)} публикувани магазина в 18 категории
-          {emptyOnSite ? ` · ${emptyOnSite} категории са празни на сайта` : ""}. Имената, цветовете и адресите
-          на категориите са в кода; категорията на магазин се сменя от редакцията му.
+          {formatCount(published)} публикувани магазина в {active.length} категории
+          {hidden ? ` · ${hidden} без публикувани магазини (скрити на сайта)` : ""}. Редът тук е редът на
+          сайта; изтритите отиват в архива и могат да се възстановят.
         </p>
       </div>
 
-      <table className="w-full text-sm">
-        <thead className="border-b text-left text-xs text-muted-foreground">
-          <tr>
-            <th className="py-2 pr-3 font-medium">Категория</th>
-            <th className="py-2 pr-3 font-medium">Ключ · адрес на сайта</th>
-            <th className="py-2 pr-3 text-right font-medium">Магазини</th>
-            <th className="py-2 text-right font-medium">Публикувани</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y">
-          {rows.map((row) => {
-            const category = CATEGORIES[row.key];
-            return (
-              <tr key={row.key}>
-                <td className="py-2 pr-3">
-                  <span className="flex items-center gap-2">
-                    <span aria-hidden className="size-3 shrink-0 rounded-sm border" style={{ backgroundColor: category.bg }} />
-                    {category.label}
-                  </span>
-                </td>
-                <td className="py-2 pr-3 text-xs text-muted-foreground">
-                  <code>{row.key}</code> ·{" "}
-                  <a href={`/kategoriya/${category.path}`} target="_blank" rel="noopener" className="hover:underline">
-                    /kategoriya/{category.path} ↗
-                  </a>
-                </td>
-                <td className="py-2 pr-3 text-right tabular-nums">
-                  {row.total ? (
-                    <Link href={listHref(row.key)} className="hover:underline">
-                      {formatCount(row.total)}
-                    </Link>
-                  ) : (
-                    <span className="text-muted-foreground">0</span>
-                  )}
-                </td>
-                <td className="py-2 text-right tabular-nums">
-                  {row.published ? (
-                    <Link href={listHref(row.key, true)} className="hover:underline">
-                      {formatCount(row.published)}
-                    </Link>
-                  ) : (
-                    <span className="text-destructive">0</span>
-                  )}
-                </td>
-              </tr>
-            );
-          })}
-          <tr className="text-muted-foreground">
-            <td className="py-2 pr-3">Без категория</td>
-            <td className="py-2 pr-3 text-xs">не може да се публикува</td>
-            <td className="py-2 pr-3 text-right tabular-nums">{formatCount(counts.without.total)}</td>
-            <td className="py-2 text-right tabular-nums">{formatCount(counts.without.published)}</td>
-          </tr>
-        </tbody>
-      </table>
+      {missingTable ? (
+        <p className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-3 text-sm">
+          Таблицата с категории още не съществува. Пусни <code>sql/007_categories.sql</code> в Supabase SQL
+          Editor, за да можеш да ги редактираш. Дотогава сайтът ползва вградените 18.
+        </p>
+      ) : null}
+
+      <CategoriesManager
+        active={active}
+        archived={archived}
+        counts={byValue}
+        readOnly={missingTable}
+        listHref={hrefs}
+      />
+
+      <p className="text-sm text-muted-foreground">
+        Без категория: {formatCount(counts?.without.total ?? 0)} магазина. Те не могат да се публикуват.
+      </p>
 
       {invalid.length ? (
         <section className="space-y-3 rounded-xl border border-destructive/40 p-4">
           <div>
             <h2 className="text-sm font-medium">Невалидни категории</h2>
             <p className="text-xs text-muted-foreground">
-              Стойности извън 18-те категории. На сайта такъв магазин излиза като „Други“ и не се вижда в своята
-              категория. Отвори магазините и избери категория от списъка.
+              Стойности, които не са категория от списъка. На сайта такъв магазин излиза като „Други“ и не се вижда в
+              своята категория. Отвори магазините и избери категория.
             </p>
           </div>
           <ul className="space-y-1 text-sm">

@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import Link from "next/link";
 
-import { CATEGORIES, CATEGORY_KEYS, onColorHex, type CategoryKey } from "@/lib/categories";
+import { onColorHex, type Category } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 
 import { AMOUNT_BUCKETS, DELIVERY, browseHref, type BrowseFilters } from "../_lib/browse-params";
@@ -15,17 +15,18 @@ const chipBase =
 const amountBase =
   "inline-flex h-9 shrink-0 items-center gap-1 rounded-[18px] border-2 border-brand-ink px-3.5 font-num text-[12.5px] font-semibold text-brand-ink";
 
-function toggleCategory(filters: BrowseFilters, key: CategoryKey) {
-  return browseHref(filters, { kategoriya: filters.kategoriya === key ? null : key });
+function toggleCategory(filters: BrowseFilters, category: Category) {
+  return browseHref(filters, { kategoriya: filters.kategoriya?.key === category.key ? null : category });
 }
 
 // Mobile: two horizontally scrolling chip rows (Main / Filtered artboards).
 export function ChipRows({
   filters,
-  categoryOrder,
+  categories,
 }: {
   filters: BrowseFilters;
-  categoryOrder: CategoryKey[];
+  // Categories with published shops, biggest first.
+  categories: Category[];
 }) {
   return (
     <div className="space-y-2.5 lg:hidden">
@@ -37,13 +38,12 @@ export function ChipRows({
         >
           Всички
         </FilterButton>
-        {categoryOrder.map((key) => {
-          const c = CATEGORIES[key];
-          const selected = filters.kategoriya === key;
+        {categories.map((c) => {
+          const selected = filters.kategoriya?.key === c.key;
           return (
             <FilterButton
-              key={key}
-              href={toggleCategory(filters, key)}
+              key={c.key}
+              href={toggleCategory(filters, c)}
               pressed={selected}
               className={cn(chipBase, chipHit)}
               style={{ backgroundColor: c.bg, color: onColorHex(c.on) }}
@@ -88,16 +88,18 @@ export function FilterRail({
   filters,
   counts,
   total,
-  categoryOrder,
+  categories,
 }: {
   filters: BrowseFilters;
-  counts: Record<CategoryKey, number>;
+  counts: Record<string, number>;
   total: number;
-  categoryOrder: CategoryKey[];
+  // Categories with published shops, biggest first.
+  categories: Category[];
 }) {
-  const visible = categoryOrder.slice(0, RAIL_CATEGORIES);
-  if (filters.kategoriya && !visible.includes(filters.kategoriya)) visible.push(filters.kategoriya);
-  const hidden = CATEGORY_KEYS.length - visible.length;
+  const visible = categories.slice(0, RAIL_CATEGORIES);
+  const selected = filters.kategoriya;
+  if (selected && !visible.some((c) => c.key === selected.key)) visible.push(selected);
+  const hidden = categories.length - visible.length;
 
   return (
     <aside className="hidden w-[272px] shrink-0 border-r-2 border-brand-ink px-6 py-[26px] lg:block" aria-label="Филтри">
@@ -114,13 +116,12 @@ export function FilterRail({
           Всички
           <span className="ml-auto font-num text-[11.5px] opacity-80">{total.toLocaleString("bg-BG")}</span>
         </FilterButton>
-        {visible.map((key) => {
-          const c = CATEGORIES[key];
-          const selected = filters.kategoriya === key;
+        {visible.map((c) => {
+          const selected = filters.kategoriya?.key === c.key;
           return (
             <FilterButton
-              key={key}
-              href={toggleCategory(filters, key)}
+              key={c.key}
+              href={toggleCategory(filters, c)}
               pressed={selected}
               className={cn(
                 "flex h-11 items-center gap-2.5 rounded-[10px] px-3 text-left text-[13.5px]",
@@ -130,7 +131,7 @@ export function FilterRail({
               <span aria-hidden className="size-[11px] shrink-0 rounded-[3px] border-[1.5px] border-brand-ink" style={{ backgroundColor: c.bg }} />
               {c.label}
               <span className={cn("ml-auto font-num text-[11.5px]", selected ? "opacity-80" : "text-brand-quiet")}>
-                {counts[key].toLocaleString("bg-BG")}
+                {(counts[c.key] ?? 0).toLocaleString("bg-BG")}
               </span>
             </FilterButton>
           );

@@ -3,8 +3,13 @@ import { permanentRedirect } from "next/navigation";
 
 import { BrowseView } from "./_components/browse-view";
 import { canonicalBrowseUrl, parseBrowseFilters, browseHref } from "./_lib/browse-params";
+import { getPublicCategories } from "./_lib/categories";
 
 type Props = { searchParams: Record<string, string | string[] | undefined> };
+
+// Depends on the query string; never prerendered, so the build needs no
+// database (it reads the categories before the filters).
+export const dynamic = "force-dynamic";
 
 export function generateMetadata({ searchParams }: Props): Metadata {
   const filters = parseBrowseFilters(searchParams);
@@ -15,8 +20,8 @@ export function generateMetadata({ searchParams }: Props): Metadata {
   return { alternates: { canonical: canonicalBrowseUrl(filters) } };
 }
 
-export default function HomePage({ searchParams }: Props) {
-  const filters = parseBrowseFilters(searchParams);
+export default async function HomePage({ searchParams }: Props) {
+  const filters = parseBrowseFilters(searchParams, await getPublicCategories());
   // A category filter has its own page; old ?kategoriya= links land there.
   if (filters.kategoriya) permanentRedirect(browseHref(filters, { stranitsa: filters.stranitsa }));
   return <BrowseView filters={filters} />;

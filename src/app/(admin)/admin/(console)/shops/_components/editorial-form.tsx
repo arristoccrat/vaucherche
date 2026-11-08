@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import { updateShopEditorial, type EditorialField } from "@/actions/editorial";
 import { Button } from "@/components/ui/button";
-import { CATEGORIES, CATEGORY_KEYS, isCategoryKey } from "@/lib/categories";
+import { describeCategory, type CategoryOption } from "@/lib/categories";
 import { GIFT_APPEALS, GIFT_APPEAL_LABELS, isGiftAppeal } from "@/lib/domain";
 import type { ShopListRow } from "@/lib/queries/shops";
 import type { CrawlSuggestions } from "@/lib/suggestions";
@@ -51,7 +51,7 @@ function TextField({
   );
 }
 
-export function EditorialForm({ shop }: { shop: ShopListRow }) {
+export function EditorialForm({ shop, categories }: { shop: ShopListRow; categories: CategoryOption[] }) {
   const id = shop.id;
   const name = useEditorial(id, "name", shop.name === shop.domain ? "" : shop.name);
   const description = useEditorial(id, "description", shop.description ?? "");
@@ -151,8 +151,8 @@ export function EditorialForm({ shop }: { shop: ShopListRow }) {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">
               <FieldLabel htmlFor={`category-${id}`} label="Категория" state={category.state} />
-              {/* Only the 18 site categories; a value outside them (from the
-                  crawl or older edits) stays visible until it is replaced. */}
+              {/* Only active categories; an archived or unknown value (from
+                  the crawl or older edits) stays visible until replaced. */}
               <select
                 id={`category-${id}`}
                 value={category.value}
@@ -160,13 +160,15 @@ export function EditorialForm({ shop }: { shop: ShopListRow }) {
                 className={fieldClass}
               >
                 <option value="">—</option>
-                {CATEGORY_KEYS.map((key) => (
-                  <option key={key} value={key}>
-                    {CATEGORIES[key].label}
-                  </option>
-                ))}
-                {category.value && !isCategoryKey(category.value) ? (
-                  <option value={category.value}>{category.value} (невалидна)</option>
+                {categories
+                  .filter((c) => !c.archived)
+                  .map((c) => (
+                    <option key={c.key} value={c.key}>
+                      {c.label}
+                    </option>
+                  ))}
+                {category.value && !describeCategory(categories, category.value).ok ? (
+                  <option value={category.value}>{describeCategory(categories, category.value).text}</option>
                 ) : null}
               </select>
             </div>

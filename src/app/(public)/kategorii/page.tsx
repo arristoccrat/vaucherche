@@ -2,11 +2,11 @@ import { ChevronLeft } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 
-import { CATEGORIES, CATEGORY_KEYS, onColorHex } from "@/lib/categories";
-import { CATEGORY_ICONS } from "@/lib/category-icons";
+import { onColorHex } from "@/lib/categories";
+import { categoryIcon } from "@/lib/category-icons";
 
-import { categoryCounts } from "../_lib/browse";
 import { browsePath, shopCountLabel } from "../_lib/browse-params";
+import { getVisibleCategories } from "../_lib/categories";
 
 // Rendered per request (the Supabase fetch itself is cached for an hour), so
 // the build never needs database credentials.
@@ -18,9 +18,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/kategorii" },
 };
 
-// "За какъв повод?" — every category as a tile, in the canonical order.
+// "За какъв повод?" — every category with published shops as a tile, in the
+// admin's order.
 export default async function CategoriesPage() {
-  const { counts } = await categoryCounts();
+  const { visible, counts } = await getVisibleCategories();
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-12 pt-3 lg:px-10 lg:pt-8">
@@ -34,19 +35,18 @@ export default async function CategoriesPage() {
       </div>
 
       <ul className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-3 lg:mt-6 lg:grid-cols-4 lg:gap-4">
-        {CATEGORY_KEYS.map((key) => {
-          const category = CATEGORIES[key];
-          const Icon = CATEGORY_ICONS[key];
+        {visible.map((category) => {
+          const Icon = categoryIcon(category.icon);
           return (
-            <li key={key}>
+            <li key={category.key}>
               <Link
-                href={browsePath(key)}
+                href={browsePath(category)}
                 className="flex min-h-[104px] flex-col rounded-[18px] border-2 border-brand-ink p-4 transition-transform hover:-translate-y-0.5 lg:min-h-[132px]"
                 style={{ backgroundColor: category.bg, color: onColorHex(category.on) }}
               >
                 <Icon className="size-5" aria-hidden />
                 <span className="mt-auto pt-5 font-ui text-[15px] font-extrabold leading-tight lg:text-[17px]">{category.label}</span>
-                <span className="mt-0.5 font-num text-[11.5px] font-semibold">{shopCountLabel(counts[key])}</span>
+                <span className="mt-0.5 font-num text-[11.5px] font-semibold">{shopCountLabel(counts[category.key] ?? 0)}</span>
               </Link>
             </li>
           );

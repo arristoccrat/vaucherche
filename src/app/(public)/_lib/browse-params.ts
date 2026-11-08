@@ -1,4 +1,4 @@
-import { CATEGORIES, isCategoryKey, type CategoryKey } from "@/lib/categories";
+import { findCategory, type Category } from "@/lib/categories";
 import { SITE_URL } from "@/lib/site";
 
 // Browse filters live in the URL, so every view is shareable and the server
@@ -27,7 +27,7 @@ export const SORTS = [
 export type SortKey = (typeof SORTS)[number]["key"];
 
 export type BrowseFilters = {
-  kategoriya: CategoryKey | null;
+  kategoriya: Category | null;
   suma: AmountKey | null;
   dostavka: DeliveryKey[];
   podredba: SortKey;
@@ -45,7 +45,9 @@ export const DEFAULT_FILTERS: BrowseFilters = {
 type Raw = Record<string, string | string[] | undefined>;
 const first = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v)?.trim() ?? "";
 
-export function parseBrowseFilters(params: Raw): BrowseFilters {
+// `categories` resolves a legacy ?kategoriya=<key> (the home page redirects
+// it to the category's own path); category pages set kategoriya themselves.
+export function parseBrowseFilters(params: Raw, categories: readonly Category[] = []): BrowseFilters {
   const kategoriya = first(params.kategoriya);
   // "+" may arrive decoded as a space.
   const suma = first(params.suma).replace(/ $/, "+");
@@ -56,7 +58,7 @@ export function parseBrowseFilters(params: Raw): BrowseFilters {
   const stranitsa = Number.parseInt(first(params.stranitsa) || "1", 10);
 
   return {
-    kategoriya: isCategoryKey(kategoriya) ? kategoriya : null,
+    kategoriya: findCategory(categories, kategoriya) ?? null,
     suma: AMOUNT_BUCKETS.some((b) => b.key === suma) ? (suma as AmountKey) : null,
     dostavka: Array.from(new Set(dostavka)),
     podredba: SORTS.some((s) => s.key === podredba) ? (podredba as SortKey) : "preporachani",
@@ -64,8 +66,8 @@ export function parseBrowseFilters(params: Raw): BrowseFilters {
   };
 }
 
-export function browsePath(kategoriya: CategoryKey | null) {
-  return kategoriya ? `/kategoriya/${CATEGORIES[kategoriya].path}` : "/";
+export function browsePath(kategoriya: Pick<Category, "path"> | null) {
+  return kategoriya ? `/kategoriya/${kategoriya.path}` : "/";
 }
 
 export function browseHref(filters: BrowseFilters, changes: Partial<BrowseFilters> = {}) {

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { canPublish, publishChecks } from "./publish";
+import { DEFAULT_CATEGORIES } from "@/lib/categories";
+
+import { canPublish as canPublishWith, publishChecks as checksWith } from "./publish";
+
+const keys = DEFAULT_CATEGORIES.map((c) => c.key);
+const canPublish = (shop: Parameters<typeof canPublishWith>[0]) => canPublishWith(shop, keys);
+const publishChecks = (shop: Parameters<typeof checksWith>[0]) => checksWith(shop, keys);
 
 const ready = {
   status: "confirmed",
@@ -22,5 +28,9 @@ describe("publish gate", () => {
     expect(canPublish({ ...ready, category: null })).toBe(false);
     const check = publishChecks({ ...ready, category: "spa" }).find((c) => c.label.startsWith("Има категория"));
     expect(check?.ok).toBe(false);
+  });
+
+  it("refuses a category that was archived (no longer in the active list)", () => {
+    expect(canPublishWith(ready, keys.filter((k) => k !== "spa-wellness"))).toBe(false);
   });
 });
