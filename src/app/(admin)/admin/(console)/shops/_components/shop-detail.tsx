@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { formatEurRange, parseStatusReason } from "@/lib/format";
+import { activeKeys, type CategoryOption } from "@/lib/categories";
 import { publishChecks } from "@/lib/publish";
 import type { ShopListRow } from "@/lib/queries/shops";
 import { cn } from "@/lib/utils";
@@ -34,14 +35,16 @@ export type ShopActions = {
 export function ShopDetail({
   shop,
   actions,
+  categories,
 }: {
   shop: ShopListRow;
   actions: ShopActions;
+  categories: CategoryOption[];
 }) {
   const { verdict, quote } = parseStatusReason(shop.status_reason);
   const offer = shop.voucher_offers[0];
   const offerRange = minMax(offerValuesEur(offer));
-  const checks = publishChecks(shop);
+  const checks = publishChecks(shop, activeKeys(categories));
 
   return (
     <div className="bg-muted/30">
@@ -146,7 +149,7 @@ export function ShopDetail({
           </Link>
         </div>
       </div>
-      <EditorialForm key={shop.id} shop={shop} />
+      <EditorialForm key={shop.id} shop={shop} categories={categories} />
       <ProductsPanel shop={shop} />
     </div>
   );

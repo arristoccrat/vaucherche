@@ -2,8 +2,8 @@ import { CalendarClock, CreditCard, Mail } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { getCategory, onColorHex } from "@/lib/categories";
-import { CATEGORY_ICONS } from "@/lib/category-icons";
+import { onColorHex, type Category } from "@/lib/categories";
+import { categoryIcon } from "@/lib/category-icons";
 import { cn } from "@/lib/utils";
 
 // One card for every public surface (Main / Desktop artboards). Takes data as
@@ -40,9 +40,17 @@ function validityLabel(months: number | null) {
   return `валиден ${months} ${months === 1 ? "месец" : "месеца"}`;
 }
 
-export function ShopCard({ shop, priority = false }: { shop: ShopCardData; priority?: boolean }) {
-  const category = getCategory(shop.category);
-  const Icon = CATEGORY_ICONS[category.key];
+// `category` is the shop's category resolved by the page (categoryOrFallback).
+export function ShopCard({
+  shop,
+  category,
+  priority = false,
+}: {
+  shop: ShopCardData;
+  category: Category;
+  priority?: boolean;
+}) {
+  const Icon = categoryIcon(category.icon);
   const onColor = onColorHex(category.on);
   const name = shop.name?.trim() || shop.domain || "";
   const description =

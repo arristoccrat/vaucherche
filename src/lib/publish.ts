@@ -1,4 +1,3 @@
-import { isCategoryKey } from "@/lib/categories";
 import type { ShopStatus } from "@/lib/domain";
 
 export type PublishCheckInput = {
@@ -17,7 +16,8 @@ const PUBLISHABLE_STATUSES: readonly ShopStatus[] = ["confirmed", "ai_confirmed"
 
 // The conditions a shop must meet before a human may publish it. Shown as a
 // checklist in the UI and enforced again in the Server Action.
-export function publishChecks(shop: PublishCheckInput): PublishCheck[] {
+// `categoryKeys` are the active categories (the categories table).
+export function publishChecks(shop: PublishCheckInput, categoryKeys: readonly string[]): PublishCheck[] {
   const name = shop.name?.trim() ?? "";
   return [
     {
@@ -28,7 +28,7 @@ export function publishChecks(shop: PublishCheckInput): PublishCheck[] {
       label: "Има URL на ваучерите и е потвърден",
       ok: Boolean(shop.voucher_url) && shop.voucher_url_verified === true,
     },
-    { label: "Има категория от списъка", ok: isCategoryKey(shop.category) },
+    { label: "Има категория от списъка", ok: Boolean(shop.category) && categoryKeys.includes(shop.category ?? "") },
     {
       label: "Име, въведено от човек (не домейнът)",
       ok: name !== "" && name.toLowerCase() !== shop.domain.toLowerCase(),
@@ -37,6 +37,6 @@ export function publishChecks(shop: PublishCheckInput): PublishCheck[] {
   ];
 }
 
-export function canPublish(shop: PublishCheckInput) {
-  return publishChecks(shop).every((check) => check.ok);
+export function canPublish(shop: PublishCheckInput, categoryKeys: readonly string[]) {
+  return publishChecks(shop, categoryKeys).every((check) => check.ok);
 }

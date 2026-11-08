@@ -5,8 +5,8 @@ import { z } from "zod";
 
 import { NOT_SIGNED_IN, type ActionResult } from "@/lib/action-result";
 import { getUser } from "@/lib/auth";
-import { isCategoryKey } from "@/lib/categories";
 import { PUBLIC_DATA_TAG } from "@/lib/site";
+import { readCategoriesUncached } from "@/lib/queries/categories";
 import { SHOP_FACETS_TAG } from "@/lib/queries/shops";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -27,14 +27,12 @@ const slug = z
   })
   .transform((value) => value || null);
 
-// One of the 18 site categories (src/lib/categories.ts) or empty. Anything
-// else would show as "Други" on the site and miss its category page.
+// A category key or empty; checked against the active categories below.
+// Anything else would show as "Други" on the site and miss its page.
 const category = z
   .string()
   .trim()
-  .refine((value) => value === "" || isCategoryKey(value), {
-    message: "Изберете категория от списъка.",
-  })
+  .max(40)
   .transform((value) => value || null);
 
 const httpUrl = z
@@ -80,6 +78,13 @@ export async function updateShopEditorial(
   if (!parsedId.success) return { ok: false, error: "Невалидни данни." };
   if (!parsed.success) {
     return { ok: false, error: parsed.error.issues[0]?.message ?? "Невалидни данни." };
+  }
+
+  if (parsed.data.category) {
+    const { active } = await readCategoriesUncached();
+    if (!active.some((c) => c.key === parsed.data.category)) {
+      return { ok: false, error: "Изберете категория от списъка." };
+    }
   }
 
   const supabase = createAdminClient();

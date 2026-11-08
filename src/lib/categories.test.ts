@@ -1,24 +1,26 @@
 import { describe, expect, it } from "vitest";
 
 import { BRAND } from "@/lib/brand";
-import { CATEGORIES, CATEGORY_KEYS, onColorHex } from "@/lib/categories";
+import { DEFAULT_CATEGORIES, onColorHex } from "@/lib/categories";
 import { contrastRatio } from "@/lib/contrast";
 
 const AA = 4.5;
 
-describe("category colours", () => {
-  it("covers all 18 categories with unique colours and paths", () => {
-    expect(CATEGORY_KEYS).toHaveLength(18);
-    expect(new Set(CATEGORY_KEYS.map((k) => CATEGORIES[k].bg)).size).toBe(18);
-    expect(new Set(CATEGORY_KEYS.map((k) => CATEGORIES[k].path)).size).toBe(18);
-    for (const key of CATEGORY_KEYS) {
-      expect(CATEGORIES[key].path).toMatch(/^[a-z0-9-]+$/); // never Cyrillic in URLs
+// The 18 seed categories (sql/007). Categories added later in the admin are
+// checked when saved (src/lib/category-input.ts).
+describe("seed category colours", () => {
+  it("has 18 categories with unique keys, colours and paths", () => {
+    expect(DEFAULT_CATEGORIES).toHaveLength(18);
+    expect(new Set(DEFAULT_CATEGORIES.map((c) => c.key)).size).toBe(18);
+    expect(new Set(DEFAULT_CATEGORIES.map((c) => c.bg)).size).toBe(18);
+    expect(new Set(DEFAULT_CATEGORIES.map((c) => c.path)).size).toBe(18);
+    for (const c of DEFAULT_CATEGORIES) {
+      expect(c.path).toMatch(/^[a-z0-9-]+$/); // never Cyrillic in URLs
     }
   });
 
-  it.each(CATEGORY_KEYS)("%s text clears 4.5:1 on its band", (key) => {
-    const { bg, on } = CATEGORIES[key];
-    expect(contrastRatio(bg, onColorHex(on))).toBeGreaterThanOrEqual(AA);
+  it.each(DEFAULT_CATEGORIES.map((c) => [c.key, c] as const))("%s text clears 4.5:1 on its band", (_key, c) => {
+    expect(contrastRatio(c.bg, onColorHex(c.on))).toBeGreaterThanOrEqual(AA);
   });
 });
 

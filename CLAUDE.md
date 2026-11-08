@@ -44,8 +44,8 @@ name in any URL:
   pre-launch gate for public URLs.
 - Admin code: `src/actions/` (Server Actions), `src/lib/queries/`,
   `src/lib/supabase/{server,admin}.ts`.
-- Shared: `src/lib/brand.ts` (public palette), `src/lib/categories.ts` (the
-  18 categories: colour, Bulgarian label, URL path), `src/components/`.
+- Shared: `src/lib/brand.ts` (public palette), `src/lib/categories.ts`
+  (category shape, helpers and the 18 seed categories), `src/components/`.
   Shared code imports no Supabase client and takes data as props.
 - `sql/` — schema changes run by hand in the Supabase SQL Editor.
 - The crawler / AI pipeline (`~/Desktop/Vaucherche/scripts/`) lives outside
@@ -97,12 +97,20 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
   `subcategory`, `gift_appeal`) autosave one at a time via
   `src/actions/editorial.ts`. `description` is our own copy written
   from the facts, never the merchant's text.
-  `category` must be one of the 18 keys in `src/lib/categories.ts` (a
-  select in the form, refused otherwise in the action and in the publish
-  gate); `subcategory` is free Bulgarian text shown on public cards.
-  `/admin/categories` shows shops and published shops per category and
-  lists any value outside the 18. Categories themselves (names, colours,
-  URLs) are code, not data: renaming one changes public URLs.
+  `category` must be the key of an active category (a select in the form,
+  refused otherwise in the action and in the publish gate); `subcategory` is
+  free Bulgarian text shown on public cards.
+- Categories are data: the `categories` table (`sql/007`), edited in
+  `/admin/categories` (`src/actions/categories.ts`): add, rename, recolour,
+  change the URL, reorder, delete. `key` is what `shops.category` stores and
+  never changes. A changed `path` keeps the old one in `previous_paths`, which
+  308s to the new one. Delete is `archived_at` (never `DELETE`), and a category
+  with shops can only be deleted by moving them to another one. A colour is
+  saved only if ink or white text clears 4.5:1 on it
+  (`src/lib/category-input.ts`). The public site shows only active
+  categories with at least one published shop (`getVisibleCategories`); an
+  empty one has no chip, tile, sitemap entry or page (404). Until `sql/007`
+  is run, both sides fall back to the 18 built-in categories.
 - Schema changes the admin depends on live in `sql/` and are run by hand in
   the Supabase SQL Editor before deploying; update
   `src/lib/database.types.ts` to match.
@@ -155,7 +163,13 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
   Unbounded (`font-display`), Manrope (`font-ui`), IBM Plex Mono
   (`font-num`, all amounts, counts and dates), all with the Cyrillic subset.
   2px `brand-ink` borders; amber only for selected state and the primary
-  CTA. `npm test` checks every category and text token clears 4.5:1.
+  CTA. `npm test` checks the seed categories and every text token clear
+  4.5:1; categories added in the admin are checked when saved.
+- Public 404s and redirects for a route with `loading.tsx` are decided in
+  that route's `layout.tsx` (see `magazin/[slug]`, `kategoriya/[path]`):
+  once the page streams behind the skeleton, the 200 status is already
+  sent, so `notFound()` or `redirect()` in the page reaches crawlers as a
+  200.
 
 ### Do not
 

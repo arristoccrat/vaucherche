@@ -12,6 +12,48 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      categories: {
+        Row: {
+          archived_at: string | null;
+          bg: string;
+          created_at: string;
+          icon: string;
+          key: string;
+          label: string;
+          on_color: string;
+          path: string;
+          previous_paths: string[];
+          sort_order: number;
+          updated_at: string;
+        };
+        Insert: {
+          archived_at?: string | null;
+          bg: string;
+          created_at?: string;
+          icon?: string;
+          key: string;
+          label: string;
+          on_color: string;
+          path: string;
+          previous_paths?: string[];
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          bg?: string;
+          created_at?: string;
+          icon?: string;
+          key?: string;
+          label?: string;
+          on_color?: string;
+          path?: string;
+          previous_paths?: string[];
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       fetch_log: {
         Row: {
           domain: string;

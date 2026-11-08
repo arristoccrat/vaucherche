@@ -1,4 +1,4 @@
-import { CATEGORIES, CATEGORY_KEYS, type CategoryKey } from "@/lib/categories";
+import type { Category } from "@/lib/categories";
 
 // Search input handling, kept free of Supabase so it can be unit-tested.
 
@@ -50,12 +50,11 @@ export function searchFilter(query: string) {
 }
 
 // Categories whose Bulgarian label or URL path contains the query.
-export function matchingCategories(query: string): CategoryKey[] {
+export function matchingCategories(categories: readonly Category[], query: string): Category[] {
   if (!query) return [];
   const lower = query.toLowerCase();
   const latin = transliterate(query);
-  return CATEGORY_KEYS.filter((key) => {
-    const c = CATEGORIES[key];
-    return c.label.toLowerCase().includes(lower) || c.path.includes(latin.replace(/ /g, "-"));
-  });
+  return categories.filter(
+    (c) => c.label.toLowerCase().includes(lower) || c.path.includes(latin.replace(/ /g, "-"))
+  );
 }

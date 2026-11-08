@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ShopCard } from "@/components/shop-card";
-import { CATEGORIES, onColorHex } from "@/lib/categories";
+import { categoryOrFallback, onColorHex } from "@/lib/categories";
 
 import { BrowsePagination } from "../_components/browse-pagination";
 import { PAGE_SIZE, searchPublishedShops } from "../_lib/browse";
 import { browsePath, shopCountLabel } from "../_lib/browse-params";
+import { getVisibleCategories } from "../_lib/categories";
 import { matchingCategories, normalizeQuery } from "../_lib/search-query";
 
 type Props = { searchParams: Record<string, string | string[] | undefined> };
@@ -52,8 +53,12 @@ function SearchForm({ query }: { query: string }) {
 export default async function SearchPage({ searchParams }: Props) {
   const query = normalizeQuery(searchParams.q);
   const page = Math.max(1, Number.parseInt(String(searchParams.stranitsa ?? "1"), 10) || 1);
-  const categories = matchingCategories(query);
-  const { shops, total } = query ? await searchPublishedShops(query, page) : { shops: [], total: 0 };
+  const [{ visible }, { shops, total }] = await Promise.all([
+    getVisibleCategories(),
+    query ? searchPublishedShops(query, page) : Promise.resolve({ shops: [], total: 0 }),
+  ]);
+  // Only categories with published shops, like everywhere on the site.
+  const categories = matchingCategories(visible, query);
 
   return (
     <div className="mx-auto max-w-[1440px] px-4 pb-12 pt-3 lg:px-10 lg:pt-8">
@@ -81,12 +86,11 @@ export default async function SearchPage({ searchParams }: Props) {
         <div className="mt-4">
           <h2 className="font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink">Категории</h2>
           <ul className="mt-2.5 flex flex-wrap gap-2">
-            {categories.map((key) => {
-              const c = CATEGORIES[key];
+            {categories.map((c) => {
               return (
-                <li key={key}>
+                <li key={c.key}>
                   <Link
-                    href={browsePath(key)}
+                    href={browsePath(c)}
                     className="inline-flex h-11 items-center rounded-[22px] border-2 border-brand-ink px-4 font-ui text-[13.5px] font-extrabold"
                     style={{ backgroundColor: c.bg, color: onColorHex(c.on) }}
                   >
@@ -103,7 +107,7 @@ export default async function SearchPage({ searchParams }: Props) {
         <ul className="mt-6 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:gap-[18px] xl:grid-cols-3">
           {shops.map((shop, i) => (
             <li key={shop.id}>
-              <ShopCard shop={shop} priority={i < 3} />
+              <ShopCard shop={shop} category={categoryOrFallback(visible, shop.category)} priority={i < 3} />
             </li>
           ))}
         </ul>

@@ -1,4 +1,3 @@
-import { CATEGORY_KEYS, type CategoryKey } from "@/lib/categories";
 import { publicClient } from "@/lib/supabase/public";
 
 import { AMOUNT_BUCKETS, type BrowseFilters } from "./browse-params";
@@ -23,7 +22,7 @@ interface Filterable<Self> {
 function applyFilters<Q extends Filterable<Q>>(query: Q, filters: FilterParts): Q {
   // RLS already hides unpublished shops; the explicit filter is belt and braces.
   let q = query.eq("published", true);
-  if (filters.kategoriya) q = q.eq("category", filters.kategoriya);
+  if (filters.kategoriya) q = q.eq("category", filters.kategoriya.key);
   const bucket = AMOUNT_BUCKETS.find((b) => b.key === filters.suma);
   if (bucket) {
     // Shops whose euro range overlaps the bucket; shops without prices drop out.
@@ -77,7 +76,7 @@ export async function countPublishedShops(filters: FilterParts) {
 // Published shops per category for the filter rail. Paged in 1,000s (the API
 // row cap); cached with every other public read.
 export async function categoryCounts() {
-  const counts = Object.fromEntries(CATEGORY_KEYS.map((k) => [k, 0])) as Record<CategoryKey, number>;
+  const counts: Record<string, number> = {};
   let total = 0;
   for (let from = 0; ; from += 1000) {
     const { data, error } = await publicClient()
@@ -89,7 +88,7 @@ export async function categoryCounts() {
     if (error) throw new Error(error.message);
     for (const row of data) {
       total += 1;
-      if (row.category && row.category in counts) counts[row.category as CategoryKey] += 1;
+      if (row.category) counts[row.category] = (counts[row.category] ?? 0) + 1;
     }
     if (data.length < 1000) break;
   }
