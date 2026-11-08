@@ -1,0 +1,5 @@
+<!-- За 16–20px. Без кехлибарената точка, по-дебел контур: иначе се слива в петно. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 112 112" width="32" height="32" role="img" aria-label="vaucherche">
+  <path d="M18 8H94a10 10 0 0 1 10 10V44a12 12 0 0 0 0 24V94a10 10 0 0 1-10 10H18a10 10 0 0 1-10-10V68a12 12 0 0 0 0-24V18a10 10 0 0 1 10-10z" fill="#6FC4A2" stroke="#10302A" stroke-width="6.5"/>
+  <path d="M34 42L56 76L78 42" fill="none" stroke="#10302A" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
