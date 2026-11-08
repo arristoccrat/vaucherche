@@ -113,6 +113,16 @@ each new Node major on its own, and on Node 26 Next 14's Google Fonts loader
 crashes in `src/lib/fonts.ts`. Raise the cap only together with a Next.js
 upgrade that has been built on that Node version.
 
+### Function region
+
+`vercel.json` runs the server functions in `fra1` (Frankfurt): next to the
+visitors in Bulgaria and to the Supabase database, so every page and admin
+click makes its database round trips inside Europe. The default (`iad1`,
+Washington) put an ocean between the functions and both. If the Supabase
+project ever moves, move this region with it (Supabase → Project Settings →
+General → Region); the functions must sit next to the database, since a page
+makes several sequential queries and only one round trip to the visitor.
+
 ### Protect previews
 
 Settings → Deployment Protection → Vercel Authentication on, so branch URLs
