@@ -104,6 +104,11 @@ One Vercel project builds the repo root: the public site, `/admin` and
 Nothing queries Supabase at build time, so a build never needs these to
 succeed; pages read them per request.
 
+`package.json` caps Node at `>=20 <25`. An open `>=20` lets Vercel move to
+each new Node major on its own, and on Node 26 Next 14's Google Fonts loader
+crashes in `src/lib/fonts.ts`. Raise the cap only together with a Next.js
+upgrade that has been built on that Node version.
+
 ### Protect previews
 
 Settings → Deployment Protection → Vercel Authentication on, so branch URLs
