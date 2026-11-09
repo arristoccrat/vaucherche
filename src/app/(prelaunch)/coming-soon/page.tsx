@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 
 import { LogoMark, Wordmark } from "@/app/(public)/_components/logo";
@@ -26,6 +27,7 @@ export default function ComingSoonPage() {
       <p className="mt-8 rounded-full border-2 border-brand-ink bg-brand-mint px-5 py-2 font-num text-sm font-semibold text-brand-ink">
         Очаквайте скоро
       </p>
+      <Analytics />
     </main>
   );
 }
