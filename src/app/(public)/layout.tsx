@@ -1,3 +1,4 @@
+import { Analytics } from "@vercel/analytics/next";
 import type { Metadata } from "next";
 
 import { publicFontVariables } from "@/lib/fonts";
@@ -23,6 +24,8 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
       <SiteHeader />
       <main className="flex-1">{children}</main>
       <SiteFooter />
+      {/* Vercel Web Analytics: cookieless page views, public site only. */}
+      <Analytics />
     </div>
   );
 }
