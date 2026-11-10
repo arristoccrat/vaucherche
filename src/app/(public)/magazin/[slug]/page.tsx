@@ -66,7 +66,7 @@ function facts({ offer }: PublishedShop): Fact[] {
   } else if (offer.validity_months) {
     list.push({ icon: Clock, title: `${offer.validity_months} ${offer.validity_months === 1 ? "месец" : "месеца"}`, detail: "валидност" });
   }
-  if (offer.personalisable) list.push({ icon: Gift, title: "Персонализиран", detail: "с име или поздрав за подарения" });
+  if (offer.personalisable) list.push({ icon: Gift, title: "Персонализиран", detail: "с име или поздрав" });
   return list;
 }
 
