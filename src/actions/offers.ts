@@ -54,7 +54,8 @@ function parseField(field: OfferField, raw: string): OfferPatch | string {
     case "validity_months": {
       if (value === "") return { validity_months: null };
       const months = Number(value);
-      if (!Number.isInteger(months) || months < 1 || months > 120) return "Валидност в месеци: от 1 до 120.";
+      // 0 means the voucher never expires.
+      if (!Number.isInteger(months) || months < 0 || months > 120) return "Валидност в месеци: от 1 до 120, или 0 за безсрочен.";
       return { validity_months: months };
     }
     case "terms_url": {
