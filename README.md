@@ -74,6 +74,11 @@ Phase 0 RLS policies and indexes from the admin spec):
   voucher's own text, shown in full on the shop page (`description` stays the
   short shop text on the cards). Run after 007, **before** deploying the
   version that reads it.
+- `sql/009_card_amounts_from_offer.sql` — the cards' amounts
+  (`denominations_eur`, `min_eur`, `max_eur` in `shop_voucher_range`) come
+  from the offer's denominations ("Номинали" in the admin), no longer from
+  crawled product prices. View only; run after 006. The shop page reads the
+  same field from the deploy on, so run it with that deploy.
 
 **Pipeline rules the admin relies on** (in the crawler / AI scripts, outside
 this repo):
@@ -140,7 +145,7 @@ shop count (about 19,974) with its query time in the header.
 
 ### Launch checklist (public site)
 
-1. Every file in `sql/` up to `008` has been run (see **Database changes**).
+1. Every file in `sql/` up to `009` has been run (see **Database changes**).
 2. In `/admin/queue`, publish the shops that pass the gate. Nothing
    publishes itself.
 3. Preview the real site on production with `/?preview=<PREVIEW_TOKEN>`:
