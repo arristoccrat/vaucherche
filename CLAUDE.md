@@ -95,10 +95,12 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
   again in the Server Action); bulk publish skips shops that fail it. The
   gate: status confirmed/ai_confirmed, verified voucher URL, category, a
   human-written name (not the domain), and a description.
-- Editorial fields (`name`, `description`, `logo_url`, `category`,
-  `subcategory`, `gift_appeal`) autosave one at a time via
-  `src/actions/editorial.ts`. `description` is our own copy written
-  from the facts, never the merchant's text.
+- Editorial fields (`name`, `description`, `voucher_description`,
+  `logo_url`, `category`, `subcategory`, `gift_appeal`) autosave one at a
+  time via `src/actions/editorial.ts`. `description` is the short shop text
+  on the cards (clamped to 4 lines); `voucher_description` (`sql/008`) is the
+  voucher text, shown whole on the shop page in plain paragraphs. Both are
+  our own copy written from the facts, never the merchant's text.
   `category` must be the key of an active category (a select in the form,
   refused otherwise in the action and in the publish gate); `subcategory` is
   free Bulgarian text shown on public cards.

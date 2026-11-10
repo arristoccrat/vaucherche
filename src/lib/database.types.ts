@@ -107,6 +107,7 @@ export type Database = {
           status_reason: string | null;
           subcategory: string | null;
           updated_at: string | null;
+          voucher_description: string | null;
           voucher_type: string | null;
           voucher_url: string | null;
           voucher_url_note: string | null;
@@ -134,6 +135,7 @@ export type Database = {
           status_reason?: string | null;
           subcategory?: string | null;
           updated_at?: string | null;
+          voucher_description?: string | null;
           voucher_type?: string | null;
           voucher_url?: string | null;
           voucher_url_note?: string | null;
@@ -161,6 +163,7 @@ export type Database = {
           status_reason?: string | null;
           subcategory?: string | null;
           updated_at?: string | null;
+          voucher_description?: string | null;
           voucher_type?: string | null;
           voucher_url?: string | null;
           voucher_url_note?: string | null;

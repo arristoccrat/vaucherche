@@ -52,7 +52,10 @@ const httpUrl = z
 const editorialSchema = z
   .object({
     name: z.string().trim().min(1, { message: "Името не може да е празно." }).max(120),
+    // Shop description: on the cards, clamped to 4 lines.
     description: optionalText(600),
+    // Voucher description: in full on the shop page.
+    voucher_description: optionalText(10_000),
     logo_url: httpUrl,
     category,
     // Shown on the public cards, so plain Bulgarian text ("Масажи").

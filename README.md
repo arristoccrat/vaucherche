@@ -70,14 +70,18 @@ Phase 0 RLS policies and indexes from the admin spec):
   categories) that `/admin/categories` edits: names, URLs (old ones
   redirect), colours, icons, order, delete/restore. Run after 006; until
   then the site and the admin use the built-in 18, read-only.
+- `sql/008_voucher_description.sql` — `shops.voucher_description`, the
+  voucher's own text, shown in full on the shop page (`description` stays the
+  short shop text on the cards). Run after 007, **before** deploying the
+  version that reads it.
 
 **Pipeline rules the admin relies on** (in the crawler / AI scripts, outside
 this repo):
 
 - Never overwrite a `voucher_offers` row where `human_edited_at` is set —
   those facts were corrected by a person.
-- Never write `shops.name`, `description`, `logo_url` or `cover_url`; they are
-  editorial and owned by the admin.
+- Never write `shops.name`, `description`, `voucher_description`,
+  `logo_url` or `cover_url`; they are editorial and owned by the admin.
 
 ## Types
 
@@ -136,7 +140,7 @@ shop count (about 19,974) with its query time in the header.
 
 ### Launch checklist (public site)
 
-1. Every file in `sql/` up to `007` has been run (see **Database changes**).
+1. Every file in `sql/` up to `008` has been run (see **Database changes**).
 2. In `/admin/queue`, publish the shops that pass the gate. Nothing
    publishes itself.
 3. Preview the real site on production with `/?preview=<PREVIEW_TOKEN>`:
