@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 import { EditorialForm } from "./editorial-form";
 import { minMax, offerValuesEur } from "./price-cell";
 import { OfferFactsForm } from "./offer-facts-form";
-import { ProductsPanel } from "./products-panel";
+import { VoucherUrlForm } from "./voucher-url-form";
 
 function Fact({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -150,7 +150,11 @@ export function ShopDetail({
         </div>
       </div>
       <EditorialForm key={shop.id} shop={shop} categories={categories} />
-      <ProductsPanel shop={shop} />
+      <div className="border-t px-4 py-4">
+        <div className="max-w-xl">
+          <VoucherUrlForm key={shop.voucher_url ?? ""} shop={shop} />
+        </div>
+      </div>
     </div>
   );
 }

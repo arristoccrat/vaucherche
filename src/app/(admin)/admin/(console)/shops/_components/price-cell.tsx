@@ -1,5 +1,5 @@
 import { Badge } from "@/components/ui/badge";
-import { formatEurRange, productEur, toEur } from "@/lib/format";
+import { formatEurRange, toEur } from "@/lib/format";
 import type { ShopListRow } from "@/lib/queries/shops";
 
 const SOURCE_STYLES: Record<string, string> = {
@@ -30,52 +30,19 @@ export function offerValuesEur(offer: ShopListRow["voucher_offers"][number] | un
     .filter((v): v is number => v != null);
 }
 
+// The list's amount column: the offer's "Номинали" (and custom-amount
+// limits), the same field the public site shows.
 export function PriceCell({ shop }: { shop: ShopListRow }) {
-  const products = shop.voucher_products;
-  const prices = minMax(
-    products.flatMap((p) => {
-      const eur = productEur(p);
-      return eur == null ? [] : [eur];
-    })
-  );
-  const sources = Array.from(
-    new Set(products.flatMap((p) => (p.source ? [p.source] : [])))
-  );
-
-  if (prices) {
-    return (
-      <div className="space-y-1">
-        <div className="font-medium tabular-nums">
-          {formatEurRange(prices.min, prices.max)}
-        </div>
-        <div className="flex flex-wrap gap-1">
-          <span className="text-xs text-muted-foreground">
-            {products.length} прод.
-          </span>
-          {sources.map((source) => (
-            <SourceBadge key={source} source={source} />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  // No real prices yet: fall back to the AI-extracted offer, clearly marked.
-  const offerRange = minMax(offerValuesEur(shop.voucher_offers[0]));
-
+  const offer = shop.voucher_offers[0];
+  const range = minMax(offerValuesEur(offer));
+  const count = offer?.denominations?.length ?? 0;
+  if (!range) return <div className="text-muted-foreground">—</div>;
   return (
-    <div className="space-y-1 text-muted-foreground">
-      {offerRange ? (
-        <div className="tabular-nums" title="Извлечено от AI, без реални цени">
-          ≈ {formatEurRange(offerRange.min, offerRange.max)}{" "}
-          <span className="text-xs">(AI)</span>
-        </div>
-      ) : (
-        <div>—</div>
-      )}
-      {products.length ? (
-        <div className="text-xs">{products.length} прод., чакат цена</div>
-      ) : null}
+    <div className="space-y-0.5">
+      <div className="font-medium tabular-nums">{formatEurRange(range.min, range.max)}</div>
+      <div className="text-xs text-muted-foreground">
+        {[count ? `${count} ${count === 1 ? "номинал" : "номинала"}` : null, offer?.custom_amount ? "сума по избор" : null].filter(Boolean).join(" · ")}
+      </div>
     </div>
   );
 }

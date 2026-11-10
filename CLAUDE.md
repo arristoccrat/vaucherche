@@ -40,7 +40,7 @@ name in any URL:
   Supabase; does not crawl and does not call the Anthropic API.
   `(auth)/login` is public (email + password via Supabase Auth; sign-ups
   disabled, users are created in the dashboard), `(console)/` requires a
-  session; `api/products/[id]/raw` is a route handler. The middleware
+  session. The middleware
   (`src/middleware.ts`) handles the admin session for `/admin` and the
   pre-launch gate for public URLs.
 - Admin code: `src/actions/` (Server Actions), `src/lib/queries/`,
@@ -88,7 +88,7 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
 - `voucher_products.source`: `og` / `jsonld` are structured and reliable,
   `text` was regex-scraped and needs a glance, `manual` is a human-pasted URL
   with no price fetched yet (older rows only: the admin no longer adds
-  products). Surface it.
+  products). It is a filter in the shop list.
 - Human verdicts from the admin: confirming writes `status_reason =
   'потвърден от човек'` and sets `voucher_offers.verified_by_human = true` +
   `verified_at`; rejecting writes `'отхвърлен от човек'` and
@@ -146,8 +146,10 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
 - Voucher facts are editable (`src/actions/offers.ts`, one field per save,
   amounts entered and stored in EUR). Every save stamps
   `voucher_offers.human_edited_at`; the pipeline must not overwrite such rows.
-- Heavy product columns (`raw_text`, `meta`, `links`, `description`) are
-  fetched on demand from `/admin/api/products/[id]/raw`, never in list queries.
+- Products (`voucher_products`) are the crawler's: the admin no longer lists
+  them. Amounts everywhere (list column, shop page, cards) come from the
+  offer's "Номинали"; products only feed crawl suggestions, the source
+  filter, the ops counts and `/out`'s fallback link.
 - `status_reason` carries the AI evidence, e.g.
   `AI confirmed (0.92): подаръчен ваучер 50 лв`. Split on the first colon and
   show the quote prominently.

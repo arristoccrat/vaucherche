@@ -14,9 +14,8 @@ export const SHOPS_PAGE_SIZE = 50;
 export const SHOP_COUNTS_TAG = "shop-counts";
 export const SHOP_FACETS_TAG = "shop-facets";
 
-// One round trip: shops plus their offer summary and product prices.
-// `source_match` is a second embed of voucher_products used only to filter by
-// product source without narrowing the `voucher_products` list itself.
+// One round trip: shops plus their offer summary. `source_match` embeds
+// voucher_products only to filter by product source.
 const LIST_SELECT = `
   id, domain, name, slug, description, voucher_description, logo_url, cover_url, status, status_reason,
   category, subcategory,
@@ -25,8 +24,6 @@ const LIST_SELECT = `
   voucher_offers ( id, human_edited_at, denominations, currency, min_value, max_value,
     custom_amount, is_digital, is_physical, delivery_methods, validity_months,
     personalisable, terms_url, verified_by_human, verified_at ),
-  voucher_products ( id, url, title, price, currency, price_bgn, availability,
-    source ),
   source_match:voucher_products ( source )
 `;
 
