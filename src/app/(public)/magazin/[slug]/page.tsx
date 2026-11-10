@@ -241,7 +241,7 @@ export default async function ShopPage({ params }: { params: { slug: string } })
             </div>
           ) : null}
           {lastChecked ? (
-            <p className="mt-4 text-center font-num text-[11.5px] text-brand-quiet">
+            <p className="mt-4 font-num text-[11.5px] text-brand-quiet">
               Обновено: {checkedDate(lastChecked)}
             </p>
           ) : null}
