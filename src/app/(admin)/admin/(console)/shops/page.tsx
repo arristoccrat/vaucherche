@@ -48,7 +48,7 @@ export default async function ShopsPage({
         </span>
       </div>
 
-      <StatusChips filters={filters} counts={counts} />
+      <StatusChips filters={filters} counts={counts} showPublished />
 
       <FilterBar
         filters={filters}

@@ -11,7 +11,7 @@ import {
 } from "@/lib/search-params";
 import { cn } from "@/lib/utils";
 
-type Counts = { total: number; byStatus: Record<ShopStatus, number> } | null;
+type Counts = { total: number; published?: number; byStatus: Record<ShopStatus, number> } | null;
 
 // Chips are plain links: toggling one only changes the URL.
 export function StatusChips({
@@ -21,6 +21,7 @@ export function StatusChips({
   statuses = SHOP_STATUSES,
   allLabel = "Всички",
   allCount,
+  showPublished = false,
 }: {
   filters: ShopFilters;
   counts: Counts;
@@ -28,7 +29,10 @@ export function StatusChips({
   statuses?: readonly ShopStatus[];
   allLabel?: string;
   allCount?: number;
+  // A "Публикувани" chip after the statuses (it combines with them).
+  showPublished?: boolean;
 }) {
+  const publishedOnly = filters.published === "yes";
   const toggle = (status: ShopStatus) =>
     filters.status.includes(status)
       ? filters.status.filter((s) => s !== status)
@@ -75,6 +79,26 @@ export function StatusChips({
           </Link>
         );
       })}
+      {showPublished ? (
+        <>
+          <span aria-hidden className="mx-1 w-px self-stretch bg-border" />
+          <Link
+            href={shopsHref(filters, { published: publishedOnly ? null : "yes" }, view)}
+            aria-pressed={publishedOnly}
+            className={cn(
+              "rounded-full border px-3 py-1 text-sm transition-colors",
+              publishedOnly
+                ? "border-emerald-600 bg-emerald-50 font-medium text-emerald-800 shadow-sm dark:bg-emerald-950 dark:text-emerald-200"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+            )}
+          >
+            Публикувани
+            {counts?.published != null ? (
+              <span className="ml-1.5 tabular-nums opacity-70">{formatCount(counts.published)}</span>
+            ) : null}
+          </Link>
+        </>
+      ) : null}
     </div>
   );
 }

@@ -158,13 +158,24 @@ const cachedStatusCounts = unstable_cache(
       return count ?? 0;
     };
 
-    const [total, ...perStatus] = await Promise.all([
+    const countPublished = async () => {
+      const { count, error } = await supabase
+        .from("shops")
+        .select("id", { count: "exact", head: true })
+        .eq("published", true);
+      if (error) throw new Error(error.message);
+      return count ?? 0;
+    };
+
+    const [total, published, ...perStatus] = await Promise.all([
       countWhere(null),
+      countPublished(),
       ...SHOP_STATUSES.map(countWhere),
     ]);
 
     return {
       total,
+      published,
       byStatus: Object.fromEntries(
         SHOP_STATUSES.map((status, i) => [status, perStatus[i]])
       ) as Record<ShopStatus, number>,
