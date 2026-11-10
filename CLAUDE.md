@@ -27,10 +27,11 @@ name in any URL:
   preferred offer and product rows in a single embedded query
   (`(public)/_lib/shop.ts`). Merchant URLs reach an `href` only through
   `externalUrl()` (http/https only); links out carry
-  `rel="nofollow noopener noreferrer"`. Buy buttons link to
-  `/out/[slug]?suma=<eur>` (`(public)/_lib/outbound.ts`), which looks the
-  destination up in the database and 302s there; the query names an amount,
-  never a URL, so it is not an open redirect. Keep it that way.
+  `rel="nofollow noopener noreferrer"`. The shop page lists its amounts
+  (and "Сума по избор" with its limits) as plain facts; the one buy button
+  links to `/out/[slug]` (`(public)/_lib/outbound.ts`), which looks up the
+  verified voucher page (else the first product page) and 302s there. It
+  reads nothing from the query, so it is not an open redirect. Keep it so.
   Search (`/tarsene?q=`) runs one `ilike` `or()` filter over name, domain,
   subcategory and description, in Cyrillic and transliterated Latin. The
   query passes `normalizeQuery()` first (letters, digits, spaces only), which
