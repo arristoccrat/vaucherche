@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { QueryError } from "@/components/query-error";
 import { categoryOptions } from "@/lib/categories";
+import { ARCHIVED_STATUSES } from "@/lib/domain";
 import { formatCount } from "@/lib/format";
 import {
   SHOPS_PAGE_SIZE,
@@ -48,7 +49,7 @@ export default async function ShopsPage({
         </span>
       </div>
 
-      <StatusChips filters={filters} counts={counts} />
+      <StatusChips filters={filters} counts={counts} archivedStatuses={ARCHIVED_STATUSES} showPublished />
 
       <FilterBar
         filters={filters}

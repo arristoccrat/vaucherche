@@ -76,6 +76,10 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
 - `shops.status` is a workflow: `candidate`, `confirmed`, `ai_confirmed`,
   `needs_review`, `rejected`, `unreachable`. Use the `ShopStatus` union in
   `src/lib/domain.ts`, never bare strings.
+- The admin's shop list shows the active statuses by default
+  (`ACTIVE_STATUSES` in `src/lib/domain.ts`); `rejected` and `unreachable`
+  sit in a muted "Архив" group of chips and appear when chosen or when
+  searching by domain. Hidden, never deleted.
 - `ai_confirmed` is a machine verdict (≥0.8 confidence); `confirmed` has crawler
   evidence or a human behind it. Never merge them in queries or UI.
 - Three independent booleans: `shops.voucher_url_verified` (human confirmed the

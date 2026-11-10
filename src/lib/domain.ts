@@ -12,6 +12,14 @@ export const SHOP_STATUSES = [
 ] as const;
 export type ShopStatus = (typeof SHOP_STATUSES)[number];
 
+// The admin's lists show the shops still in play by default. Rejected and
+// unreachable shops stay in the database (they are the record of what was
+// checked) and appear when chosen explicitly or searched by domain.
+export const ARCHIVED_STATUSES = ["rejected", "unreachable"] as const satisfies readonly ShopStatus[];
+export const ACTIVE_STATUSES = SHOP_STATUSES.filter(
+  (s) => !(ARCHIVED_STATUSES as readonly ShopStatus[]).includes(s)
+) as readonly ShopStatus[];
+
 // Enum in the 06-categorise.js prompt; NULL means not yet categorised.
 export const GIFT_APPEALS = ["high", "medium", "low"] as const;
 export type GiftAppeal = (typeof GIFT_APPEALS)[number];
