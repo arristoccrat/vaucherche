@@ -89,7 +89,7 @@ export function OfferFactsForm({ shopId, offer }: { shopId: string; offer: Offer
   const physical = useOfferField(shopId, offerId, "is_physical", yesNo(offer?.is_physical));
   const personalisable = useOfferField(shopId, offerId, "personalisable", yesNo(offer?.personalisable));
   const delivery = useOfferField(shopId, offerId, "delivery_methods", (offer?.delivery_methods ?? []).join(", "));
-  const validity = useOfferField(shopId, offerId, "validity_months", offer?.validity_months ? String(offer.validity_months) : "");
+  const validity = useOfferField(shopId, offerId, "validity_months", offer?.validity_months != null ? String(offer.validity_months) : "");
   const terms = useOfferField(shopId, offerId, "terms_url", offer?.terms_url ?? "");
 
   return (
@@ -113,7 +113,7 @@ export function OfferFactsForm({ shopId, offer }: { shopId: string; offer: Offer
         <BoolFact id={id("is_physical")} label="Физически" field={physical} />
         <BoolFact id={id("personalisable")} label="Персонализиране" field={personalisable} />
         <TextFact id={id("delivery_methods")} label="Доставка" hint="със запетая" placeholder="имейл, куриер" field={delivery} />
-        <TextFact id={id("validity_months")} label="Валидност" hint="месеци" placeholder="12" field={validity} inputMode="numeric" />
+        <TextFact id={id("validity_months")} label="Валидност" hint="месеци · 0 = безсрочен" placeholder="12" field={validity} inputMode="numeric" />
         <div className="sm:col-span-2 lg:col-span-3">
           <TextFact id={id("terms_url")} label="Условия (URL)" placeholder="https://…" field={terms} inputMode="url" />
         </div>

@@ -61,7 +61,9 @@ function facts({ offer }: PublishedShop): Fact[] {
   if (offer.is_digital && offer.is_physical) list.push({ icon: Mail, title: "Дигитален или карта", detail: "по имейл или като физическа карта" });
   else if (offer.is_digital) list.push({ icon: Mail, title: "Дигитален", detail: "получава се по имейл" });
   else if (offer.is_physical) list.push({ icon: CreditCard, title: "Физическа карта", detail: "карта или хартиен ваучер" });
-  if (offer.validity_months) {
+  if (offer.validity_months === 0) {
+    list.push({ icon: Clock, title: "Безсрочен", detail: "без срок на валидност" });
+  } else if (offer.validity_months) {
     list.push({ icon: Clock, title: `${offer.validity_months} ${offer.validity_months === 1 ? "месец" : "месеца"}`, detail: "валидност" });
   }
   if (offer.personalisable) list.push({ icon: Gift, title: "Персонализиран", detail: "с име или поздрав за подарения" });

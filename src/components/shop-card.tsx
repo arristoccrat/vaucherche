@@ -36,6 +36,7 @@ function deliveryLabel(shop: ShopCardData) {
 }
 
 function validityLabel(months: number | null) {
+  if (months === 0) return "безсрочен";
   if (!months) return null;
   return `валиден ${months} ${months === 1 ? "месец" : "месеца"}`;
 }
