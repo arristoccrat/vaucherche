@@ -99,8 +99,12 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
   `logo_url`, `category`, `subcategory`, `gift_appeal`) autosave one at a
   time via `src/actions/editorial.ts`. `description` is the short shop text
   on the cards (clamped to 4 lines); `voucher_description` (`sql/008`) is the
-  voucher text, shown whole on the shop page in plain paragraphs. Both are
-  our own copy written from the facts, never the merchant's text.
+  voucher text, shown whole on the shop page. It uses a small format
+  (`src/lib/rich-text.ts`: `**bold**`, `*italic*`, "- " and "1. " lists,
+  blank line = paragraph), edited with a toolbar and preview in the admin and
+  rendered by `src/components/rich-text.tsx` as React elements, never as
+  HTML: keep it that way. Both texts are our own copy written from the
+  facts, never the merchant's text.
   `category` must be the key of an active category (a select in the form,
   refused otherwise in the action and in the publish gate); `subcategory` is
   free Bulgarian text shown on public cards.

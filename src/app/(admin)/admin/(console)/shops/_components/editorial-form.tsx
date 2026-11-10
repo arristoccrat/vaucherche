@@ -12,6 +12,7 @@ import type { CrawlSuggestions } from "@/lib/suggestions";
 
 import { FieldLabel, fieldClass, useAutosave } from "./autosave";
 import { ImagePicker } from "./image-picker";
+import { RichTextField } from "./rich-text-field";
 
 type SuggestionsState =
   | { kind: "idle" }
@@ -149,24 +150,14 @@ export function EditorialForm({ shop, categories }: { shop: ShopListRow; categor
             />
           </div>
 
-          <div className="space-y-1">
-            <FieldLabel
-              htmlFor={`voucher_description-${id}`}
-              label="Описание на ваучера"
-              hint={`на страницата на магазина, цялото · ${voucherDescription.value.trim().length} знака`}
-              state={voucherDescription.state}
-            />
-            <textarea
-              id={`voucher_description-${id}`}
-              value={voucherDescription.value}
-              rows={6}
-              maxLength={10_000}
-              onChange={(event) => voucherDescription.change(event.target.value)}
-              onBlur={voucherDescription.flush}
-              className={fieldClass}
-              placeholder={"Напр.: Ваучерът важи за всички книги и игри в магазините и онлайн. Изберете сума от 10 до 200 €.\n\nПразен ред започва нов абзац."}
-            />
-          </div>
+          <RichTextField
+            id={`voucher_description-${id}`}
+            label="Описание на ваучера"
+            hint={`на страницата на магазина, цялото · ${voucherDescription.value.trim().length} знака`}
+            field={voucherDescription}
+            maxLength={10_000}
+            placeholder={"Напр.: Ваучерът важи за **всички книги и игри** в магазините и онлайн.\n\nНачин на употреба:\n1. Изберете сума\n2. Изпратете го по имейл"}
+          />
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1">

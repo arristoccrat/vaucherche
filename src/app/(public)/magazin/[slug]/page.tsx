@@ -4,9 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { RichText } from "@/components/rich-text";
 import { categoryOrFallback, onColorHex } from "@/lib/categories";
 import { categoryIcon } from "@/lib/category-icons";
 import { formatEur, formatEurRange } from "@/lib/format";
+import { parseRichText } from "@/lib/rich-text";
 
 import { BreadcrumbJsonLd } from "../../_components/json-ld";
 import { browsePath } from "../../_lib/browse-params";
@@ -82,11 +84,7 @@ export default async function ShopPage({ params }: { params: { slug: string } })
   const monogramColor = category.on === "ink" ? onColorHex("ink") : category.bg;
   const name = displayName(shop);
   const description = shop.description?.trim() || fallbackDescription(data);
-  // A blank line starts a new paragraph; single line breaks stay as typed.
-  const voucherParagraphs = (shop.voucher_description ?? "")
-    .split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter(Boolean);
+  const hasVoucherText = parseRichText(shop.voucher_description).length > 0;
   const factList = facts(data);
 
   return (
@@ -154,17 +152,14 @@ export default async function ShopPage({ params }: { params: { slug: string } })
 
           <p className="mt-5 max-w-[660px] text-[15px] leading-relaxed text-brand-body lg:text-[16px]">{description}</p>
 
-          {voucherParagraphs.length ? (
+          {hasVoucherText ? (
             <section aria-labelledby="voucher-heading" className="mt-6 max-w-[660px]">
               <h2 id="voucher-heading" className="font-display text-[17px] font-bold tracking-[-0.01em] text-brand-ink lg:text-[19px]">
                 За ваучера
               </h2>
-              {/* Our own text, shown whole: plain paragraphs, never HTML. */}
-              {voucherParagraphs.map((paragraph, i) => (
-                <p key={i} className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-brand-body lg:text-[16px]">
-                  {paragraph}
-                </p>
-              ))}
+              {/* Our own text, shown whole; bold, italic and lists from the
+                  admin's simple format, rendered as elements, never HTML. */}
+              <RichText source={shop.voucher_description} className="mt-3 text-[15px] leading-relaxed text-brand-body lg:text-[16px]" />
             </section>
           ) : null}
 
