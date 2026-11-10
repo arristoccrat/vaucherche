@@ -3,7 +3,7 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 
 import { requireUser } from "@/lib/auth";
-import { GIFT_APPEALS, SHOP_STATUSES, type ShopStatus } from "@/lib/domain";
+import { ACTIVE_STATUSES, GIFT_APPEALS, SHOP_STATUSES, type ShopStatus } from "@/lib/domain";
 import type { ShopFilters } from "@/lib/search-params";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -53,7 +53,10 @@ export function applyShopFilters<Q extends FilterableShopsQuery<Q>>(
   filters: Omit<ShopFilters, "page" | "sort">
 ): Q {
   let q = query;
+  // No status chosen means the active ones; a domain search looks
+  // everywhere, archive included.
   if (filters.status.length) q = q.in("status", filters.status);
+  else if (!filters.search) q = q.in("status", [...ACTIVE_STATUSES]);
   if (filters.category) q = q.eq("category", filters.category);
   if (filters.giftAppeal) q = q.eq("gift_appeal", filters.giftAppeal);
   if (filters.published === "yes") q = q.eq("published", true);
