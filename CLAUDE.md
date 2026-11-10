@@ -169,8 +169,10 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
   `toEur`, `formatEur*`). Stored values stay as scraped (`price` +
   `currency`, and `price_bgn`); use the scraped price when it is already in
   EUR, otherwise convert at the fixed 1.95583. `price_bgn` stays the sort key.
-  The public site reads euro amounts from `shop_voucher_range`
-  (`min_eur`, `max_eur`, `denominations_eur`, same rule, `sql/004`).
+  The public site's amounts are the preferred offer's denominations (the
+  admin's "Номинали"), never product prices: the cards read them in euros
+  from `shop_voucher_range` (`min_eur`, `max_eur`, `denominations_eur`,
+  same rule, `sql/009`), the shop page from the offer itself.
 
 - Public design: colours only via `brand-*` Tailwind tokens and
   `src/lib/categories.ts`; a hex code in a component is a bug. Fonts:

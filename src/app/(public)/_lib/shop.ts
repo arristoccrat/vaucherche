@@ -1,14 +1,14 @@
 import { cache } from "react";
 
-import { productEur, toEur } from "@/lib/format";
+import { toEur } from "@/lib/format";
 import { publicClient } from "@/lib/supabase/public";
 
 // Everything the shop page shows, in one request: the shop, its preferred
 // offer (a human-corrected one first, then the newest extraction) and its
-// product rows for the amounts. Heavy product columns stay out.
+// product rows (for the outbound fallback and the update date).
 const SHOP_SELECT = `id, slug, name, domain, description, voucher_description, logo_url, cover_url, category, subcategory, voucher_url, updated_at,
   voucher_offers(is_digital, is_physical, custom_amount, validity_months, personalisable, terms_url, currency, denominations, min_value, max_value, verified_at, human_edited_at, extracted_at),
-  voucher_products(url, price, currency, price_bgn, fetched_at)`;
+  voucher_products(url, fetched_at)`;
 
 // Merchant URLs are crawled data: only plain http(s) links reach an href.
 export function externalUrl(value: string | null | undefined) {
@@ -39,17 +39,17 @@ export const getPublishedShop = cache(async (slug: string) => {
   const { voucher_offers, voucher_products, ...shop } = data;
   const offer = voucher_offers[0] ?? null;
 
-  // The amounts the shop sells, shown as plain facts: the product prices in
-  // euros (same rule as shop_voucher_range), or else the offer's own
-  // denominations (crawled, or entered in the admin).
+  // The amounts the shop sells, shown as plain facts: the offer's
+  // denominations ("Номинали" in the admin) in euros, the same values the
+  // cards read from shop_voucher_range (sql/009).
   const cents = (value: number) => Math.round(value * 100) / 100;
   const offerEur = (value: number | null) => {
     const eur = toEur(value, offer?.currency ?? "BGN");
     return eur != null && eur > 0 ? cents(eur) : null;
   };
-  const fromProducts = voucher_products.map((p) => productEur(p)).filter((v): v is number => v != null && v > 0).map(cents);
-  const fromOffer = (offer?.denominations ?? []).map(offerEur).filter((v): v is number => v != null);
-  const amounts = Array.from(new Set(fromProducts.length ? fromProducts : fromOffer)).sort((a, b) => a - b);
+  const amounts = Array.from(
+    new Set((offer?.denominations ?? []).map(offerEur).filter((v): v is number => v != null))
+  ).sort((a, b) => a - b);
   // "Сума по избор", with its limits when the offer has them.
   const customRange = offer?.custom_amount
     ? { min: offerEur(offer.min_value), max: offerEur(offer.max_value) }
