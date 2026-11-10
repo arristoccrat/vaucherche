@@ -41,7 +41,14 @@ export function parseRichText(source: string | null | undefined): Block[] {
     current = null;
   };
 
-  for (const raw of (source ?? "").replace(/\r\n?/g, "\n").split("\n")) {
+  // A bold or italic run whose closing marker slipped onto the next line on
+  // its own ("**Заглавие\n**", from selecting a whole line with its break)
+  // is read as if the marker sat at the end of the line.
+  const text = (source ?? "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/(\*\*?)([^*\s][^*\n]*?)[ \t]*\n[ \t]*\1[ \t]*(?=\n|$)/g, "$1$2$1");
+
+  for (const raw of text.split("\n")) {
     const line = raw.trimEnd();
     if (!line.trim()) {
       close();
@@ -64,41 +71,4 @@ export function parseRichText(source: string | null | undefined): Block[] {
   }
   close();
   return blocks;
-}
-
-// Admin toolbar helpers: change the text around the selection and say where
-// the selection should be afterwards.
-export type Edit = { value: string; start: number; end: number };
-
-export function toggleWrap(value: string, start: number, end: number, marker: "**" | "*"): Edit {
-  const selected = value.slice(start, end);
-  const before = value.slice(0, start);
-  const after = value.slice(end);
-  if (before.endsWith(marker) && after.startsWith(marker)) {
-    return {
-      value: before.slice(0, -marker.length) + selected + after.slice(marker.length),
-      start: start - marker.length,
-      end: end - marker.length,
-    };
-  }
-  return { value: before + marker + selected + marker + after, start: start + marker.length, end: end + marker.length };
-}
-
-export function toggleList(value: string, start: number, end: number, kind: "ul" | "ol"): Edit {
-  const lineStart = value.lastIndexOf("\n", start - 1) + 1;
-  const nextBreak = value.indexOf("\n", end);
-  const lineEnd = nextBreak === -1 ? value.length : nextBreak;
-  const lines = value.slice(lineStart, lineEnd).split("\n");
-  const marked = (l: string) => (kind === "ul" ? BULLET.test(l) : NUMBERED.test(l));
-  const allMarked = lines.every((l) => !l.trim() || marked(l));
-  let n = 0;
-  const next = lines.map((l) => {
-    if (!l.trim()) return l;
-    if (allMarked) return l.replace(kind === "ul" ? /^\s*[-•*]\s+/ : /^\s*\d+[.)]\s+/, "");
-    const bare = l.replace(/^\s*(?:[-•*]|\d+[.)])\s+/, "");
-    n += 1;
-    return kind === "ul" ? `- ${bare}` : `${n}. ${bare}`;
-  });
-  const text = next.join("\n");
-  return { value: value.slice(0, lineStart) + text + value.slice(lineEnd), start: lineStart, end: lineStart + text.length };
 }
