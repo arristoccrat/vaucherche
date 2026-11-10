@@ -8,7 +8,7 @@ import { getUser } from "@/lib/auth";
 import { PUBLIC_DATA_TAG } from "@/lib/site";
 import type { TablesUpdate } from "@/lib/database.types";
 import { toEur } from "@/lib/format";
-import { OFFER_FIELDS, type OfferField } from "@/lib/offer-fields";
+import { DELIVERY_OPTIONS, OFFER_FIELDS, type OfferField } from "@/lib/offer-fields";
 import { parseEuro, parseEuroList } from "@/lib/parse-amounts";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -44,11 +44,9 @@ function parseField(field: OfferField, raw: string): OfferPatch | string {
       return { [field]: amount };
     }
     case "delivery_methods": {
-      const list = value
-        .split(/[,;\n]+/)
-        .map((s) => s.trim())
-        .filter(Boolean);
-      if (list.length > 10 || list.some((s) => s.length > 60)) return "Твърде дълъг списък.";
+      const list = Array.from(new Set(value.split(",").map((s) => s.trim()).filter(Boolean)));
+      const allowed: readonly string[] = DELIVERY_OPTIONS.map((o) => o.key);
+      if (list.some((s) => !allowed.includes(s))) return "Невалиден начин на получаване.";
       return { delivery_methods: list.length ? list : null };
     }
     case "validity_months": {

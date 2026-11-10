@@ -4,8 +4,9 @@ import { useRef } from "react";
 
 import { updateOfferFact } from "@/actions/offers";
 import { toEur } from "@/lib/format";
-import type { OfferField } from "@/lib/offer-fields";
+import { DELIVERY_OPTIONS, deliveryKeys, type OfferField } from "@/lib/offer-fields";
 import type { ShopListRow } from "@/lib/queries/shops";
+import { cn } from "@/lib/utils";
 
 import { FieldLabel, fieldClass, useAutosave } from "./autosave";
 
@@ -56,6 +57,41 @@ function TextFact({
   );
 }
 
+// Several of a fixed set of options, saved on each click as "a,b".
+function MultiFact({ id, label, field }: { id: string; label: string; field: ReturnType<typeof useAutosave> }) {
+  const chosen = new Set(field.value.split(",").filter(Boolean));
+  const toggle = (key: string) => {
+    const next = new Set(chosen);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    field.change(
+      DELIVERY_OPTIONS.map((o) => o.key)
+        .filter((k) => next.has(k))
+        .join(","),
+      true
+    );
+  };
+  return (
+    <div className="space-y-1">
+      <FieldLabel htmlFor={`${id}-${DELIVERY_OPTIONS[0].key}`} label={label} state={field.state} />
+      <div role="group" aria-label={label} className={cn(fieldClass, "flex h-[34px] items-center gap-4")}>
+        {DELIVERY_OPTIONS.map((o) => (
+          <label key={o.key} className="flex cursor-pointer items-center gap-1.5">
+            <input
+              id={`${id}-${o.key}`}
+              type="checkbox"
+              checked={chosen.has(o.key)}
+              onChange={() => toggle(o.key)}
+              className="size-3.5 accent-foreground"
+            />
+            {o.label}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function BoolFact({ id, label, field }: { id: string; label: string; field: ReturnType<typeof useAutosave> }) {
   return (
     <div className="space-y-1">
@@ -88,7 +124,7 @@ export function OfferFactsForm({ shopId, offer }: { shopId: string; offer: Offer
   const digital = useOfferField(shopId, offerId, "is_digital", yesNo(offer?.is_digital));
   const physical = useOfferField(shopId, offerId, "is_physical", yesNo(offer?.is_physical));
   const personalisable = useOfferField(shopId, offerId, "personalisable", yesNo(offer?.personalisable));
-  const delivery = useOfferField(shopId, offerId, "delivery_methods", (offer?.delivery_methods ?? []).join(", "));
+  const delivery = useOfferField(shopId, offerId, "delivery_methods", deliveryKeys(offer?.delivery_methods).join(","));
   const validity = useOfferField(shopId, offerId, "validity_months", offer?.validity_months != null ? String(offer.validity_months) : "");
   const terms = useOfferField(shopId, offerId, "terms_url", offer?.terms_url ?? "");
 
@@ -112,7 +148,7 @@ export function OfferFactsForm({ shopId, offer }: { shopId: string; offer: Offer
         <BoolFact id={id("is_digital")} label="Дигитален" field={digital} />
         <BoolFact id={id("is_physical")} label="Физически" field={physical} />
         <BoolFact id={id("personalisable")} label="Персонализиране" field={personalisable} />
-        <TextFact id={id("delivery_methods")} label="Доставка" hint="със запетая" placeholder="имейл, куриер" field={delivery} />
+        <MultiFact id={id("delivery_methods")} label="Получаване" field={delivery} />
         <TextFact id={id("validity_months")} label="Валидност" hint="месеци · 0 = безсрочен" placeholder="12" field={validity} inputMode="numeric" />
         <div className="sm:col-span-2 lg:col-span-3">
           <TextFact id={id("terms_url")} label="Условия (URL)" placeholder="https://…" field={terms} inputMode="url" />
