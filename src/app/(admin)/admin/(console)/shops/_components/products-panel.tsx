@@ -4,9 +4,10 @@ import { ExternalLink } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { verifyVoucherUrls } from "@/actions/products";
+import { verifyVoucherUrl } from "@/actions/products";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { formatEur, formatEurRange, productEur } from "@/lib/format";
 import type { ShopListRow } from "@/lib/queries/shops";
 import { cn } from "@/lib/utils";
@@ -72,27 +73,20 @@ function ProductRow({ product }: { product: Product }) {
   );
 }
 
-function UrlVerifier({ shop }: { shop: ShopListRow }) {
-  const initial = Array.from(
-    new Set(
-      [shop.voucher_url, ...shop.voucher_products.map((p) => p.url)].filter(
-        (url): url is string => Boolean(url)
-      )
-    )
-  ).join("\n");
-  const [text, setText] = useState(initial);
+// The one URL a human confirms: the shop's voucher page, where the site's
+// "Купи от …" button goes. Products below are the crawler's, read-only.
+function VoucherUrlForm({ shop }: { shop: ShopListRow }) {
+  const [url, setUrl] = useState(shop.voucher_url ?? "");
   const [pending, startTransition] = useTransition();
+  const confirmed = Boolean(shop.voucher_url) && shop.voucher_url_verified === true && url.trim() === shop.voucher_url;
 
   const save = () =>
     startTransition(async () => {
       try {
-        const result = await verifyVoucherUrls(shop.id, text);
+        const result = await verifyVoucherUrl(shop.id, url);
         if (!result) toast.error("Няма отговор от сървъра. Презаредете страницата.");
         else if (!result.ok) toast.error(result.error);
-        else
-          toast.success(
-            `URL потвърден. Нови продукти: ${result.data.added}, вече записани: ${result.data.existing}.`
-          );
+        else toast.success("Страницата с ваучери е потвърдена.");
       } catch {
         toast.error("Връзката със сървъра прекъсна. Нищо не е записано.");
       }
@@ -100,28 +94,33 @@ function UrlVerifier({ shop }: { shop: ShopListRow }) {
 
   return (
     <div className="space-y-2">
-      <label htmlFor={`urls-${shop.id}`} className="text-xs font-medium">
-        Потвърди URL адреси{" "}
-        <span className="font-normal text-muted-foreground">
-          — по един на ред; първият е основната страница с ваучери
-        </span>
+      <label htmlFor={`voucher-url-${shop.id}`} className="text-xs font-medium">
+        Страница с ваучери{" "}
+        <span className="font-normal text-muted-foreground">— натам води „Купи от …“ на сайта</span>
       </label>
-      <textarea
-        id={`urls-${shop.id}`}
-        value={text}
-        onChange={(event) => setText(event.target.value)}
-        rows={Math.min(Math.max(text.split("\n").length, 3), 10)}
+      <Input
+        id={`voucher-url-${shop.id}`}
+        type="url"
+        value={url}
+        onChange={(event) => setUrl(event.target.value)}
         spellCheck={false}
-        className="w-full rounded-md border border-input bg-background px-3 py-2 font-mono text-xs shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        placeholder="https://shop.bg/vouchers&#10;https://shop.bg/voucher-50&#10;https://shop.bg/voucher-100"
+        className="font-mono text-xs"
+        placeholder="https://shop.bg/vouchers"
       />
-      <div className="flex items-center gap-3">
-        <Button size="sm" onClick={save} disabled={pending}>
-          {pending ? "Записване…" : "Запиши и потвърди"}
+      <div className="flex flex-wrap items-center gap-3">
+        <Button size="sm" onClick={save} disabled={pending || !url.trim() || confirmed}>
+          {pending ? "Записване…" : confirmed ? "Потвърден ✓" : "Запиши и потвърди"}
         </Button>
-        <span className="text-xs text-muted-foreground">
-          Новите редове стават продукти „чака“ до следващото обхождане. Изтриването на ред не изтрива продукт.
-        </span>
+        {shop.voucher_url ? (
+          <a
+            href={shop.voucher_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+          >
+            Отвори ↗
+          </a>
+        ) : null}
       </div>
     </div>
   );
@@ -162,12 +161,10 @@ export function ProductsPanel({ shop }: { shop: ShopListRow }) {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            Няма записани продукти. Добавете URL адресите вдясно.
-          </p>
+          <p className="text-sm text-muted-foreground">Обхождането не е намерило продукти.</p>
         )}
       </div>
-      <UrlVerifier key={`${shop.voucher_url}|${products.length}`} shop={shop} />
+      <VoucherUrlForm key={shop.voucher_url ?? ""} shop={shop} />
     </div>
   );
 }
