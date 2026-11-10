@@ -1,4 +1,4 @@
-import { ChevronLeft, Clock, CreditCard, Gift, Mail } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, Clock, CreditCard, Gift, Mail } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -6,14 +6,13 @@ import { notFound } from "next/navigation";
 
 import { categoryOrFallback, onColorHex } from "@/lib/categories";
 import { categoryIcon } from "@/lib/category-icons";
-import { formatEurRange } from "@/lib/format";
+import { formatEur, formatEurRange } from "@/lib/format";
 
 import { BreadcrumbJsonLd } from "../../_components/json-ld";
 import { browsePath } from "../../_lib/browse-params";
+import { outboundHref } from "../../_lib/outbound";
 import { getVisibleCategories } from "../../_lib/categories";
 import { getPublishedShop, type PublishedShop } from "../../_lib/shop";
-
-import { BuyPanel } from "./buy-panel";
 
 // "24 окт 2026": ICU's bg-BG short month is numeric, so the names are ours.
 const MONTHS = ["яну", "фев", "мар", "апр", "май", "юни", "юли", "авг", "сеп", "окт", "ное", "дек"];
@@ -29,7 +28,7 @@ function displayName(shop: PublishedShop["shop"]) {
 
 // Our own one-line copy when the editor has not written a description yet.
 function fallbackDescription({ shop, amounts }: PublishedShop) {
-  const range = amounts.length ? ` за ${formatEurRange(amounts[0].eur, amounts[amounts.length - 1].eur)}` : "";
+  const range = amounts.length ? ` за ${formatEurRange(amounts[0], amounts[amounts.length - 1])}` : "";
   return `Подаръчни ваучери от ${shop.domain}${range}.`;
 }
 
@@ -70,7 +69,8 @@ function facts({ offer }: PublishedShop): Fact[] {
 export default async function ShopPage({ params }: { params: { slug: string } }) {
   const data = await getPublishedShop(params.slug);
   if (!data) notFound();
-  const { shop, offer, amounts, lastChecked } = data;
+  const { shop, offer, amounts, customRange, firstProductUrl, lastChecked } = data;
+  const canBuy = Boolean(shop.voucher_url || firstProductUrl);
 
   const { visible } = await getVisibleCategories();
   // A published shop's category always has a page; an unknown or archived
@@ -177,13 +177,53 @@ export default async function ShopPage({ params }: { params: { slug: string } })
         </article>
 
         <aside className="mt-6 lg:sticky lg:top-6 lg:mt-0 lg:rounded-[22px] lg:border-2 lg:border-brand-ink lg:bg-brand-card lg:p-6" aria-label="Купи ваучер">
-          <BuyPanel
-            slug={shop.slug}
-            amounts={amounts.map((a) => a.eur)}
-            customAmount={Boolean(offer?.custom_amount)}
-            canBuy={Boolean(shop.voucher_url || amounts.length)}
-            domain={shop.domain}
-          />
+          {amounts.length || customRange ? (
+            <section aria-labelledby="amounts-heading">
+              <h2 id="amounts-heading" className="font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink lg:text-[15px]">
+                Суми
+              </h2>
+              {/* Facts only: the amount is chosen on the shop's own page. */}
+              {amounts.length ? (
+                <ul className="mt-3 flex flex-wrap gap-2 font-num text-[14px] font-semibold text-brand-ink">
+                  {amounts.map((eur) => (
+                    <li key={eur} className="rounded-[12px] border-2 border-brand-ink bg-brand-card px-3 py-1.5">
+                      {formatEur(eur)}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {customRange ? (
+                <p className="mt-3 text-[14px] text-brand-body">
+                  <span className="font-bold text-brand-ink">Сума по избор</span>
+                  {customRange.min || customRange.max ? (
+                    <span className="font-num font-semibold text-brand-ink">
+                      {" · "}
+                      {customRange.min && customRange.max
+                        ? formatEurRange(customRange.min, customRange.max)
+                        : customRange.min
+                          ? `от ${formatEur(customRange.min)}`
+                          : `до ${formatEur(customRange.max ?? 0)}`}
+                    </span>
+                  ) : null}
+                </p>
+              ) : null}
+            </section>
+          ) : null}
+
+          {canBuy ? (
+            <div className="fixed inset-x-0 bottom-0 z-20 border-t-2 border-brand-ink bg-brand-ground px-4 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 lg:static lg:mt-5 lg:border-t-2 lg:border-brand-hair lg:bg-transparent lg:p-0 lg:pt-5">
+              <a
+                href={outboundHref(shop.slug)}
+                target="_blank"
+                rel="nofollow noopener noreferrer"
+                className="flex h-14 w-full items-center justify-center gap-2 rounded-[16px] border-2 border-brand-ink bg-brand-amber px-4 font-ui text-[16px] font-extrabold text-brand-ink"
+              >
+                Купи от {shop.domain}
+                <ArrowUpRight className="size-[18px] shrink-0" aria-hidden />
+                <span className="sr-only">(отваря се в нов раздел)</span>
+              </a>
+            </div>
+          ) : null}
           <p className="mt-4 text-center text-[12.5px] leading-snug text-brand-body">
             Не продаваме ваучери — пращаме те директно на магазина.
             {lastChecked ? (
