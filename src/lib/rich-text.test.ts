@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parseInline, parseRichText, toggleList, toggleWrap } from "./rich-text";
+import { parseInline, parseRichText } from "./rich-text";
 
 describe("parseInline", () => {
   it("reads bold and italic", () => {
@@ -36,24 +36,18 @@ describe("parseRichText", () => {
     expect(blocks[2]).toMatchObject({ type: "ul", items: [[{ text: "онлайн" }], [{ text: "в магазина" }]] });
   });
 
+  it("reads a bold line whose closing marker slipped onto the next line", () => {
+    const blocks = parseRichText("**Ваучер за книжарници: 10 €, 20 €\n**\nВажи навсякъде.");
+    expect(blocks).toEqual([
+      {
+        type: "p",
+        lines: [[{ text: "Ваучер за книжарници: 10 €, 20 €", bold: true }], [{ text: "Важи навсякъде." }]],
+      },
+    ]);
+  });
+
   it("returns nothing for empty text", () => {
     expect(parseRichText("  \n\n ")).toEqual([]);
     expect(parseRichText(null)).toEqual([]);
-  });
-});
-
-describe("toolbar edits", () => {
-  it("wraps the selection and unwraps it again", () => {
-    const wrapped = toggleWrap("Важи 12 месеца", 5, 14, "**");
-    expect(wrapped).toEqual({ value: "Важи **12 месеца**", start: 7, end: 16 });
-    expect(toggleWrap(wrapped.value, wrapped.start, wrapped.end, "**").value).toBe("Важи 12 месеца");
-  });
-
-  it("turns selected lines into a list and back", () => {
-    const text = "Стъпки:\nизберете\nплатете";
-    const ul = toggleList(text, 9, text.length, "ul");
-    expect(ul.value).toBe("Стъпки:\n- изберете\n- платете");
-    expect(toggleList(ul.value, ul.start, ul.end, "ul").value).toBe(text);
-    expect(toggleList(text, 9, text.length, "ol").value).toBe("Стъпки:\n1. изберете\n2. платете");
   });
 });

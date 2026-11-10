@@ -155,8 +155,7 @@ export function EditorialForm({ shop, categories }: { shop: ShopListRow; categor
             label="Описание на ваучера"
             hint={`на страницата на магазина, цялото · ${voucherDescription.value.trim().length} знака`}
             field={voucherDescription}
-            maxLength={10_000}
-            placeholder={"Напр.: Ваучерът важи за **всички книги и игри** в магазините и онлайн.\n\nНачин на употреба:\n1. Изберете сума\n2. Изпратете го по имейл"}
+            placeholder="Напр.: Ваучерът важи за всички книги и игри в магазините и онлайн."
           />
 
           <div className="grid grid-cols-2 gap-3">
