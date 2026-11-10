@@ -150,10 +150,10 @@ export default async function ShopPage({ params }: { params: { slug: string } })
             </div>
           </div>
 
-          <p className="mt-5 max-w-[660px] text-[15px] leading-relaxed text-brand-body lg:text-[16px]">{description}</p>
+          <p className="mt-5 max-w-[860px] text-[15px] leading-relaxed text-brand-body lg:text-[16px]">{description}</p>
 
           {hasVoucherText ? (
-            <section aria-labelledby="voucher-heading" className="mt-6 max-w-[660px]">
+            <section aria-labelledby="voucher-heading" className="mt-6 max-w-[860px]">
               <h2 id="voucher-heading" className="font-display text-[17px] font-bold tracking-[-0.01em] text-brand-ink lg:text-[19px]">
                 За ваучера
               </h2>
@@ -238,14 +238,11 @@ export default async function ShopPage({ params }: { params: { slug: string } })
               </a>
             </div>
           ) : null}
-          <p className="mt-4 text-center text-[12.5px] leading-snug text-brand-body">
-            Не продаваме ваучери — пращаме те директно на магазина.
-            {lastChecked ? (
-              <span className="mt-0.5 block font-num text-[11.5px] text-brand-quiet">
-                Последна проверка: {checkedDate(lastChecked)}
-              </span>
-            ) : null}
-          </p>
+          {lastChecked ? (
+            <p className="mt-4 text-center font-num text-[11.5px] text-brand-quiet">
+              Обновено: {checkedDate(lastChecked)}
+            </p>
+          ) : null}
         </aside>
       </div>
     </div>
