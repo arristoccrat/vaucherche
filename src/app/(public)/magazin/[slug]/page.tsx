@@ -150,10 +150,10 @@ export default async function ShopPage({ params }: { params: { slug: string } })
             </div>
           </div>
 
-          <p className="mt-5 max-w-[660px] text-[15px] leading-relaxed text-brand-body lg:text-[16px]">{description}</p>
+          <p className="mt-5 max-w-[860px] text-[15px] leading-relaxed text-brand-body lg:text-[16px]">{description}</p>
 
           {hasVoucherText ? (
-            <section aria-labelledby="voucher-heading" className="mt-6 max-w-[660px]">
+            <section aria-labelledby="voucher-heading" className="mt-6 max-w-[860px]">
               <h2 id="voucher-heading" className="font-display text-[17px] font-bold tracking-[-0.01em] text-brand-ink lg:text-[19px]">
                 За ваучера
               </h2>
