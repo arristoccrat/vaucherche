@@ -83,7 +83,8 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
   sells vouchers), `shops.published` (staged for the public site).
 - `voucher_products.source`: `og` / `jsonld` are structured and reliable,
   `text` was regex-scraped and needs a glance, `manual` is a human-pasted URL
-  with no price fetched yet. Surface it.
+  with no price fetched yet (older rows only: the admin no longer adds
+  products). Surface it.
 - Human verdicts from the admin: confirming writes `status_reason =
   'потвърден от човек'` and sets `voucher_offers.verified_by_human = true` +
   `verified_at`; rejecting writes `'отхвърлен от човек'` and
@@ -115,11 +116,10 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
 - Schema changes the admin depends on live in `sql/` and are run by hand in
   the Supabase SQL Editor before deploying; update
   `src/lib/database.types.ts` to match.
-- URL verification (`src/actions/products.ts`): first line becomes
-  `shops.voucher_url` with `voucher_url_verified = true`; every line is added
-  to `voucher_products` as `source: 'manual'` with no price, only if that
-  (shop, url) is not already there. Existing product rows are never updated
-  or removed, so crawler prices survive re-verification.
+- Voucher page verification (`src/actions/products.ts`): one URL, saved as
+  `shops.voucher_url` with `voucher_url_verified = true`. It is where the
+  site's "Купи от …" button goes. Products are the crawler's and read-only
+  in the admin: never added, updated or removed there.
 - Crawl suggestions (`src/lib/suggestions.ts`, served by
   `/admin/api/shops/[id]/suggestions`): names, logos and covers read from
   `voucher_products.meta` / `links` / `image_url` and `voucher_offers.raw_extract`.
