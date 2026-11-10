@@ -238,14 +238,11 @@ export default async function ShopPage({ params }: { params: { slug: string } })
               </a>
             </div>
           ) : null}
-          <p className="mt-4 text-center text-[12.5px] leading-snug text-brand-body">
-            Не продаваме ваучери — пращаме те директно на магазина.
-            {lastChecked ? (
-              <span className="mt-0.5 block font-num text-[11.5px] text-brand-quiet">
-                Последна проверка: {checkedDate(lastChecked)}
-              </span>
-            ) : null}
-          </p>
+          {lastChecked ? (
+            <p className="mt-4 text-center font-num text-[11.5px] text-brand-quiet">
+              Обновено: {checkedDate(lastChecked)}
+            </p>
+          ) : null}
         </aside>
       </div>
     </div>
