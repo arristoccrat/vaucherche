@@ -18,7 +18,7 @@ export const SHOP_FACETS_TAG = "shop-facets";
 // `source_match` is a second embed of voucher_products used only to filter by
 // product source without narrowing the `voucher_products` list itself.
 const LIST_SELECT = `
-  id, domain, name, slug, description, logo_url, cover_url, status, status_reason,
+  id, domain, name, slug, description, voucher_description, logo_url, cover_url, status, status_reason,
   category, subcategory,
   gift_appeal, confidence, published, voucher_url, voucher_url_verified,
   voucher_url_note, voucher_type, updated_at,

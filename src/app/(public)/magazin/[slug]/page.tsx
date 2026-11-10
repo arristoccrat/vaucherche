@@ -82,6 +82,11 @@ export default async function ShopPage({ params }: { params: { slug: string } })
   const monogramColor = category.on === "ink" ? onColorHex("ink") : category.bg;
   const name = displayName(shop);
   const description = shop.description?.trim() || fallbackDescription(data);
+  // A blank line starts a new paragraph; single line breaks stay as typed.
+  const voucherParagraphs = (shop.voucher_description ?? "")
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean);
   const factList = facts(data);
 
   return (
@@ -148,6 +153,20 @@ export default async function ShopPage({ params }: { params: { slug: string } })
           </div>
 
           <p className="mt-5 max-w-[660px] text-[15px] leading-relaxed text-brand-body lg:text-[16px]">{description}</p>
+
+          {voucherParagraphs.length ? (
+            <section aria-labelledby="voucher-heading" className="mt-6 max-w-[660px]">
+              <h2 id="voucher-heading" className="font-display text-[17px] font-bold tracking-[-0.01em] text-brand-ink lg:text-[19px]">
+                За ваучера
+              </h2>
+              {/* Our own text, shown whole: plain paragraphs, never HTML. */}
+              {voucherParagraphs.map((paragraph, i) => (
+                <p key={i} className="mt-3 whitespace-pre-line text-[15px] leading-relaxed text-brand-body lg:text-[16px]">
+                  {paragraph}
+                </p>
+              ))}
+            </section>
+          ) : null}
 
           {factList.length ? (
             <ul className="mt-5 grid gap-2.5 lg:mt-6 lg:grid-cols-3 lg:gap-4">

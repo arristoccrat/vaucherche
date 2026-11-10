@@ -55,6 +55,7 @@ export function EditorialForm({ shop, categories }: { shop: ShopListRow; categor
   const id = shop.id;
   const name = useEditorial(id, "name", shop.name === shop.domain ? "" : shop.name);
   const description = useEditorial(id, "description", shop.description ?? "");
+  const voucherDescription = useEditorial(id, "voucher_description", shop.voucher_description ?? "");
   const category = useEditorial(id, "category", shop.category ?? "");
   const subcategory = useEditorial(id, "subcategory", shop.subcategory ?? "");
   const appeal = useEditorial(id, "gift_appeal", shop.gift_appeal ?? "");
@@ -132,8 +133,8 @@ export function EditorialForm({ shop, categories }: { shop: ShopListRow; categor
           <div className="space-y-1">
             <FieldLabel
               htmlFor={`description-${id}`}
-              label="Описание"
-              hint={`две изречения · ${description.value.trim().length}/600`}
+              label="Описание на магазина"
+              hint={`на картата, до 4 реда · ${description.value.trim().length}/600`}
               state={description.state}
             />
             <textarea
@@ -144,7 +145,26 @@ export function EditorialForm({ shop, categories }: { shop: ShopListRow; categor
               onChange={(event) => description.change(event.target.value)}
               onBlur={description.flush}
               className={fieldClass}
-              placeholder="Напр.: Подаръчни ваучери за масажи и СПА процедури в София. Изберете сума от 25 до 150 €, валидни 12 месеца."
+              placeholder="Напр.: Верига книжарници с над 40 обекта в страната и онлайн магазин за книги, музика и игри."
+            />
+          </div>
+
+          <div className="space-y-1">
+            <FieldLabel
+              htmlFor={`voucher_description-${id}`}
+              label="Описание на ваучера"
+              hint={`на страницата на магазина, цялото · ${voucherDescription.value.trim().length} знака`}
+              state={voucherDescription.state}
+            />
+            <textarea
+              id={`voucher_description-${id}`}
+              value={voucherDescription.value}
+              rows={6}
+              maxLength={10_000}
+              onChange={(event) => voucherDescription.change(event.target.value)}
+              onBlur={voucherDescription.flush}
+              className={fieldClass}
+              placeholder={"Напр.: Ваучерът важи за всички книги и игри в магазините и онлайн. Изберете сума от 10 до 200 €.\n\nПразен ред започва нов абзац."}
             />
           </div>
 
