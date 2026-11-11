@@ -31,7 +31,6 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
     category ? { ...DEFAULT_FILTERS, kategoriya: filters.kategoriya } : DEFAULT_FILTERS,
     { podredba: filters.podredba }
   );
-  const headingCount = category ? (counts[category.key] ?? 0) : published;
   const sortOptions = SORTS.map((s) => ({ key: s.key, label: s.label, href: browseHref(filters, { podredba: s.key }) }));
 
   return (
@@ -45,10 +44,11 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
         <div className="mt-1 flex flex-wrap items-end justify-between gap-4 lg:mt-0">
           <div>
             <h1 className="font-display text-[26px] font-extrabold tracking-[-0.02em] text-brand-ink lg:text-[30px]">
-              {category ? category.label : "Подаръчни ваучери"}
+              {category ? category.label : "Всички ваучери"}
             </h1>
-            <p className="mt-1 hidden font-num text-xs font-semibold text-brand-ink lg:block">
-              {headingCount.toLocaleString("bg-BG")} {headingCount === 1 ? "български магазин" : "български магазина"} · проверени ръчно
+            {/* The shops the current filters show. */}
+            <p className="mt-1 font-num text-sm font-semibold text-brand-ink lg:text-[15px]" aria-live="polite">
+              {shopCountLabel(total)}
             </p>
           </div>
           <div className="hidden lg:block">
@@ -60,10 +60,7 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
           <ChipRows filters={filters} categories={categoryOrder} />
         </div>
 
-        <div className={cn("mt-4 flex min-h-11 items-center justify-between gap-3 lg:mt-5", !filtered && "lg:hidden")}>
-          <p className="font-num text-xs font-semibold text-brand-ink" aria-live="polite">
-            {shopCountLabel(total)}
-          </p>
+        <div className={cn("mt-4 flex min-h-11 items-center justify-end gap-3 lg:mt-5", !filtered && "lg:hidden")}>
           {filtered ? (
             <Link href={clearHref} className="flex min-h-11 items-center text-[13px] font-bold text-brand-mint-deep hover:underline">
               Изчисти филтрите
