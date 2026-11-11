@@ -39,6 +39,15 @@ function validityLabel(months: number | null) {
   return `валиден ${months} ${months === 1 ? "месец" : "месеца"}`;
 }
 
+// Each card leans its own way: an angle picked from the shop's slug, so it
+// stays the same on every render (and on the server and the client).
+const TILTS = [-4, -3, -2, 2, 3, 4];
+function tiltFor(seed: string) {
+  let hash = 0;
+  for (const ch of seed) hash = (hash * 31 + ch.charCodeAt(0)) | 0;
+  return TILTS[Math.abs(hash) % TILTS.length];
+}
+
 // `category` is the shop's category resolved by the page (categoryOrFallback).
 export function ShopCard({
   shop,
@@ -69,7 +78,10 @@ export function ShopCard({
         className="flex aspect-[19/10] items-center justify-center border-b-2 border-brand-ink"
         style={{ backgroundColor: tintHex(category.bg) }}
       >
-        <div className="relative aspect-[1.6] w-[64%] rotate-[3deg] rounded-[14px] border-2 border-brand-ink bg-brand-card shadow-[5px_6px_0_0] shadow-brand-ink transition-transform duration-200 group-hover:rotate-0">
+        <div
+          className="relative aspect-[1.6] w-[64%] rotate-[var(--tilt)] rounded-[14px] border-2 border-brand-ink bg-brand-card shadow-[5px_6px_0_0] shadow-brand-ink transition-transform duration-200 group-hover:rotate-0"
+          style={{ "--tilt": `${tiltFor(shop.slug ?? name)}deg` } as React.CSSProperties}
+        >
           {shop.logo_url ? (
             <Image
               src={shop.logo_url}
