@@ -74,7 +74,7 @@ function MultiFact({ id, label, field }: { id: string; label: string; field: Ret
   return (
     <div className="space-y-1">
       <FieldLabel htmlFor={`${id}-${DELIVERY_OPTIONS[0].key}`} label={label} state={field.state} />
-      <div role="group" aria-label={label} className={cn(fieldClass, "flex h-[34px] items-center gap-4")}>
+      <div role="group" aria-label={label} className={cn(fieldClass, "flex min-h-[34px] flex-wrap items-center gap-x-4 gap-y-1")}>
         {DELIVERY_OPTIONS.map((o) => (
           <label key={o.key} className="flex cursor-pointer items-center gap-1.5">
             <input
