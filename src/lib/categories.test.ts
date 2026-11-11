@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { BRAND } from "@/lib/brand";
-import { DEFAULT_CATEGORIES, onColorHex } from "@/lib/categories";
+import { DEFAULT_CATEGORIES, onColorHex, tintHex } from "@/lib/categories";
 import { contrastRatio } from "@/lib/contrast";
 
 const AA = 4.5;
@@ -39,5 +39,17 @@ describe("brand text tokens", () => {
   it("ink on amber and on mint clears 4.5:1", () => {
     expect(contrastRatio(BRAND.ink, BRAND.amber)).toBeGreaterThanOrEqual(AA);
     expect(contrastRatio(BRAND.ink, BRAND.mint)).toBeGreaterThanOrEqual(AA);
+  });
+});
+
+describe("tintHex", () => {
+  it("mixes a colour with white", () => {
+    expect(tintHex("#000000", 0.2)).toBe("#CCCCCC");
+    expect(tintHex("#C2185B", 0)).toBe("#FFFFFF");
+    expect(tintHex("#C2185B", 1)).toBe("#C2185B");
+  });
+
+  it("falls back to white for anything that is not a 6-digit hex", () => {
+    expect(tintHex("red")).toBe("#FFFFFF");
   });
 });

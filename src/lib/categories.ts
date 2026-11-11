@@ -73,6 +73,20 @@ export const FALLBACK_CATEGORY: Category = {
   previousPaths: [],
 };
 
+// A pale wash of a category colour (mixed with white), for card backgrounds
+// that carry no text of their own. `weight` is the share of the colour.
+export function tintHex(hex: string, weight = 0.18) {
+  const value = hex.replace("#", "");
+  if (!/^[0-9a-f]{6}$/i.test(value)) return "#FFFFFF";
+  const mix = (i: number) => {
+    const channel = parseInt(value.slice(i, i + 2), 16);
+    return Math.round(255 - (255 - channel) * weight)
+      .toString(16)
+      .padStart(2, "0");
+  };
+  return `#${mix(0)}${mix(2)}${mix(4)}`.toUpperCase();
+}
+
 export function onColorHex(on: OnColor) {
   return on === "ink" ? BRAND.ink : "#FFFFFF";
 }
