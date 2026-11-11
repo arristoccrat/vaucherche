@@ -108,7 +108,7 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
 - Editorial fields (`name`, `description`, `voucher_description`,
   `logo_url`, `category`, `subcategory`, `gift_appeal`) autosave one at a
   time via `src/actions/editorial.ts`. `description` is the short shop text
-  on the cards (clamped to 2 lines); `voucher_description` (`sql/008`) is the
+  on the cards (clamped to 4 lines); `voucher_description` (`sql/008`) is the
   voucher text, shown whole on the shop page. It uses a small format
   (`src/lib/rich-text.ts`: `**bold**`, `*italic*`, "- " and "1. " lists,
   blank line = paragraph). The admin edits it in a visual editor (Tiptap,

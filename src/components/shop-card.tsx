@@ -109,7 +109,7 @@ export function ShopCard({
         </div>
 
         {description ? (
-          <p className="mt-3 line-clamp-2 min-h-[2lh] text-[14px] leading-snug text-brand-body">{description}</p>
+          <p className="mt-3 line-clamp-4 min-h-[2lh] text-[14px] leading-snug text-brand-body">{description}</p>
         ) : null}
 
         {shown.length ? (
