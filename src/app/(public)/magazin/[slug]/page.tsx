@@ -149,16 +149,16 @@ export default async function ShopPage({ params }: { params: { slug: string } })
           </div>
 
           <div className="flex items-start gap-3.5 px-1 lg:gap-4 lg:px-7">
-            <div className="relative -mt-9 flex size-[76px] shrink-0 items-center justify-center overflow-hidden rounded-[18px] border-2 border-brand-ink bg-brand-card lg:size-[96px]">
+            <div className="relative -mt-12 flex size-[120px] shrink-0 items-center justify-center overflow-hidden rounded-[22px] border-2 border-brand-ink bg-brand-card lg:-mt-16 lg:size-[192px] lg:rounded-[28px]">
               {shop.logo_url ? (
-                <Image src={shop.logo_url} alt={`Лого на ${name}`} fill sizes="96px" className="object-contain p-2" />
+                <Image src={shop.logo_url} alt={`Лого на ${name}`} fill sizes="(min-width: 1024px) 192px, 120px" className="object-contain p-3 lg:p-5" />
               ) : (
-                <span className="font-display text-[30px] font-extrabold lg:text-[38px]" style={{ color: monogramColor }} aria-hidden>
+                <span className="font-display text-[48px] font-extrabold lg:text-[76px]" style={{ color: monogramColor }} aria-hidden>
                   {name.charAt(0).toUpperCase()}
                 </span>
               )}
             </div>
-            <div className="min-w-0 pt-2.5">
+            <div className="min-w-0 pt-3 lg:pt-5">
               <h1 className="font-display text-[22px] font-extrabold leading-tight tracking-[-0.02em] text-brand-ink lg:text-[30px]">
                 {name}
               </h1>
