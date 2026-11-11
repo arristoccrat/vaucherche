@@ -70,12 +70,12 @@ export function ShopCard({
   const monogramColor = category.on === "ink" ? onColorHex("ink") : category.bg;
 
   return (
-    <article className="group relative overflow-hidden rounded-[20px] border-2 border-brand-ink bg-brand-card">
+    <article className="group relative flex h-full flex-col overflow-hidden rounded-[20px] border-2 border-brand-ink bg-brand-card">
       {/* A gift card on a wash of the category colour: the shop's logo on a
           white card, tilted, with a hard ink shadow. Without a logo the card
           carries the shop's initial. Covers stay on the shop page. */}
       <div
-        className="flex aspect-[19/10] items-center justify-center border-b-2 border-brand-ink"
+        className="flex aspect-[19/10] shrink-0 items-center justify-center border-b-2 border-brand-ink"
         style={{ backgroundColor: tintHex(category.bg) }}
       >
         <div
@@ -103,7 +103,9 @@ export function ShopCard({
         </div>
       </div>
 
-      <div className="px-5 pb-5 pt-4">
+      {/* Fills the card, so cards in a row are equally tall and the meta
+          line sits at the bottom of each. */}
+      <div className="flex flex-1 flex-col px-5 pb-5 pt-4">
         <div className="flex items-start gap-3">
           <div className="min-w-0">
             <h3 className="truncate font-ui text-[17px] font-extrabold leading-tight text-brand-ink">
@@ -151,7 +153,7 @@ export function ShopCard({
         ) : null}
 
         {meta ? (
-          <p className="mt-3 text-[12.5px] font-medium text-brand-body">{meta}</p>
+          <p className="mt-auto pt-3 text-[12.5px] font-medium text-brand-body">{meta}</p>
         ) : null}
       </div>
     </article>
