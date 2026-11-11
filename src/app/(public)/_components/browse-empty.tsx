@@ -15,7 +15,7 @@ export async function BrowseEmpty({ filters }: { filters: BrowseFilters }) {
     const bucket = AMOUNT_BUCKETS.find((b) => b.key === filters.suma);
     candidates.push({ label: `сума ${bucket?.label ?? ""}`.trim(), changes: { suma: null } });
   }
-  if (filters.dostavka.length) candidates.push({ label: "доставка", changes: { dostavka: [] } });
+  if (filters.dostavka.length) candidates.push({ label: "получаване", changes: { dostavka: [] } });
 
   const counted = await Promise.all(
     candidates.map(async (c) => ({ ...c, count: await countPublishedShops({ ...filters, ...c.changes }) }))

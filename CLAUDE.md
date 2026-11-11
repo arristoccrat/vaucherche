@@ -18,7 +18,9 @@ name in any URL:
   actions. Browse filters live in the URL (`(public)/_lib/browse-params.ts`):
   the category is the path (`/kategoriya/<path>`, built only by
   `browseHref` / `browsePath`; `/?kategoriya=` redirects there), the rest
-  are query parameters. The queries in `(public)/_lib/browse.ts` read
+  are query parameters; `?dostavka=` (digital, delivery, in_store) matches
+  the admin's "Получаване" (`delivery_methods`, crawler words included,
+  `deliveryFilter`). The queries in `(public)/_lib/browse.ts` read
   `shop_voucher_range` (`sql/006`), always paginated with `.range()`.
   Public pages and `sitemap.xml` render per request (fetches stay cached):
   nothing may query Supabase at build time, because Preview builds have no

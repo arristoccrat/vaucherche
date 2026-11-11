@@ -169,7 +169,7 @@ export function FilterRail({
       </div>
 
       <hr className="my-5 border-t-2 border-brand-hair" />
-      <h2 className="font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink">Доставка</h2>
+      <h2 className="font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink">Получаване</h2>
       <div className="mt-3 flex flex-col gap-1">
         {DELIVERY.map((d) => {
           const checked = filters.dostavka.includes(d.key);
