@@ -7,7 +7,7 @@ import { publicClient } from "@/lib/supabase/public";
 // offer (a human-corrected one first, then the newest extraction) and its
 // product rows (for the outbound fallback and the update date).
 const SHOP_SELECT = `id, slug, name, domain, description, voucher_description, logo_url, cover_url, category, subcategory, voucher_url, updated_at,
-  voucher_offers(is_digital, is_physical, custom_amount, validity_months, personalisable, terms_url, currency, denominations, min_value, max_value, verified_at, human_edited_at, extracted_at),
+  voucher_offers(is_digital, is_physical, delivery_methods, custom_amount, validity_months, personalisable, terms_url, currency, denominations, min_value, max_value, verified_at, human_edited_at, extracted_at),
   voucher_products(url, fetched_at)`;
 
 // Merchant URLs are crawled data: only plain http(s) links reach an href.
