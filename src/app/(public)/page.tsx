@@ -22,7 +22,8 @@ export function generateMetadata({ searchParams }: Props): Metadata {
 
 export default async function HomePage({ searchParams }: Props) {
   const filters = parseBrowseFilters(searchParams, await getPublicCategories());
-  // A category filter has its own page; old ?kategoriya= links land there.
-  if (filters.kategoriya) permanentRedirect(browseHref(filters, { stranitsa: filters.stranitsa }));
+  // One category has its own page; ?kategoriya=<one key> lands there.
+  // Several stay here as a list.
+  if (filters.kategorii.length === 1) permanentRedirect(browseHref(filters, { stranitsa: filters.stranitsa }));
   return <BrowseView filters={filters} />;
 }

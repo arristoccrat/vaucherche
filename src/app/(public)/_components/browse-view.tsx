@@ -2,14 +2,13 @@ import Link from "next/link";
 
 import { ShopCard } from "@/components/shop-card";
 import { categoryOrFallback } from "@/lib/categories";
-import { cn } from "@/lib/utils";
 
 import { PAGE_SIZE, listPublishedShops } from "../_lib/browse";
-import { DEFAULT_FILTERS, SORTS, browseHref, hasActiveFilters, shopCountLabel, type BrowseFilters } from "../_lib/browse-params";
+import { SORTS, browseHref, categoriesLabel, hasActiveFilters, shopCountLabel, type BrowseFilters } from "../_lib/browse-params";
 import { getVisibleCategories } from "../_lib/categories";
 
 import { BrowseEmpty } from "./browse-empty";
-import { ChipRows, FilterRail } from "./browse-filters";
+import { ActiveFilters, ChipRows, FilterRail } from "./browse-filters";
 import { BrowsePagination } from "./browse-pagination";
 import { SortSelect } from "./filter-button";
 
@@ -23,14 +22,7 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
   // Only categories with published shops, biggest first; ties keep the
   // admin's order.
   const categoryOrder = [...visible].sort((a, b) => (counts[b.key] ?? 0) - (counts[a.key] ?? 0));
-  const category = filters.kategoriya;
-  // On a category page the category is the page, not a filter: clearing
-  // keeps it.
-  const filtered = category ? Boolean(filters.suma || filters.dostavka.length) : hasActiveFilters(filters);
-  const clearHref = browseHref(
-    category ? { ...DEFAULT_FILTERS, kategoriya: filters.kategoriya } : DEFAULT_FILTERS,
-    { podredba: filters.podredba }
-  );
+  const chosen = filters.kategorii;
   const sortOptions = SORTS.map((s) => ({ key: s.key, label: s.label, href: browseHref(filters, { podredba: s.key }) }));
 
   return (
@@ -38,13 +30,13 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
       <FilterRail filters={filters} counts={counts} total={published} categories={categoryOrder} />
 
       <div className="min-w-0 flex-1 px-4 pb-10 pt-4 lg:px-9 lg:pt-[26px]">
-        {category ? null : (
+        {chosen.length ? null : (
           <p className="text-[13.5px] font-medium text-brand-body lg:hidden">Подарък, който никога не е сгрешен</p>
         )}
         <div className="mt-1 flex flex-wrap items-end justify-between gap-4 lg:mt-0">
           <div>
             <h1 className="font-display text-[26px] font-extrabold tracking-[-0.02em] text-brand-ink lg:text-[30px]">
-              {category ? category.label : "Всички ваучери"}
+              {chosen.length ? categoriesLabel(chosen) : "Всички ваучери"}
             </h1>
             {/* The shops the current filters show. */}
             <p className="mt-1 font-num text-sm font-semibold text-brand-ink lg:text-[15px]" aria-live="polite">
@@ -60,16 +52,14 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
           <ChipRows filters={filters} categories={categoryOrder} />
         </div>
 
-        <div className={cn("mt-4 flex min-h-11 items-center justify-end gap-3 lg:mt-5", !filtered && "lg:hidden")}>
-          {filtered ? (
-            <Link href={clearHref} className="flex min-h-11 items-center text-[13px] font-bold text-brand-mint-deep hover:underline">
-              Изчисти филтрите
-            </Link>
-          ) : (
-            <div className="lg:hidden">
-              <SortSelect value={filters.podredba} options={sortOptions} />
-            </div>
-          )}
+        {hasActiveFilters(filters) ? (
+          <div className="mt-4 lg:mt-5">
+            <ActiveFilters filters={filters} />
+          </div>
+        ) : null}
+
+        <div className="mt-4 flex min-h-11 items-center justify-end lg:hidden">
+          <SortSelect value={filters.podredba} options={sortOptions} />
         </div>
 
         {shops.length ? (

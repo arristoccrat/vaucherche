@@ -4,7 +4,16 @@ import Link from "next/link";
 import { onColorHex, type Category } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 
-import { AMOUNT_BUCKETS, DELIVERY, browseHref, type BrowseFilters } from "../_lib/browse-params";
+import {
+  AMOUNT_BUCKETS,
+  DEFAULT_FILTERS,
+  DELIVERY,
+  browseHref,
+  toggled,
+  toggledCategory,
+  type AmountKey,
+  type BrowseFilters,
+} from "../_lib/browse-params";
 
 import { FilterButton } from "./filter-button";
 
@@ -15,9 +24,18 @@ const chipBase =
 const amountBase =
   "inline-flex h-9 shrink-0 items-center gap-1 rounded-[18px] border-2 border-brand-ink px-3.5 font-num text-[12.5px] font-semibold text-brand-ink";
 
+const AMOUNT_ORDER: AmountKey[] = AMOUNT_BUCKETS.map((b) => b.key);
+
+// Every choice adds to or removes from its filter; "Всички" / "Всяка" clear it.
 function toggleCategory(filters: BrowseFilters, category: Category) {
-  return browseHref(filters, { kategoriya: filters.kategoriya?.key === category.key ? null : category });
+  return browseHref(filters, { kategorii: toggledCategory(filters.kategorii, category) });
 }
+
+function toggleAmount(filters: BrowseFilters, key: AmountKey) {
+  return browseHref(filters, { suma: toggled(filters.suma, key, AMOUNT_ORDER) });
+}
+
+const isSelected = (filters: BrowseFilters, category: Category) => filters.kategorii.some((c) => c.key === category.key);
 
 // Mobile: two horizontally scrolling chip rows (Main / Filtered artboards).
 export function ChipRows({
@@ -32,14 +50,14 @@ export function ChipRows({
     <div className="space-y-2.5 lg:hidden">
       <div className="-mx-4 flex gap-[7px] overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
         <FilterButton
-          href={browseHref(filters, { kategoriya: null })}
-          pressed={!filters.kategoriya}
-          className={cn(chipBase, chipHit, !filters.kategoriya ? "bg-brand-ink text-brand-card" : "bg-brand-card text-brand-ink")}
+          href={browseHref(filters, { kategorii: [] })}
+          pressed={!filters.kategorii.length}
+          className={cn(chipBase, chipHit, !filters.kategorii.length ? "bg-brand-ink text-brand-card" : "bg-brand-card text-brand-ink")}
         >
           Всички
         </FilterButton>
         {categories.map((c) => {
-          const selected = filters.kategoriya?.key === c.key;
+          const selected = isSelected(filters, c);
           return (
             <FilterButton
               key={c.key}
@@ -56,18 +74,18 @@ export function ChipRows({
       </div>
       <div className="-mx-4 flex gap-[7px] overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
         <FilterButton
-          href={browseHref(filters, { suma: null })}
-          pressed={!filters.suma}
-          className={cn(amountBase, chipHit, !filters.suma ? "bg-brand-amber" : "bg-brand-card")}
+          href={browseHref(filters, { suma: [] })}
+          pressed={!filters.suma.length}
+          className={cn(amountBase, chipHit, !filters.suma.length ? "bg-brand-amber" : "bg-brand-card")}
         >
           Всяка сума
         </FilterButton>
         {AMOUNT_BUCKETS.map((b) => {
-          const selected = filters.suma === b.key;
+          const selected = filters.suma.includes(b.key);
           return (
             <FilterButton
               key={b.key}
-              href={browseHref(filters, { suma: selected ? null : b.key })}
+              href={toggleAmount(filters, b.key)}
               pressed={selected}
               className={cn(amountBase, chipHit, selected ? "bg-brand-amber" : "bg-brand-card")}
             >
@@ -97,8 +115,8 @@ export function FilterRail({
   categories: Category[];
 }) {
   const visible = categories.slice(0, RAIL_CATEGORIES);
-  const selected = filters.kategoriya;
-  if (selected && !visible.some((c) => c.key === selected.key)) visible.push(selected);
+  // Chosen categories stay in view even when they are not among the biggest.
+  for (const chosen of filters.kategorii) if (!visible.some((c) => c.key === chosen.key)) visible.push(chosen);
   const hidden = categories.length - visible.length;
 
   return (
@@ -106,18 +124,18 @@ export function FilterRail({
       <h2 className="font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink">Категории</h2>
       <div className="mt-3 flex flex-col gap-0.5">
         <FilterButton
-          href={browseHref(filters, { kategoriya: null })}
-          pressed={!filters.kategoriya}
+          href={browseHref(filters, { kategorii: [] })}
+          pressed={!filters.kategorii.length}
           className={cn(
             "flex h-11 items-center gap-2.5 rounded-[10px] px-3 text-left text-[13.5px]",
-            !filters.kategoriya ? "bg-brand-ink font-bold text-brand-card" : "font-semibold text-brand-ink hover:bg-brand-card"
+            !filters.kategorii.length ? "bg-brand-ink font-bold text-brand-card" : "font-semibold text-brand-ink hover:bg-brand-card"
           )}
         >
           Всички
           <span className="ml-auto font-num text-[11.5px] opacity-80">{total.toLocaleString("bg-BG")}</span>
         </FilterButton>
         {visible.map((c) => {
-          const selected = filters.kategoriya?.key === c.key;
+          const selected = isSelected(filters, c);
           return (
             <FilterButton
               key={c.key}
@@ -147,18 +165,18 @@ export function FilterRail({
       <h2 className="font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink">Сума</h2>
       <div className="mt-3 flex flex-wrap gap-2">
         <FilterButton
-          href={browseHref(filters, { suma: null })}
-          pressed={!filters.suma}
-          className={cn(amountBase, !filters.suma ? "bg-brand-amber" : "bg-brand-card")}
+          href={browseHref(filters, { suma: [] })}
+          pressed={!filters.suma.length}
+          className={cn(amountBase, !filters.suma.length ? "bg-brand-amber" : "bg-brand-card")}
         >
           Всяка
         </FilterButton>
         {AMOUNT_BUCKETS.map((b) => {
-          const selected = filters.suma === b.key;
+          const selected = filters.suma.includes(b.key);
           return (
             <FilterButton
               key={b.key}
-              href={browseHref(filters, { suma: selected ? null : b.key })}
+              href={toggleAmount(filters, b.key)}
               pressed={selected}
               className={cn(amountBase, selected ? "bg-brand-amber" : "bg-brand-card")}
             >
@@ -191,5 +209,54 @@ export function FilterRail({
         })}
       </div>
     </aside>
+  );
+}
+
+const activeChip =
+  "inline-flex h-9 items-center gap-1.5 rounded-[18px] border-2 border-brand-ink pl-3.5 pr-2.5 font-ui text-[13px] font-extrabold hover:opacity-90";
+
+// Above the list: every choice in effect, each removable on its own, and one
+// link that clears them all. Plain links: the URL is the state.
+export function ActiveFilters({ filters }: { filters: BrowseFilters }) {
+  const chips: { key: string; label: string; href: string; className: string; style?: React.CSSProperties }[] = [
+    ...filters.kategorii.map((c) => ({
+      key: `k-${c.key}`,
+      label: c.label,
+      href: toggleCategory(filters, c),
+      className: "",
+      style: { backgroundColor: c.bg, color: onColorHex(c.on) },
+    })),
+    ...AMOUNT_BUCKETS.filter((b) => filters.suma.includes(b.key)).map((b) => ({
+      key: `s-${b.key}`,
+      label: b.key === "po-izbor" ? "Сума по избор" : b.label,
+      href: toggleAmount(filters, b.key),
+      className: "bg-brand-amber text-brand-ink",
+    })),
+    ...DELIVERY.filter((d) => filters.dostavka.includes(d.key)).map((d) => ({
+      key: `d-${d.key}`,
+      label: d.label,
+      href: browseHref(filters, { dostavka: filters.dostavka.filter((x) => x !== d.key) }),
+      className: "bg-brand-card text-brand-ink",
+    })),
+  ];
+  if (!chips.length) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2" aria-label="Избрани филтри">
+      {chips.map((chip) => (
+        <Link key={chip.key} href={chip.href} scroll={false} className={cn(activeChip, chip.className)} style={chip.style}>
+          {chip.label}
+          <X className="size-3.5" aria-hidden />
+          <span className="sr-only">(махни)</span>
+        </Link>
+      ))}
+      <Link
+        href={browseHref(DEFAULT_FILTERS, { podredba: filters.podredba })}
+        scroll={false}
+        className="ml-1 flex min-h-9 items-center px-1 text-[13px] font-bold text-brand-mint-deep hover:underline"
+      >
+        Изчисти филтрите
+      </Link>
+    </div>
   );
 }
