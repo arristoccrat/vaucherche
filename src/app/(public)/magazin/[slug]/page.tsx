@@ -1,4 +1,4 @@
-import { ArrowUpRight, ChevronLeft, Clock, CreditCard, Gift, Mail } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, Clock, CreditCard, Gift, Mail, Store, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -8,6 +8,7 @@ import { RichText } from "@/components/rich-text";
 import { categoryOrFallback, onColorHex } from "@/lib/categories";
 import { categoryIcon } from "@/lib/category-icons";
 import { formatEur, formatEurRange } from "@/lib/format";
+import { deliveryKeys, type DeliveryKey } from "@/lib/offer-fields";
 import { parseRichText } from "@/lib/rich-text";
 
 import { BreadcrumbJsonLd } from "../../_components/json-ld";
@@ -55,12 +56,30 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 
 type Fact = { icon: typeof Mail; title: string; detail: string };
 
+// How the voucher reaches the buyer ("Получаване" in the admin), in words.
+const RECEIVE_WORDS: Record<DeliveryKey, string> = {
+  digital: "по имейл",
+  delivery: "с доставка до адрес",
+  in_store: "от магазина",
+};
+
+function receiveFact(methods: readonly string[] | null): Fact | null {
+  const keys = deliveryKeys(methods);
+  if (!keys.length) return null;
+  const words = keys.map((k) => RECEIVE_WORDS[k]);
+  const detail = words.length === 1 ? words[0] : `${words.slice(0, -1).join(", ")} или ${words[words.length - 1]}`;
+  const icon = keys.includes("delivery") ? Truck : keys.includes("in_store") ? Store : Mail;
+  return { icon, title: "Получаване", detail };
+}
+
 function facts({ offer }: PublishedShop): Fact[] {
   if (!offer) return [];
   const list: Fact[] = [];
   if (offer.is_digital && offer.is_physical) list.push({ icon: Mail, title: "Дигитален или карта", detail: "по имейл или като физическа карта" });
   else if (offer.is_digital) list.push({ icon: Mail, title: "Дигитален", detail: "получава се по имейл" });
   else if (offer.is_physical) list.push({ icon: CreditCard, title: "Физическа карта", detail: "карта или хартиен ваучер" });
+  const receive = receiveFact(offer.delivery_methods);
+  if (receive) list.push(receive);
   if (offer.validity_months === 0) {
     list.push({ icon: Clock, title: "Безсрочен", detail: "без срок на валидност" });
   } else if (offer.validity_months) {
