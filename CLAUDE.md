@@ -16,9 +16,13 @@ name in any URL:
   (`PUBLIC_DATA_TAG` in `src/lib/site.ts`); every admin action that changes
   shop data calls `revalidateTag(PUBLIC_DATA_TAG)`, so keep that in new
   actions. Browse filters live in the URL (`(public)/_lib/browse-params.ts`):
-  the category is the path (`/kategoriya/<path>`, built only by
-  `browseHref` / `browsePath`; `/?kategoriya=` redirects there), the rest
-  are query parameters; `?dostavka=` (digital, delivery, in_store) matches
+  one category is the path (`/kategoriya/<path>`, built only by
+  `browseHref` / `browsePath`; `/?kategoriya=<one key>` redirects there),
+  several are `/?kategoriya=<key>,<key>` on the home page; the rest are
+  comma-list query parameters. Every filter takes several choices (any
+  matches); filters combine with "and" (`amountFilter`, `deliveryFilter`,
+  `allOf`), and the chosen ones show as removable chips above the list
+  (`ActiveFilters`). `?dostavka=` (digital, delivery, in_store) matches
   the admin's "Получаване" (`delivery_methods`, crawler words included,
   `deliveryFilter`). The queries in `(public)/_lib/browse.ts` read
   `shop_voucher_range` (`sql/006`), always paginated with `.range()`.

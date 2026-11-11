@@ -21,7 +21,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   return {
     title,
     description,
-    alternates: { canonical: canonicalBrowseUrl({ ...parseBrowseFilters(searchParams), kategoriya: category }) },
+    alternates: { canonical: canonicalBrowseUrl({ ...parseBrowseFilters(searchParams), kategorii: [category] }) },
     openGraph: { title, description, type: "website", locale: "bg_BG" },
   };
 }
@@ -29,8 +29,9 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 export default async function CategoryPage({ params, searchParams }: Props) {
   const { category } = await resolveCategoryPath(params.path);
   if (!category) notFound();
-  // The path is the category; a stray ?kategoriya= cannot override it.
-  const filters = { ...parseBrowseFilters(searchParams), kategoriya: category };
+  // The path is the category; a stray ?kategoriya= cannot override it
+  // (several categories live on the home page).
+  const filters = { ...parseBrowseFilters(searchParams), kategorii: [category] };
   return (
     <>
       <BreadcrumbJsonLd

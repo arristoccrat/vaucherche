@@ -10,10 +10,15 @@ const ctaClass =
 // shops, and offer to drop it or everything.
 export async function BrowseEmpty({ filters }: { filters: BrowseFilters }) {
   const candidates: { label: string; changes: Partial<BrowseFilters> }[] = [];
-  if (filters.kategoriya) candidates.push({ label: `„${filters.kategoriya.label}“`, changes: { kategoriya: null } });
-  if (filters.suma) {
-    const bucket = AMOUNT_BUCKETS.find((b) => b.key === filters.suma);
-    candidates.push({ label: `сума ${bucket?.label.toLowerCase() ?? ""}`.trim(), changes: { suma: null } });
+  if (filters.kategorii.length) {
+    candidates.push({
+      label: filters.kategorii.length === 1 ? `„${filters.kategorii[0].label}“` : "категориите",
+      changes: { kategorii: [] },
+    });
+  }
+  if (filters.suma.length) {
+    const only = filters.suma.length === 1 ? AMOUNT_BUCKETS.find((b) => b.key === filters.suma[0]) : null;
+    candidates.push({ label: only ? `сума ${only.label.toLowerCase()}` : "сумите", changes: { suma: [] } });
   }
   if (filters.dostavka.length) candidates.push({ label: "получаване", changes: { dostavka: [] } });
 

@@ -1,6 +1,6 @@
 import { publicClient } from "@/lib/supabase/public";
 
-import { AMOUNT_BUCKETS, deliveryFilter, type BrowseFilters } from "./browse-params";
+import { allOf, amountFilter, deliveryFilter, type BrowseFilters } from "./browse-params";
 import { searchFilter } from "./search-query";
 
 export const PAGE_SIZE = 24;
@@ -9,30 +9,22 @@ export const PAGE_SIZE = 24;
 const CARD_SELECT =
   "id, slug, name, domain, description, logo_url, cover_url, category, subcategory, min_eur, max_eur, denominations_eur, custom_amount, is_digital, is_physical, validity_months";
 
-type FilterParts = Pick<BrowseFilters, "kategoriya" | "suma" | "dostavka">;
+type FilterParts = Pick<BrowseFilters, "kategorii" | "suma" | "dostavka">;
 
 // Structural type so the same filters apply to the list and the counts.
 interface Filterable<Self> {
   eq(column: string, value: string | boolean): Self;
-  lte(column: string, value: number): Self;
-  gte(column: string, value: number): Self;
+  in(column: string, values: readonly string[]): Self;
   or(filters: string): Self;
 }
 
 function applyFilters<Q extends Filterable<Q>>(query: Q, filters: FilterParts): Q {
   // RLS already hides unpublished shops; the explicit filter is belt and braces.
   let q = query.eq("published", true);
-  if (filters.kategoriya) q = q.eq("category", filters.kategoriya.key);
-  const bucket = AMOUNT_BUCKETS.find((b) => b.key === filters.suma);
-  if (bucket?.key === "po-izbor") {
-    q = q.eq("custom_amount", true);
-  } else if (bucket) {
-    // Shops whose euro range overlaps the bucket; shops without prices drop out.
-    q = q.gte("max_eur", bucket.lo);
-    if (bucket.hi !== null) q = q.lte("min_eur", bucket.hi);
-  }
-  const delivery = deliveryFilter(filters.dostavka);
-  if (delivery) q = q.or(delivery);
+  if (filters.kategorii.length) q = q.in("category", filters.kategorii.map((c) => c.key));
+  // Any chosen amount and any chosen way of receiving it.
+  const choices = allOf([amountFilter(filters.suma), deliveryFilter(filters.dostavka)]);
+  if (choices) q = q.or(choices);
   return q;
 }
 
