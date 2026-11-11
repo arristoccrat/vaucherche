@@ -77,9 +77,9 @@ function facts({ offer }: PublishedShop): Fact[] {
   if (!offer) return [];
   const list: Fact[] = [];
   // What the voucher is; how it reaches the buyer is the "Получаване" card.
-  if (offer.is_digital && offer.is_physical) list.push({ icon: Mail, title: "Дигитален ваучер или физическа карта", detail: "вид на ваучера" });
-  else if (offer.is_digital) list.push({ icon: Mail, title: "Дигитален ваучер", detail: "вид на ваучера" });
-  else if (offer.is_physical) list.push({ icon: CreditCard, title: "Физическа карта", detail: "вид на ваучера" });
+  if (offer.is_digital && offer.is_physical) list.push({ icon: Mail, title: "Дигитален и физически", detail: "дигитален ваучер или физическа карта" });
+  else if (offer.is_digital) list.push({ icon: Mail, title: "Дигитален", detail: "дигитален ваучер" });
+  else if (offer.is_physical) list.push({ icon: CreditCard, title: "Физически", detail: "физическа карта" });
   const receive = receiveFact(offer.delivery_methods);
   if (receive) list.push(receive);
   if (offer.validity_months === 0) {
