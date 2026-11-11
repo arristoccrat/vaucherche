@@ -1,9 +1,7 @@
-import { CalendarClock, CreditCard, Mail } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { onColorHex, type Category } from "@/lib/categories";
-import { categoryIcon } from "@/lib/category-icons";
+import { onColorHex, tintHex, type Category } from "@/lib/categories";
 import { cn } from "@/lib/utils";
 
 // One card for every public surface (Main / Desktop artboards). Takes data as
@@ -51,7 +49,6 @@ export function ShopCard({
   category: Category;
   priority?: boolean;
 }) {
-  const Icon = categoryIcon(category.icon);
   const onColor = onColorHex(category.on);
   const name = shop.name?.trim() || shop.domain || "";
   const description =
@@ -60,40 +57,41 @@ export function ShopCard({
   const shown = amounts.slice(0, 3);
   const more = amounts.length - shown.length;
   const meta = [deliveryLabel(shop), validityLabel(shop.validity_months)].filter(Boolean).join(" · ");
-  const MetaIcon = !shop.is_digital && !shop.is_physical ? CalendarClock : shop.is_physical && !shop.is_digital ? CreditCard : Mail;
+  // Ink letters on light colours, the colour itself on dark ones (both clear 4.5:1 on white).
+  const monogramColor = category.on === "ink" ? onColorHex("ink") : category.bg;
 
   return (
     <article className="group relative overflow-hidden rounded-[20px] border-2 border-brand-ink bg-brand-card">
-      {/* The shop's logo, large on white; without one, its initial on the
-          category colour. Covers are for the shop page: on a grid they
-          crowd each other out and hide the logo. */}
-      {shop.logo_url ? (
-        <div className="relative h-[110px] border-b-2 border-brand-ink bg-brand-card md:h-[132px]">
-          <Image
-            src={shop.logo_url}
-            alt=""
-            fill
-            sizes="(min-width: 1024px) 360px, (min-width: 768px) 50vw, 100vw"
-            className="object-contain px-10 py-6"
-            priority={priority}
-          />
+      {/* A gift card on a wash of the category colour: the shop's logo on a
+          white card, tilted, with a hard ink shadow. Without a logo the card
+          carries the shop's initial. Covers stay on the shop page. */}
+      <div
+        className="flex aspect-[19/10] items-center justify-center border-b-2 border-brand-ink"
+        style={{ backgroundColor: tintHex(category.bg) }}
+      >
+        <div className="relative aspect-[1.6] w-[64%] rotate-[3deg] rounded-[14px] border-2 border-brand-ink bg-brand-card shadow-[5px_6px_0_0] shadow-brand-ink transition-transform duration-200 group-hover:rotate-0">
+          {shop.logo_url ? (
+            <Image
+              src={shop.logo_url}
+              alt=""
+              fill
+              sizes="(min-width: 1024px) 240px, (min-width: 768px) 32vw, 64vw"
+              className="object-contain p-[12%]"
+              priority={priority}
+            />
+          ) : (
+            <span
+              className="absolute inset-0 flex items-center justify-center font-display text-[44px] font-extrabold"
+              style={{ color: monogramColor }}
+              aria-hidden
+            >
+              {name.charAt(0).toUpperCase()}
+            </span>
+          )}
         </div>
-      ) : (
-        <div
-          className="flex h-[110px] flex-col items-center justify-center gap-1 border-b-2 border-brand-ink md:h-[132px]"
-          style={{ backgroundColor: category.bg, color: onColor }}
-        >
-          <span className="font-display text-[40px] font-extrabold leading-none" aria-hidden>
-            {name.charAt(0).toUpperCase()}
-          </span>
-          <span className="flex items-center gap-1 font-num text-[10px] font-semibold uppercase tracking-[0.12em] opacity-75">
-            <Icon className="size-3.5" aria-hidden strokeWidth={2} />
-            {category.label}
-          </span>
-        </div>
-      )}
+      </div>
 
-      <div className="px-4 pb-4 pt-3">
+      <div className="px-5 pb-5 pt-4">
         <div className="flex items-start gap-3">
           <div className="min-w-0">
             <h3 className="truncate font-ui text-[17px] font-extrabold leading-tight text-brand-ink">
@@ -111,7 +109,7 @@ export function ShopCard({
         </div>
 
         {description ? (
-          <p className="mt-3 line-clamp-4 min-h-[2lh] text-[14px] leading-snug text-brand-body">{description}</p>
+          <p className="mt-3 line-clamp-2 min-h-[2lh] text-[14px] leading-snug text-brand-body">{description}</p>
         ) : null}
 
         {shown.length ? (
@@ -141,10 +139,7 @@ export function ShopCard({
         ) : null}
 
         {meta ? (
-          <p className="mt-3 flex items-center gap-1.5 text-[12px] font-medium text-brand-body">
-            <MetaIcon className="size-3.5 shrink-0" style={{ color: category.on === "ink" ? onColorHex("ink") : category.bg }} aria-hidden />
-            {meta}
-          </p>
+          <p className="mt-3 text-[12.5px] font-medium text-brand-body">{meta}</p>
         ) : null}
       </div>
     </article>
