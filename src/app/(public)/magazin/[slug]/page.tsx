@@ -218,31 +218,26 @@ export default async function ShopPage({ params }: { params: { slug: string } })
               <h2 id="amounts-heading" className="font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink lg:text-[15px]">
                 Суми
               </h2>
-              {/* Facts only: the amount is chosen on the shop's own page. */}
-              {amounts.length ? (
-                <ul className="mt-3 flex flex-wrap gap-2 font-num text-[14px] font-semibold text-brand-ink">
-                  {amounts.map((eur) => (
-                    <li key={eur} className="rounded-[12px] border-2 border-brand-ink bg-brand-card px-3 py-1.5">
-                      {formatEur(eur)}
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-              {customRange ? (
-                <p className="mt-3 text-[14px] text-brand-body">
-                  <span className="font-bold text-brand-ink">Сума по избор</span>
-                  {customRange.min || customRange.max ? (
-                    <span className="font-num font-semibold text-brand-ink">
-                      {" · "}
-                      {customRange.min && customRange.max
-                        ? formatEurRange(customRange.min, customRange.max)
-                        : customRange.min
-                          ? `от ${formatEur(customRange.min)}`
-                          : `до ${formatEur(customRange.max ?? 0)}`}
-                    </span>
-                  ) : null}
-                </p>
-              ) : null}
+              {/* Facts only: the amount is chosen on the shop's own page. A
+                  custom amount is one more chip, with its limits when known. */}
+              <ul className="mt-3 flex flex-wrap gap-2 font-num text-[14px] font-semibold text-brand-ink">
+                {amounts.map((eur) => (
+                  <li key={eur} className="rounded-[12px] border-2 border-brand-ink bg-brand-card px-3 py-1.5">
+                    {formatEur(eur)}
+                  </li>
+                ))}
+                {customRange ? (
+                  <li className="rounded-[12px] border-2 border-brand-ink bg-brand-card px-3 py-1.5">
+                    {customRange.min && customRange.max
+                      ? `По избор ${formatEurRange(customRange.min, customRange.max)}`
+                      : customRange.min
+                        ? `По избор от ${formatEur(customRange.min)}`
+                        : customRange.max
+                          ? `По избор до ${formatEur(customRange.max)}`
+                          : "Сума по избор"}
+                  </li>
+                ) : null}
+              </ul>
             </section>
           ) : null}
 
