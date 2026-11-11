@@ -13,7 +13,7 @@ export async function BrowseEmpty({ filters }: { filters: BrowseFilters }) {
   if (filters.kategoriya) candidates.push({ label: `„${filters.kategoriya.label}“`, changes: { kategoriya: null } });
   if (filters.suma) {
     const bucket = AMOUNT_BUCKETS.find((b) => b.key === filters.suma);
-    candidates.push({ label: `сума ${bucket?.label ?? ""}`.trim(), changes: { suma: null } });
+    candidates.push({ label: `сума ${bucket?.label.toLowerCase() ?? ""}`.trim(), changes: { suma: null } });
   }
   if (filters.dostavka.length) candidates.push({ label: "получаване", changes: { dostavka: [] } });
 
