@@ -24,7 +24,9 @@ function applyFilters<Q extends Filterable<Q>>(query: Q, filters: FilterParts): 
   let q = query.eq("published", true);
   if (filters.kategoriya) q = q.eq("category", filters.kategoriya.key);
   const bucket = AMOUNT_BUCKETS.find((b) => b.key === filters.suma);
-  if (bucket) {
+  if (bucket?.key === "po-izbor") {
+    q = q.eq("custom_amount", true);
+  } else if (bucket) {
     // Shops whose euro range overlaps the bucket; shops without prices drop out.
     q = q.gte("max_eur", bucket.lo);
     if (bucket.hi !== null) q = q.lte("min_eur", bucket.hi);

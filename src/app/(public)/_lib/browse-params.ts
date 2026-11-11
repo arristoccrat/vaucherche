@@ -11,6 +11,8 @@ export const AMOUNT_BUCKETS = [
   { key: "25-50", label: "25–50 €", lo: 25, hi: 50 },
   { key: "50-100", label: "50–100 €", lo: 50, hi: 100 },
   { key: "100+", label: "100+ €", lo: 100, hi: null },
+  // Not a range: shops that let the buyer choose the amount ("Сума по избор").
+  { key: "po-izbor", label: "По избор", lo: null, hi: null },
 ] as const;
 export type AmountKey = (typeof AMOUNT_BUCKETS)[number]["key"];
 
