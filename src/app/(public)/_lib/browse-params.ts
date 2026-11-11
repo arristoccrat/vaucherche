@@ -1,4 +1,5 @@
 import { findCategory, type Category } from "@/lib/categories";
+import { DELIVERY_WORDS } from "@/lib/offer-fields";
 import { SITE_URL } from "@/lib/site";
 
 // Browse filters live in the URL, so every view is shareable and the server
@@ -13,11 +14,25 @@ export const AMOUNT_BUCKETS = [
 ] as const;
 export type AmountKey = (typeof AMOUNT_BUCKETS)[number]["key"];
 
+// How the voucher reaches the buyer, from the admin's "Получаване"
+// (voucher_offers.delivery_methods). The keys are the stored ones.
 export const DELIVERY = [
-  { key: "digital", label: "Дигитален (имейл)" },
-  { key: "physical", label: "Физическа карта" },
+  { key: "digital", label: "Дигитален" },
+  { key: "delivery", label: "Физически с доставка" },
+  { key: "in_store", label: "В магазин" },
 ] as const;
 export type DeliveryKey = (typeof DELIVERY)[number]["key"];
+
+// The PostgREST `or` filter for the chosen ways: any of them matches. A
+// digital voucher also counts when only "Дигитален" (is_digital) is set.
+// Words with spaces stay out: they would need quoting inside the filter.
+export function deliveryFilter(keys: readonly DeliveryKey[]): string | null {
+  if (!keys.length) return null;
+  const words = Array.from(new Set(keys.flatMap((k) => DELIVERY_WORDS[k]))).filter((w) => !/[\s,{}"()]/.test(w));
+  const parts = [`delivery_methods.ov.{${words.join(",")}}`];
+  if (keys.includes("digital")) parts.push("is_digital.eq.true");
+  return parts.join(",");
+}
 
 export const SORTS = [
   { key: "preporachani", label: "Препоръчани" },
@@ -53,6 +68,8 @@ export function parseBrowseFilters(params: Raw, categories: readonly Category[] 
   const suma = first(params.suma).replace(/ $/, "+");
   const dostavka = first(params.dostavka)
     .split(",")
+    // "physical" is the old name for a card sent by post.
+    .map((d) => (d === "physical" ? "delivery" : d))
     .filter((d): d is DeliveryKey => DELIVERY.some((x) => x.key === d));
   const podredba = first(params.podredba);
   const stranitsa = Number.parseInt(first(params.stranitsa) || "1", 10);

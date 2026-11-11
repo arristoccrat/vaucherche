@@ -24,17 +24,15 @@ export const DELIVERY_OPTIONS = [
 ] as const;
 export type DeliveryKey = (typeof DELIVERY_OPTIONS)[number]["key"];
 
-const DIGITAL_WORDS = /^(digital|email|e-mail|имейл|online|pdf|sms)$/i;
-const DELIVERY_WORDS = /^(delivery|courier|post|shipping|mail|куриер|доставка|поща)$/i;
-const IN_STORE_WORDS = /^(in_store|in-store|instore|store|pickup|shop|магазин|в магазин|на място)$/i;
+// The stored words each option stands for, lower case: its own key first,
+// then what the crawler wrote.
+export const DELIVERY_WORDS: Record<DeliveryKey, readonly string[]> = {
+  digital: ["digital", "email", "e-mail", "имейл", "online", "pdf", "sms"],
+  delivery: ["delivery", "courier", "post", "shipping", "mail", "куриер", "доставка", "поща"],
+  in_store: ["in_store", "in-store", "instore", "store", "pickup", "shop", "магазин", "в магазин", "на място"],
+};
 
 export function deliveryKeys(methods: readonly string[] | null | undefined): DeliveryKey[] {
-  const keys = new Set<DeliveryKey>();
-  for (const raw of methods ?? []) {
-    const word = raw.trim();
-    if (DIGITAL_WORDS.test(word)) keys.add("digital");
-    else if (DELIVERY_WORDS.test(word)) keys.add("delivery");
-    else if (IN_STORE_WORDS.test(word)) keys.add("in_store");
-  }
-  return DELIVERY_OPTIONS.map((o) => o.key).filter((k) => keys.has(k));
+  const words = new Set((methods ?? []).map((m) => m.trim().toLowerCase()));
+  return DELIVERY_OPTIONS.map((o) => o.key).filter((k) => DELIVERY_WORDS[k].some((w) => words.has(w)));
 }

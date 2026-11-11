@@ -1,6 +1,6 @@
 import { publicClient } from "@/lib/supabase/public";
 
-import { AMOUNT_BUCKETS, type BrowseFilters } from "./browse-params";
+import { AMOUNT_BUCKETS, deliveryFilter, type BrowseFilters } from "./browse-params";
 import { searchFilter } from "./search-query";
 
 export const PAGE_SIZE = 24;
@@ -29,9 +29,8 @@ function applyFilters<Q extends Filterable<Q>>(query: Q, filters: FilterParts): 
     q = q.gte("max_eur", bucket.lo);
     if (bucket.hi !== null) q = q.lte("min_eur", bucket.hi);
   }
-  if (filters.dostavka.length) {
-    q = q.or(filters.dostavka.map((d) => (d === "digital" ? "is_digital.eq.true" : "is_physical.eq.true")).join(","));
-  }
+  const delivery = deliveryFilter(filters.dostavka);
+  if (delivery) q = q.or(delivery);
   return q;
 }
 
