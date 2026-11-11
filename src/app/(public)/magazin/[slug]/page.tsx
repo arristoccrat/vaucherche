@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 
 import { RichText } from "@/components/rich-text";
 import { categoryOrFallback, onColorHex } from "@/lib/categories";
+import { ctaLabel } from "@/lib/cta";
 import { categoryIcon } from "@/lib/category-icons";
 import { formatEur, formatEurRange } from "@/lib/format";
 import { deliveryKeys, type DeliveryKey } from "@/lib/offer-fields";
@@ -253,7 +254,7 @@ export default async function ShopPage({ params }: { params: { slug: string } })
                 rel="nofollow noopener noreferrer"
                 className="flex h-14 w-full items-center justify-center gap-2 rounded-[16px] border-2 border-brand-ink bg-brand-amber px-4 font-ui text-[16px] font-extrabold text-brand-ink"
               >
-                Купи от {shop.domain}
+                {ctaLabel(shop.cta_kind, shop.domain)}
                 <ArrowUpRight className="size-[18px] shrink-0" aria-hidden />
                 <span className="sr-only">(отваря се в нов раздел)</span>
               </a>

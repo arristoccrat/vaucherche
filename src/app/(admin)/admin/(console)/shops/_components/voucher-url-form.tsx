@@ -3,10 +3,14 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { updateShopEditorial } from "@/actions/editorial";
 import { verifyVoucherUrl } from "@/actions/products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { CTA_KINDS, ctaLabel } from "@/lib/cta";
 import type { ShopListRow } from "@/lib/queries/shops";
+
+import { FieldLabel, fieldClass, useAutosave } from "./autosave";
 
 // The one URL a human confirms: the shop's voucher page, where the site's
 // "Купи от …" button goes.
@@ -14,6 +18,9 @@ export function VoucherUrlForm({ shop }: { shop: ShopListRow }) {
   const [url, setUrl] = useState(shop.voucher_url ?? "");
   const [pending, startTransition] = useTransition();
   const confirmed = Boolean(shop.voucher_url) && shop.voucher_url_verified === true && url.trim() === shop.voucher_url;
+
+  const cta = useAutosave((value) => updateShopEditorial(shop.id, { cta_kind: value }), shop.cta_kind ?? "buy");
+  const domain = shop.domain ?? "магазина";
 
   const save = () =>
     startTransition(async () => {
@@ -31,7 +38,7 @@ export function VoucherUrlForm({ shop }: { shop: ShopListRow }) {
     <div className="space-y-2">
       <label htmlFor={`voucher-url-${shop.id}`} className="text-xs font-medium">
         Страница с ваучери{" "}
-        <span className="font-normal text-muted-foreground">— натам води „Купи от …“ на сайта</span>
+        <span className="font-normal text-muted-foreground">— натам води бутонът на сайта</span>
       </label>
       <Input
         id={`voucher-url-${shop.id}`}
@@ -56,6 +63,21 @@ export function VoucherUrlForm({ shop }: { shop: ShopListRow }) {
             Отвори ↗
           </a>
         ) : null}
+      </div>
+      <div className="max-w-xs space-y-1 pt-2">
+        <FieldLabel htmlFor={`cta-${shop.id}`} label="Текст на бутона" state={cta.state} />
+        <select
+          id={`cta-${shop.id}`}
+          value={cta.value}
+          onChange={(event) => cta.change(event.target.value, true)}
+          className={fieldClass}
+        >
+          {CTA_KINDS.map((k) => (
+            <option key={k.key} value={k.key}>
+              {ctaLabel(k.key, domain)}
+            </option>
+          ))}
+        </select>
       </div>
     </div>
   );
