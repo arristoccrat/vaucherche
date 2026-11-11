@@ -137,7 +137,9 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
   `src/lib/database.types.ts` to match.
 - Voucher page verification (`src/actions/products.ts`): one URL, saved as
   `shops.voucher_url` with `voucher_url_verified = true`. It is where the
-  site's "Купи от …" button goes. Products are the crawler's and read-only
+  site's button goes. The button reads "Купи от …" or "Повече на …"
+  (`shops.cta_kind`, `sql/010`, `src/lib/cta.ts`), a select under the URL
+  saved through `editorial.ts`. Products are the crawler's and read-only
   in the admin: never added, updated or removed there.
 - Crawl suggestions (`src/lib/suggestions.ts`, served by
   `/admin/api/shops/[id]/suggestions`): names, logos and covers read from

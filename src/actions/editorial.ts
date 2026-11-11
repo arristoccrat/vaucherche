@@ -61,6 +61,8 @@ const editorialSchema = z
     // Shown on the public cards, so plain Bulgarian text ("Масажи").
     subcategory: optionalText(60),
     gift_appeal: slug,
+    // The shop page's button: "Купи от …" or "Повече на …" (sql/010).
+    cta_kind: z.enum(["buy", "more"]),
   })
   .partial()
   .refine((patch) => Object.keys(patch).length > 0, { message: "Няма промени." });
