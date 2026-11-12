@@ -187,7 +187,9 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
 - Public design: colours only via `brand-*` Tailwind tokens and
   `src/lib/categories.ts`; a hex code in a component is a bug. Fonts:
   Unbounded (`font-display`), Manrope (`font-ui`), IBM Plex Mono
-  (`font-num`, all amounts, counts and dates), all with the Cyrillic subset.
+  (`font-num`, all amounts, counts and dates), self-hosted as woff2 in
+  `src/lib/fonts/` (Latin + Cyrillic, see its README): the build fetches no
+  fonts, so never switch back to `next/font/google`.
   2px `brand-ink` borders; amber only for selected state and the primary
   CTA. `npm test` checks the seed categories and every text token clear
   4.5:1; categories added in the admin are checked when saved.
