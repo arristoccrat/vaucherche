@@ -32,7 +32,7 @@ export function formatEur(value: number) {
 export function formatEurRange(min: number, max: number) {
   return min === max
     ? formatEur(min)
-    : `${number.format(min)}–${number.format(max)} €`;
+    : `${number.format(min)} – ${number.format(max)} €`;
 }
 
 export function formatConfidence(value: number | null) {
