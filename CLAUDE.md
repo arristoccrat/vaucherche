@@ -38,8 +38,10 @@ name in any URL:
   links to `/out/[slug]` (`(public)/_lib/outbound.ts`), which looks up the
   verified voucher page (else the first product page) and 302s there. It
   reads nothing from the query, so it is not an open redirect. Keep it so.
-  Search (`/tarsene?q=`) runs one `ilike` `or()` filter over name, domain,
-  subcategory and description, in Cyrillic and transliterated Latin. The
+  Search (`/tarsene?q=`) matches `shop_voucher_range.search_text`
+  (`sql/011`: name, domain, subcategory, both descriptions, category name,
+  product titles): every word must appear, as typed or transliterated
+  (`searchFilter`); before 011 it falls back to the old columns. The
   query passes `normalizeQuery()` first (letters, digits, spaces only), which
   is what makes putting it into the PostgREST filter safe; keep it.
 - `src/app/(admin)/admin/` — internal admin at `/admin`. Reads and writes

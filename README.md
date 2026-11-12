@@ -82,6 +82,10 @@ Phase 0 RLS policies and indexes from the admin spec):
 - `sql/010_cta_kind.sql` — `shops.cta_kind`: the shop page's button reads
   "Купи от …" (default) or "Повече на …", chosen in the admin. Run after
   009, **before** deploying the version that reads it.
+- `sql/011_search_text.sql` — `search_text` on `shop_voucher_range`: what
+  `/tarsene` searches (name, domain, subcategory, both descriptions,
+  category name, product titles). View only; run after 010. Until it is run
+  the search falls back to name, domain, subcategory and description.
 
 **Pipeline rules the admin relies on** (in the crawler / AI scripts, outside
 this repo):
@@ -148,7 +152,7 @@ shop count (about 19,974) with its query time in the header.
 
 ### Launch checklist (public site)
 
-1. Every file in `sql/` up to `010` has been run (see **Database changes**).
+1. Every file in `sql/` up to `011` has been run (see **Database changes**).
 2. In `/admin/queue`, publish the shops that pass the gate. Nothing
    publishes itself.
 3. Preview the real site on production with `/?preview=<PREVIEW_TOKEN>`:

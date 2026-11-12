@@ -1,7 +1,7 @@
 import { publicClient } from "@/lib/supabase/public";
 
 import { allOf, amountFilter, deliveryFilter, type BrowseFilters } from "./browse-params";
-import { searchFilter } from "./search-query";
+import { legacySearchFilter, searchFilter } from "./search-query";
 
 export const PAGE_SIZE = 24;
 
@@ -110,15 +110,19 @@ export async function publishedShopSlugs() {
 // subcategory and our description (see search-query.ts).
 export async function searchPublishedShops(query: string, page: number) {
   const from = (page - 1) * PAGE_SIZE;
-  const { data, count, error } = await publicClient()
-    .from("shop_voucher_range")
-    .select(CARD_SELECT, { count: "exact" })
-    .eq("published", true)
-    .or(searchFilter(query))
-    .order("gift_appeal_rank", { ascending: true, nullsFirst: false })
-    .order("name")
-    .order("id")
-    .range(from, from + PAGE_SIZE - 1);
+  const run = (filter: string) =>
+    publicClient()
+      .from("shop_voucher_range")
+      .select(CARD_SELECT, { count: "exact" })
+      .eq("published", true)
+      .or(filter)
+      .order("gift_appeal_rank", { ascending: true, nullsFirst: false })
+      .order("name")
+      .order("id")
+      .range(from, from + PAGE_SIZE - 1);
+  let { data, count, error } = await run(searchFilter(query));
+  // sql/011 not run yet: no search_text column, so search the old columns.
+  if (error && /search_text/.test(error.message)) ({ data, count, error } = await run(legacySearchFilter(query)));
   if (error?.code === "PGRST103") return { shops: [], total: null };
   if (error) throw new Error(error.message);
   return { shops: data ?? [], total: count ?? 0 };

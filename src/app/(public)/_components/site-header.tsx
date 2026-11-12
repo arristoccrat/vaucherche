@@ -33,11 +33,11 @@ export function SiteHeader() {
         >
           <label className="flex h-[46px] items-center gap-2.5 rounded-[23px] border-2 border-brand-ink bg-brand-card px-4">
             <SearchIcon className="size-[18px] shrink-0" />
-            <span className="sr-only">Търси магазин или категория</span>
+            <span className="sr-only">Търси магазин, категория или ваучер</span>
             <input
               name="q"
               type="search"
-              placeholder="Търси магазин или категория…"
+              placeholder="Търси магазин, категория или ваучер…"
               className="w-full bg-transparent font-ui text-sm text-brand-ink placeholder:text-brand-quiet focus:outline-none"
             />
           </label>
