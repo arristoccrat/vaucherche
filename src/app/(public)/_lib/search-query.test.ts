@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { DEFAULT_CATEGORIES } from "@/lib/categories";
 
-import { matchingCategories, normalizeQuery, searchFilter, searchPatterns, transliterate } from "./search-query";
+import { legacySearchFilter, matchingCategories, normalizeQuery, searchFilter, searchPatterns, transliterate } from "./search-query";
 
 describe("normalizeQuery", () => {
   it("keeps letters, digits and single spaces", () => {
@@ -29,10 +29,21 @@ describe("transliterate", () => {
 });
 
 describe("searchFilter", () => {
-  it("matches words in order across every column, in both scripts", () => {
+  it("looks for one word in search_text, as typed and transliterated", () => {
+    expect(searchFilter("spa")).toBe("search_text.ilike.*spa*");
+    expect(searchFilter("Книги")).toBe("search_text.ilike.*книги*,search_text.ilike.*knigi*");
+  });
+
+  it("needs every word, in any order", () => {
+    expect(searchFilter("ваучер Ciela")).toBe(
+      "and(or(search_text.ilike.*ваучер*,search_text.ilike.*vaucher*),or(search_text.ilike.*ciela*))"
+    );
+    expect(searchFilter("")).toBe("");
+  });
+
+  it("keeps the old column search for before sql/011", () => {
     expect(searchPatterns("Гранд хотел")).toEqual(["*гранд*хотел*", "*grand*hotel*"]);
-    expect(searchPatterns("spa")).toEqual(["*spa*"]);
-    expect(searchFilter("spa")).toBe(
+    expect(legacySearchFilter("spa")).toBe(
       "name.ilike.*spa*,domain.ilike.*spa*,subcategory.ilike.*spa*,description.ilike.*spa*"
     );
   });

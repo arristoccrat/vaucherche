@@ -39,13 +39,26 @@ export function searchPatterns(query: string) {
   return Array.from(variants, (v) => `*${v.split(" ").join("*")}*`);
 }
 
-export const SEARCH_COLUMNS = ["name", "domain", "subcategory", "description"] as const;
-
-// PostgREST or() filter over every column and pattern. Safe because
-// normalizeQuery leaves nothing but letters, digits and spaces.
+// The PostgREST filter for a normalized query over `search_text`
+// (shop_voucher_range, sql/011): name, domain, subcategory, both
+// descriptions, the category's name and product titles, lower-cased. Every
+// word must appear somewhere, in any order, as typed or transliterated.
+// Safe because normalizeQuery leaves nothing but letters, digits and spaces.
 export function searchFilter(query: string) {
+  const groups = query
+    .toLowerCase()
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => Array.from(new Set([word, transliterate(word)]), (v) => `search_text.ilike.*${v}*`).join(","));
+  if (groups.length <= 1) return groups[0] ?? "";
+  return `and(${groups.map((g) => `or(${g})`).join(",")})`;
+}
+
+// Before sql/011 is run: the old columns, words in order.
+export const LEGACY_SEARCH_COLUMNS = ["name", "domain", "subcategory", "description"] as const;
+export function legacySearchFilter(query: string) {
   return searchPatterns(query)
-    .flatMap((pattern) => SEARCH_COLUMNS.map((column) => `${column}.ilike.${pattern}`))
+    .flatMap((pattern) => LEGACY_SEARCH_COLUMNS.map((column) => `${column}.ilike.${pattern}`))
     .join(",");
 }
 

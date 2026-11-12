@@ -35,14 +35,14 @@ function SearchForm({ query }: { query: string }) {
           <circle cx="11" cy="11" r="7" className="stroke-brand-ink" />
           <path d="M16.5 16.5L21 21" className="stroke-brand-ink" />
         </svg>
-        <span className="sr-only">Търси магазин или категория</span>
+        <span className="sr-only">Търси магазин, категория или ваучер</span>
         <input
           name="q"
           type="search"
           defaultValue={query}
           autoFocus={!query}
           maxLength={100}
-          placeholder="Търси магазин или категория…"
+          placeholder="Търси магазин, категория или ваучер…"
           className="w-full bg-transparent font-ui text-[15px] text-brand-ink placeholder:text-brand-quiet focus:outline-none"
         />
       </label>
