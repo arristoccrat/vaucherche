@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { onColorHex, tintHex, type Category } from "@/lib/categories";
+import { formatEur, formatEurRange } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 // One card for every public surface (Main / Desktop artboards). Takes data as
@@ -18,6 +19,9 @@ export type ShopCardData = {
   category: string | null;
   subcategory: string | null;
   denominations_eur: number[] | null;
+  // For a custom amount without denominations these are its limits (sql/009).
+  min_eur?: number | null;
+  max_eur?: number | null;
   custom_amount: boolean | null;
   is_digital: boolean | null;
   is_physical: boolean | null;
@@ -147,8 +151,14 @@ export function ShopCard({
             ) : null}
           </ul>
         ) : shop.custom_amount ? (
-          <p className="mt-3 inline-block rounded-[12px] border-2 border-brand-ink px-2.5 py-1 font-num text-[13px] font-semibold text-brand-ink">
-            Сума по избор
+          <p className="mt-3 self-start rounded-[12px] border-2 border-brand-ink px-2.5 py-1 font-num text-[13px] font-semibold text-brand-ink">
+            {shop.min_eur != null && shop.max_eur != null && shop.max_eur > shop.min_eur
+              ? `По избор ${formatEurRange(shop.min_eur, shop.max_eur)}`
+              : shop.min_eur != null
+                ? `По избор от ${formatEur(shop.min_eur)}`
+                : shop.max_eur != null
+                  ? `По избор до ${formatEur(shop.max_eur)}`
+                  : "Сума по избор"}
           </p>
         ) : null}
 
