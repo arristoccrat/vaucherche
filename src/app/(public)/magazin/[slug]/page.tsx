@@ -164,7 +164,7 @@ export default async function ShopPage({ params }: { params: { slug: string } })
           </div>
 
           <div className="flex items-start gap-3.5 px-1 lg:gap-4 lg:px-7">
-            <div className="relative -mt-12 flex size-[120px] shrink-0 items-center justify-center overflow-hidden rounded-[22px] border-2 border-brand-ink bg-brand-logo lg:-mt-16 lg:size-[192px] lg:rounded-[28px]">
+            <div className="relative -mt-12 flex size-[120px] shrink-0 items-center justify-center overflow-hidden rounded-[22px] border-2 border-brand-ink bg-brand-card lg:-mt-16 lg:size-[192px] lg:rounded-[28px]">
               {shop.logo_url ? (
                 <Image src={shop.logo_url} alt={`Лого на ${name}`} fill sizes="(min-width: 1024px) 192px, 120px" className="object-contain p-3 lg:p-5" />
               ) : (

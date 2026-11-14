@@ -77,20 +77,20 @@ export function ShopCard({
   const meta = [deliveryLabel(shop), validityLabel(shop.validity_months)].filter(Boolean).join(" · ");
   // "Само в Пловдив" leads the line: it limits who can use the voucher.
   const local = localLabel(shop.local_only, shop.city);
-  // Ink letters on light colours, the colour itself on dark ones (both clear 3:1, the large-text bar, on brand-logo).
+  // Ink letters on light colours, the colour itself on dark ones (both clear 4.5:1 on white).
   const monogramColor = category.on === "ink" ? onColorHex("ink") : category.bg;
 
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-[20px] border-2 border-brand-ink bg-brand-card">
       {/* A gift card on a wash of the category colour: the shop's logo on a
-          warm off-white card (brand-logo), tilted, with a hard ink shadow. Without a logo the card
+          white card, tilted, with a hard ink shadow. Without a logo the card
           carries the shop's initial. Covers stay on the shop page. */}
       <div
         className="flex aspect-[19/10] shrink-0 items-center justify-center border-b-2 border-brand-ink"
         style={{ backgroundColor: tintHex(category.bg) }}
       >
         <div
-          className="relative aspect-[1.6] w-[64%] rotate-[var(--tilt)] rounded-[14px] border-2 border-brand-ink bg-brand-logo shadow-[5px_6px_0_0] shadow-brand-ink transition-transform duration-200 group-hover:rotate-0"
+          className="relative aspect-[1.6] w-[64%] rotate-[var(--tilt)] rounded-[14px] border-2 border-brand-ink bg-brand-card shadow-[5px_6px_0_0] shadow-brand-ink transition-transform duration-200 group-hover:rotate-0"
           style={{ "--tilt": `${tiltFor(shop.slug ?? name)}deg` } as React.CSSProperties}
         >
           {shop.logo_url ? (

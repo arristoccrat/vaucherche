@@ -42,16 +42,6 @@ describe("brand text tokens", () => {
   });
 });
 
-describe("logo card fill", () => {
-  it("keeps ink at 4.5:1 and every monogram colour at the large-text 3:1", () => {
-    expect(contrastRatio(BRAND.ink, BRAND.logo)).toBeGreaterThanOrEqual(4.5);
-    for (const c of DEFAULT_CATEGORIES) {
-      const monogram = c.on === "ink" ? onColorHex("ink") : c.bg;
-      expect(contrastRatio(monogram, BRAND.logo), c.key).toBeGreaterThanOrEqual(3);
-    }
-  });
-});
-
 describe("tintHex", () => {
   it("mixes a colour with white", () => {
     expect(tintHex("#000000", 0.2)).toBe("#CCCCCC");
