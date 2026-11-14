@@ -1,4 +1,4 @@
-import { ArrowUpRight, ChevronLeft, Clock, CreditCard, Gift, Mail, Store, Truck } from "lucide-react";
+import { ArrowUpRight, ChevronLeft, Clock, CreditCard, Gift, Mail, MapPin, Store, Truck } from "lucide-react";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -6,6 +6,7 @@ import { notFound } from "next/navigation";
 
 import { RichText } from "@/components/rich-text";
 import { categoryOrFallback, onColorHex } from "@/lib/categories";
+import { localLabel } from "@/lib/cities";
 import { ctaLabel } from "@/lib/cta";
 import { categoryIcon } from "@/lib/category-icons";
 import { formatEur, formatEurRange } from "@/lib/format";
@@ -73,8 +74,10 @@ function receiveFact(methods: readonly string[] | null): Fact | null {
   return { icon, title: "Получаване", detail };
 }
 
-function facts({ offer }: PublishedShop): Fact[] {
-  if (!offer) return [];
+function facts({ offer, shop }: PublishedShop): Fact[] {
+  const local = localLabel(shop.local_only, shop.city);
+  const localFact: Fact[] = local ? [{ icon: MapPin, title: local, detail: "ползва се на място в обекта" }] : [];
+  if (!offer) return localFact;
   const list: Fact[] = [];
   // What the voucher is; how it reaches the buyer is the "Получаване" card.
   if (offer.is_digital && offer.is_physical) list.push({ icon: Mail, title: "Дигитален и физически", detail: "дигитален ваучер или физическа карта" });
@@ -88,7 +91,8 @@ function facts({ offer }: PublishedShop): Fact[] {
     list.push({ icon: Clock, title: `${offer.validity_months} ${offer.validity_months === 1 ? "месец" : "месеца"}`, detail: "валидност" });
   }
   if (offer.personalisable) list.push({ icon: Gift, title: "Персонализиран", detail: "с име или поздрав" });
-  return list;
+  // Last, where people check the conditions before they buy.
+  return [...list, ...localFact];
 }
 
 export default async function ShopPage({ params }: { params: { slug: string } }) {

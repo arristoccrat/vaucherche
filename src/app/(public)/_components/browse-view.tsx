@@ -5,7 +5,7 @@ import { categoryOrFallback } from "@/lib/categories";
 
 import { PAGE_SIZE, listPublishedShops } from "../_lib/browse";
 import { SORTS, browseHref, categoriesLabel, hasActiveFilters, shopCountLabel, type BrowseFilters } from "../_lib/browse-params";
-import { getVisibleCategories } from "../_lib/categories";
+import { getVisibleCategories, getVisibleCities } from "../_lib/categories";
 
 import { BrowseEmpty } from "./browse-empty";
 import { ActiveFilters, ChipRows, FilterRail } from "./browse-filters";
@@ -15,9 +15,10 @@ import { SortSelect } from "./filter-button";
 // The browse list shared by / and /kategoriya/[path]: every filter lives in
 // the URL, every read is a cached published-only query.
 export async function BrowseView({ filters }: { filters: BrowseFilters }) {
-  const [{ shops, total }, { categories, visible, counts, total: published }] = await Promise.all([
+  const [{ shops, total }, { categories, visible, counts, total: published }, cities] = await Promise.all([
     listPublishedShops(filters),
     getVisibleCategories(),
+    getVisibleCities(),
   ]);
   // Only categories with published shops, biggest first; ties keep the
   // admin's order.
@@ -27,7 +28,7 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
 
   return (
     <div className="mx-auto flex max-w-[1440px]">
-      <FilterRail filters={filters} counts={counts} total={published} categories={categoryOrder} />
+      <FilterRail filters={filters} counts={counts} total={published} categories={categoryOrder} cities={cities} />
 
       <div className="min-w-0 flex-1 px-4 pb-10 pt-4 lg:px-9 lg:pt-[26px]">
         {chosen.length ? null : (
@@ -49,7 +50,7 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
         </div>
 
         <div className="mt-4 lg:hidden">
-          <ChipRows filters={filters} categories={categoryOrder} />
+          <ChipRows filters={filters} categories={categoryOrder} cities={cities} />
         </div>
 
         {hasActiveFilters(filters) ? (

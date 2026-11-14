@@ -109,6 +109,8 @@ export type Database = {
           updated_at: string | null;
           voucher_description: string | null;
           cta_kind: string;
+          local_only: boolean;
+          city: string | null;
           voucher_type: string | null;
           voucher_url: string | null;
           voucher_url_note: string | null;
@@ -138,6 +140,8 @@ export type Database = {
           updated_at?: string | null;
           voucher_description?: string | null;
           cta_kind?: string;
+          local_only?: boolean;
+          city?: string | null;
           voucher_type?: string | null;
           voucher_url?: string | null;
           voucher_url_note?: string | null;
@@ -167,6 +171,8 @@ export type Database = {
           updated_at?: string | null;
           voucher_description?: string | null;
           cta_kind?: string;
+          local_only?: boolean;
+          city?: string | null;
           voucher_type?: string | null;
           voucher_url?: string | null;
           voucher_url_note?: string | null;
@@ -359,6 +365,9 @@ export type Database = {
           slug: string | null;
           subcategory: string | null;
           validity_months: number | null;
+          search_text: string | null;
+          city: string | null;
+          local_only: boolean | null;
         };
         Relationships: [];
       };

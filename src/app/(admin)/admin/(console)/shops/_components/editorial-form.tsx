@@ -6,6 +6,7 @@ import { useState } from "react";
 import { updateShopEditorial, type EditorialField } from "@/actions/editorial";
 import { Button } from "@/components/ui/button";
 import { describeCategory, type CategoryOption } from "@/lib/categories";
+import { CITIES } from "@/lib/cities";
 import { GIFT_APPEALS, GIFT_APPEAL_LABELS, isGiftAppeal } from "@/lib/domain";
 import type { ShopListRow } from "@/lib/queries/shops";
 import type { CrawlSuggestions } from "@/lib/suggestions";
@@ -59,6 +60,7 @@ export function EditorialForm({ shop, categories }: { shop: ShopListRow; categor
   const voucherDescription = useEditorial(id, "voucher_description", shop.voucher_description ?? "");
   const category = useEditorial(id, "category", shop.category ?? "");
   const subcategory = useEditorial(id, "subcategory", shop.subcategory ?? "");
+  const cityScope = useEditorial(id, "city_scope", shop.local_only ? (shop.city ?? "local") : "");
   const appeal = useEditorial(id, "gift_appeal", shop.gift_appeal ?? "");
   const [suggestions, setSuggestions] = useState<SuggestionsState>({ kind: "idle" });
 
@@ -188,6 +190,31 @@ export function EditorialForm({ shop, categories }: { shop: ShopListRow; categor
               hint="на български, напр. Масажи"
               field={subcategory}
             />
+          </div>
+
+          <div className="space-y-1">
+            <FieldLabel
+              htmlFor={`city_scope-${id}`}
+              label="Къде се ползва"
+              hint="„Само в …“ на сайта и във филтъра по град"
+              state={cityScope.state}
+            />
+            <select
+              id={`city_scope-${id}`}
+              value={cityScope.value}
+              onChange={(event) => cityScope.change(event.target.value, true)}
+              className={fieldClass}
+            >
+              <option value="">Онлайн / цялата страна</option>
+              <option value="local">Само на място (градът не е ясен)</option>
+              <optgroup label="Само в един град">
+                {CITIES.map((c) => (
+                  <option key={c.key} value={c.key}>
+                    {c.label}
+                  </option>
+                ))}
+              </optgroup>
+            </select>
           </div>
 
           <div className="space-y-1">

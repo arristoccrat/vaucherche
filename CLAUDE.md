@@ -24,7 +24,12 @@ name in any URL:
   `allOf`), and the chosen ones show as removable chips above the list
   (`ActiveFilters`). `?dostavka=` (digital, delivery, in_store) matches
   the admin's "Получаване" (`delivery_methods`, crawler words included,
-  `deliveryFilter`). The queries in `(public)/_lib/browse.ts` read
+  `deliveryFilter`). `?grad=` (city keys from `src/lib/cities.ts`) shows only
+  shops tied to those cities (`shops.local_only` + `city`, `sql/012`); the
+  rail lists cities with 8+ shops and folds the rest under "Още N града".
+  A local shop reads "Само в Пловдив" (or "Само на място" without a city,
+  which no city filter matches) on its card and shop page. The queries in
+  `(public)/_lib/browse.ts` read
   `shop_voucher_range` (`sql/006`), always paginated with `.range()`.
   Public pages and `sitemap.xml` render per request (fetches stay cached):
   nothing may query Supabase at build time, because Preview builds have no
@@ -108,7 +113,8 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
   gate: status confirmed/ai_confirmed, verified voucher URL, category, a
   human-written name (not the domain), and a description.
 - Editorial fields (`name`, `description`, `voucher_description`,
-  `logo_url`, `category`, `subcategory`, `gift_appeal`) autosave one at a
+  `logo_url`, `category`, `subcategory`, `gift_appeal`, and "Къде се ползва",
+  which writes `local_only` + `city`) autosave one at a
   time via `src/actions/editorial.ts`. `description` is the short shop text
   on the cards (clamped to 4 lines); `voucher_description` (`sql/008`) is the
   voucher text, shown whole on the shop page. It uses a small format

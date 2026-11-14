@@ -1,4 +1,5 @@
 import { findCategory, type Category } from "@/lib/categories";
+import { CITIES, type CityKey } from "@/lib/cities";
 import { DELIVERY_WORDS } from "@/lib/offer-fields";
 import { SITE_URL } from "@/lib/site";
 
@@ -68,6 +69,8 @@ export type BrowseFilters = {
   kategorii: Category[];
   suma: AmountKey[];
   dostavka: DeliveryKey[];
+  // Only shops tied to one of these cities (sql/012); online ones drop out.
+  grad: CityKey[];
   podredba: SortKey;
   stranitsa: number;
 };
@@ -76,6 +79,7 @@ export const DEFAULT_FILTERS: BrowseFilters = {
   kategorii: [],
   suma: [],
   dostavka: [],
+  grad: [],
   podredba: "preporachani",
   stranitsa: 1,
 };
@@ -114,6 +118,7 @@ export function parseBrowseFilters(params: Raw, categories: readonly Category[] 
     // In the buckets' order, so a URL has one spelling.
     suma: AMOUNT_BUCKETS.map((b) => b.key).filter((k) => suma.includes(k)),
     dostavka: DELIVERY.map((d) => d.key).filter((k) => dostavka.includes(k)),
+    grad: CITIES.map((c) => c.key).filter((k) => list(params.grad).includes(k)),
     podredba: SORTS.some((s) => s.key === podredba) ? (podredba as SortKey) : "preporachani",
     stranitsa: Number.isFinite(stranitsa) && stranitsa > 0 ? stranitsa : 1,
   };
@@ -134,6 +139,7 @@ export function browseHref(filters: BrowseFilters, changes: Partial<BrowseFilter
   if (next.kategorii.length > 1) params.set("kategoriya", next.kategorii.map((c) => c.key).join(","));
   if (next.suma.length) params.set("suma", next.suma.join(","));
   if (next.dostavka.length) params.set("dostavka", next.dostavka.join(","));
+  if (next.grad.length) params.set("grad", next.grad.join(","));
   if (next.podredba !== DEFAULT_FILTERS.podredba) params.set("podredba", next.podredba);
   if (next.stranitsa > 1) params.set("stranitsa", String(next.stranitsa));
   // Commas stay readable in the URL.
@@ -164,7 +170,7 @@ export function canonicalBrowseUrl(filters: BrowseFilters) {
 }
 
 export function hasActiveFilters(filters: BrowseFilters) {
-  return Boolean(filters.kategorii.length || filters.suma.length || filters.dostavka.length);
+  return Boolean(filters.kategorii.length || filters.suma.length || filters.dostavka.length || filters.grad.length);
 }
 
 // "Спорт", "Спорт и Красота", "Спорт, Красота и Книги".

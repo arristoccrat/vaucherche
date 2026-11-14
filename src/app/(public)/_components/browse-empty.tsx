@@ -21,6 +21,7 @@ export async function BrowseEmpty({ filters }: { filters: BrowseFilters }) {
     candidates.push({ label: only ? `сума ${only.label.toLowerCase()}` : "сумите", changes: { suma: [] } });
   }
   if (filters.dostavka.length) candidates.push({ label: "получаване", changes: { dostavka: [] } });
+  if (filters.grad.length) candidates.push({ label: filters.grad.length === 1 ? "града" : "градовете", changes: { grad: [] } });
 
   const counted = await Promise.all(
     candidates.map(async (c) => ({ ...c, count: await countPublishedShops({ ...filters, ...c.changes }) }))

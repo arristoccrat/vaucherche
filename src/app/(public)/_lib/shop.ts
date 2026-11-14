@@ -6,7 +6,7 @@ import { publicClient } from "@/lib/supabase/public";
 // Everything the shop page shows, in one request: the shop, its preferred
 // offer (a human-corrected one first, then the newest extraction) and its
 // product rows (for the outbound fallback and the update date).
-const SHOP_SELECT = `id, slug, name, domain, description, voucher_description, logo_url, cover_url, category, subcategory, voucher_url, cta_kind, updated_at,
+const SHOP_SELECT = `id, slug, name, domain, description, voucher_description, logo_url, cover_url, category, subcategory, voucher_url, cta_kind, local_only, city, updated_at,
   voucher_offers(is_digital, is_physical, delivery_methods, custom_amount, validity_months, personalisable, terms_url, currency, denominations, min_value, max_value, verified_at, human_edited_at, extracted_at),
   voucher_products(url, fetched_at)`;
 
