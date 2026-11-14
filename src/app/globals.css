@@ -91,3 +91,18 @@
     color: hsl(var(--muted-foreground));
   }
 }
+
+/* Mobile filter sheet (public): slides up over a fading backdrop. */
+@keyframes sheet-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes sheet-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.sheet-up { animation: sheet-up 220ms ease-out; }
+.sheet-fade { animation: sheet-fade 220ms ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .sheet-up, .sheet-fade { animation: none; }
+}
