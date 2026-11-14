@@ -67,6 +67,13 @@ const editorialSchema = z
     // Where the voucher is used (sql/012): "" = online / the whole country,
     // "local" = on the spot, city unknown, or a city key from cities.ts.
     city_scope: z.string().trim().max(40),
+    // Shop page cover crop, 0 (top) to 100 (bottom); sql/013.
+    cover_position: z
+      .string()
+      .trim()
+      .regex(/^\d{1,3}$/, { message: "Невалидна позиция." })
+      .transform(Number)
+      .refine((n) => n <= 100, { message: "Невалидна позиция." }),
   })
   .partial()
   .refine((patch) => Object.keys(patch).length > 0, { message: "Няма промени." });

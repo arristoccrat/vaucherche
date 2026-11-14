@@ -157,7 +157,10 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
 - Logos and covers (`shops.logo_url`, `shops.cover_url`) always point at our
   own copy in the `shop-media` storage bucket (`src/actions/media.ts`: upload,
   copy from URL, clear). Never store a merchant image URL. Images are
-  identified by their bytes (`src/lib/images.ts`); SVG is refused; remote
+  identified by their bytes (`src/lib/images.ts`); SVG is never stored as
+  SVG: it is drawn into a PNG with resvg (no scripts, no external files or
+  URLs) and the PNG is stored. The cover's vertical crop on the shop page is
+  `shops.cover_position` (0–100, `sql/013`), a slider under the cover. Remote
   fetches only to public hosts, every redirect re-checked, 2 MB / 10 s caps.
 - Voucher facts are editable (`src/actions/offers.ts`, one field per save,
   amounts entered and stored in EUR). Every save stamps

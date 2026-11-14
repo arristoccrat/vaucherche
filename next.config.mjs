@@ -21,6 +21,8 @@ const nextConfig = {
     // Logo / cover uploads go through a Server Action (images capped at 2 MB
     // in src/lib/images.ts; this leaves room for the form encoding).
     serverActions: { bodySizeLimit: "3mb" },
+    // Native SVG renderer used by the logo / cover upload (src/actions/media.ts).
+    serverComponentsExternalPackages: ["@resvg/resvg-js"],
   },
   async headers() {
     // The admin is an internal tool: never indexed, never framed, no
