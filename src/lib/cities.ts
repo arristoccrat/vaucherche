@@ -60,6 +60,17 @@ export function inCity(label: string) {
   return /^[вфВФ]/.test(label) ? `във ${label}` : `в ${label}`;
 }
 
+// How a local shop serves its city (shops.local_kind, sql/014).
+export const LOCAL_KINDS = [
+  { key: "on_site", label: "Ползва се на място в обекта", detail: "ползва се на място в обекта" },
+  { key: "delivery", label: "Доставка само в града", detail: "доставка само в града" },
+] as const;
+export type LocalKind = (typeof LOCAL_KINDS)[number]["key"];
+
+export function localDetail(kind: string | null | undefined) {
+  return (LOCAL_KINDS.find((k) => k.key === kind) ?? LOCAL_KINDS[0]).detail;
+}
+
 // What a shop's scope reads as on the site: "Само в Пловдив", "Само на
 // място" (local but no city known), or nothing (online / the whole country).
 export function localLabel(localOnly: boolean | null | undefined, city: string | null | undefined) {

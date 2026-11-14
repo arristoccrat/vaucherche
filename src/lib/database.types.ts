@@ -111,6 +111,7 @@ export type Database = {
           cta_kind: string;
           local_only: boolean;
           cover_position: number;
+          local_kind: string;
           city: string | null;
           voucher_type: string | null;
           voucher_url: string | null;
@@ -143,6 +144,7 @@ export type Database = {
           cta_kind?: string;
           local_only?: boolean;
           cover_position?: number;
+          local_kind?: string;
           city?: string | null;
           voucher_type?: string | null;
           voucher_url?: string | null;
@@ -175,6 +177,7 @@ export type Database = {
           cta_kind?: string;
           local_only?: boolean;
           cover_position?: number;
+          local_kind?: string;
           city?: string | null;
           voucher_type?: string | null;
           voucher_url?: string | null;

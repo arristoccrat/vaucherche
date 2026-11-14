@@ -189,113 +189,115 @@ export function FilterRail({
   const hidden = categories.length - visible.length;
 
   return (
-    <aside className="hidden w-[272px] shrink-0 border-r-2 border-brand-ink px-6 py-[26px] lg:block" aria-label="Филтри">
-      <h2 className="font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink">Категории</h2>
-      <div className="mt-3 flex flex-col gap-0.5">
-        <FilterButton
-          href={browseHref(filters, { kategorii: [] })}
-          pressed={!filters.kategorii.length}
-          className={cn(
-            "flex h-11 items-center gap-2.5 rounded-[10px] px-3 text-left text-[13.5px]",
-            !filters.kategorii.length ? "bg-brand-ink font-bold text-brand-card" : "font-semibold text-brand-ink hover:bg-brand-card"
-          )}
-        >
-          Всички
-          <span className="ml-auto font-num text-[11.5px] opacity-80">{total.toLocaleString("bg-BG")}</span>
-        </FilterButton>
-        {visible.map((c) => {
-          const selected = isSelected(filters, c);
-          return (
-            <FilterButton
-              key={c.key}
-              href={toggleCategory(filters, c)}
-              pressed={selected}
-              className={cn(
-                "flex h-11 items-center gap-2.5 rounded-[10px] px-3 text-left text-[13.5px]",
-                selected ? "bg-brand-ink font-bold text-brand-card" : "font-semibold text-brand-ink hover:bg-brand-card"
-              )}
-            >
-              <span aria-hidden className="size-[11px] shrink-0 rounded-[3px] border-[1.5px] border-brand-ink" style={{ backgroundColor: c.bg }} />
-              {c.label}
-              <span className={cn("ml-auto font-num text-[11.5px]", selected ? "opacity-80" : "text-brand-quiet")}>
-                {(counts[c.key] ?? 0).toLocaleString("bg-BG")}
-              </span>
-            </FilterButton>
-          );
-        })}
-      </div>
-      {hidden > 0 ? (
-        <Link href="/kategorii" className="mt-2 inline-block px-3 py-2 text-[13px] font-bold text-brand-mint-deep hover:underline">
-          Още {hidden} категории →
-        </Link>
-      ) : null}
+    <aside className="hidden w-[272px] shrink-0 border-r-2 border-brand-ink lg:block" aria-label="Филтри">
+      {/* Scrolls on its own and stays in view while the list scrolls. */}
+      <div className="sticky top-0 max-h-screen overflow-y-auto overscroll-contain px-6 py-[26px]">
+        <h2 className="font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink">Категории</h2>
+        <div className="mt-3 flex flex-col gap-0.5">
+          <FilterButton
+            href={browseHref(filters, { kategorii: [] })}
+            pressed={!filters.kategorii.length}
+            className={cn(
+              "flex h-11 items-center gap-2.5 rounded-[10px] px-3 text-left text-[13.5px]",
+              !filters.kategorii.length ? "bg-brand-ink font-bold text-brand-card" : "font-semibold text-brand-ink hover:bg-brand-card"
+            )}
+          >
+            Всички
+            <span className="ml-auto font-num text-[11.5px] opacity-80">{total.toLocaleString("bg-BG")}</span>
+          </FilterButton>
+          {visible.map((c) => {
+            const selected = isSelected(filters, c);
+            return (
+              <FilterButton
+                key={c.key}
+                href={toggleCategory(filters, c)}
+                pressed={selected}
+                className={cn(
+                  "flex h-11 items-center gap-2.5 rounded-[10px] px-3 text-left text-[13.5px]",
+                  selected ? "bg-brand-ink font-bold text-brand-card" : "font-semibold text-brand-ink hover:bg-brand-card"
+                )}
+              >
+                <span aria-hidden className="size-[11px] shrink-0 rounded-[3px] border-[1.5px] border-brand-ink" style={{ backgroundColor: c.bg }} />
+                {c.label}
+                <span className={cn("ml-auto font-num text-[11.5px]", selected ? "opacity-80" : "text-brand-quiet")}>
+                  {(counts[c.key] ?? 0).toLocaleString("bg-BG")}
+                </span>
+              </FilterButton>
+            );
+          })}
+        </div>
+        {hidden > 0 ? (
+          <Link href="/kategorii" className="mt-2 inline-block px-3 py-2 text-[13px] font-bold text-brand-mint-deep hover:underline">
+            Още {hidden} категории →
+          </Link>
+        ) : null}
 
-      <hr className="my-5 border-t-2 border-brand-hair" />
-      <h2 className="font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink">Сума</h2>
-      <div className="mt-3 flex flex-wrap gap-2">
-        <FilterButton
-          href={browseHref(filters, { suma: [] })}
-          pressed={!filters.suma.length}
-          className={cn(amountBase, !filters.suma.length ? "bg-brand-amber" : "bg-brand-card")}
-        >
-          Всяка
-        </FilterButton>
-        {AMOUNT_BUCKETS.map((b) => {
-          const selected = filters.suma.includes(b.key);
-          return (
-            <FilterButton
-              key={b.key}
-              href={toggleAmount(filters, b.key)}
-              pressed={selected}
-              className={cn(amountBase, selected ? "bg-brand-amber" : "bg-brand-card")}
-            >
-              {b.label}
-            </FilterButton>
-          );
-        })}
-      </div>
+        <hr className="my-5 border-t-2 border-brand-hair" />
+        <h2 className="font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink">Сума</h2>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <FilterButton
+            href={browseHref(filters, { suma: [] })}
+            pressed={!filters.suma.length}
+            className={cn(amountBase, !filters.suma.length ? "bg-brand-amber" : "bg-brand-card")}
+          >
+            Всяка
+          </FilterButton>
+          {AMOUNT_BUCKETS.map((b) => {
+            const selected = filters.suma.includes(b.key);
+            return (
+              <FilterButton
+                key={b.key}
+                href={toggleAmount(filters, b.key)}
+                pressed={selected}
+                className={cn(amountBase, selected ? "bg-brand-amber" : "bg-brand-card")}
+              >
+                {b.label}
+              </FilterButton>
+            );
+          })}
+        </div>
 
-      {cities.length ? (
-        <>
-          <hr className="my-5 border-t-2 border-brand-hair" />
-          <h2 className="flex items-center gap-1.5 font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink">
-            <MapPin className="size-4" aria-hidden />
-            За конкретен град
-          </h2>
-          <div className="mt-3 flex flex-col gap-0.5">{shownCities.map(cityRow)}</div>
-          {moreCities.length ? (
-            <details className="group mt-1">
-              <summary className="cursor-pointer list-none px-3 py-2 text-[13px] font-bold text-brand-mint-deep hover:underline">
-                Още {moreCities.length} {moreCities.length === 1 ? "град" : "града"} <span className="group-open:hidden">→</span>
-              </summary>
-              <div className="flex flex-col gap-0.5">{moreCities.map(cityRow)}</div>
-            </details>
-          ) : null}
-          <p className="mt-2 text-[12px] leading-snug text-brand-quiet">Само магазините, които се ползват на място в града.</p>
-        </>
-      ) : null}
+        {cities.length ? (
+          <>
+            <hr className="my-5 border-t-2 border-brand-hair" />
+            <h2 className="flex items-center gap-1.5 font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink">
+              <MapPin className="size-4" aria-hidden />
+              За конкретен град
+            </h2>
+            <div className="mt-3 flex flex-col gap-0.5">{shownCities.map(cityRow)}</div>
+            {moreCities.length ? (
+              <details className="group mt-1">
+                <summary className="cursor-pointer list-none px-3 py-2 text-[13px] font-bold text-brand-mint-deep hover:underline">
+                  Още {moreCities.length} {moreCities.length === 1 ? "град" : "града"} <span className="group-open:hidden">→</span>
+                </summary>
+                <div className="flex flex-col gap-0.5">{moreCities.map(cityRow)}</div>
+              </details>
+            ) : null}
+          </>
+        ) : null}
 
-      <hr className="my-5 border-t-2 border-brand-hair" />
-      <h2 className="font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink">Получаване</h2>
-      <div className="mt-3 flex flex-col gap-1">
-        {DELIVERY.map((d) => {
-          const checked = filters.dostavka.includes(d.key);
-          const next = checked ? filters.dostavka.filter((x) => x !== d.key) : [...filters.dostavka, d.key];
-          return (
-            <FilterButton
-              key={d.key}
-              href={browseHref(filters, { dostavka: next })}
-              pressed={checked}
-              className="flex min-h-11 items-center gap-2.5 text-left text-[14px] font-semibold text-brand-ink"
-            >
-              <span
-                aria-hidden
-                className={cn("size-[22px] shrink-0 rounded-[6px] border-2 border-brand-ink", checked ? "bg-brand-mint" : "bg-brand-card")}
-              />
-              {d.label}
-            </FilterButton>
-          );
-        })}
+        <hr className="my-5 border-t-2 border-brand-hair" />
+        <h2 className="font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink">Получаване</h2>
+        <div className="mt-3 flex flex-col gap-1">
+          {DELIVERY.map((d) => {
+            const checked = filters.dostavka.includes(d.key);
+            const next = checked ? filters.dostavka.filter((x) => x !== d.key) : [...filters.dostavka, d.key];
+            return (
+              <FilterButton
+                key={d.key}
+                href={browseHref(filters, { dostavka: next })}
+                pressed={checked}
+                className="flex min-h-11 items-center gap-2.5 text-left text-[14px] font-semibold text-brand-ink"
+              >
+                <span
+                  aria-hidden
+                  className={cn("size-[22px] shrink-0 rounded-[6px] border-2 border-brand-ink", checked ? "bg-brand-mint" : "bg-brand-card")}
+                />
+                {d.label}
+              </FilterButton>
+            );
+          })}
+        </div>
       </div>
     </aside>
   );

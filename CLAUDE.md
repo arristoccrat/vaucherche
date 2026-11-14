@@ -28,7 +28,10 @@ name in any URL:
   shops tied to those cities (`shops.local_only` + `city`, `sql/012`); the
   rail lists cities with 8+ shops and folds the rest under "Още N града".
   A local shop reads "Само в Пловдив" (or "Само на място" without a city,
-  which no city filter matches) on its card and shop page. The queries in
+  which no city filter matches) on its card and shop page; the shop page
+  adds "ползва се на място в обекта" or "доставка само в града"
+  (`shops.local_kind`, `sql/014`, `LOCAL_KINDS` in `src/lib/cities.ts`).
+  The desktop filter rail is sticky and scrolls on its own. The queries in
   `(public)/_lib/browse.ts` read
   `shop_voucher_range` (`sql/006`), always paginated with `.range()`.
   Public pages and `sitemap.xml` render per request (fetches stay cached):
