@@ -148,11 +148,12 @@ export type ShopListRow = Awaited<ReturnType<typeof listShops>>["rows"][number];
 const cachedStatusCounts = unstable_cache(
   async () => {
     const supabase = createAdminClient();
-    const countWhere = async (status: ShopStatus | null) => {
+    const countWhere = async (status: ShopStatus | null, unpublishedOnly = false) => {
       let query = supabase
         .from("shops")
         .select("id", { count: "exact", head: true });
       if (status) query = query.eq("status", status);
+      if (unpublishedOnly) query = query.not("published", "is", true);
       const { count, error } = await query;
       if (error) throw new Error(error.message);
       return count ?? 0;
@@ -167,18 +168,22 @@ const cachedStatusCounts = unstable_cache(
       return count ?? 0;
     };
 
-    const [total, published, ...perStatus] = await Promise.all([
+    const [total, published, perStatus, perStatusUnpublished] = await Promise.all([
       countWhere(null),
       countPublished(),
-      ...SHOP_STATUSES.map(countWhere),
+      Promise.all(SHOP_STATUSES.map((status) => countWhere(status))),
+      Promise.all(SHOP_STATUSES.map((status) => countWhere(status, true))),
     ]);
+    const byKey = (values: number[]) =>
+      Object.fromEntries(SHOP_STATUSES.map((status, i) => [status, values[i]])) as Record<ShopStatus, number>;
 
     return {
       total,
       published,
-      byStatus: Object.fromEntries(
-        SHOP_STATUSES.map((status, i) => [status, perStatus[i]])
-      ) as Record<ShopStatus, number>,
+      byStatus: byKey(perStatus),
+      // The shop list's status chips leave published shops out: they have
+      // their own "Публикувани" chip.
+      unpublishedByStatus: byKey(perStatusUnpublished),
     };
   },
   ["shop-status-counts"],
