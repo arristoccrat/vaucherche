@@ -146,6 +146,7 @@ export function ChipRows({
 }
 
 const RAIL_CATEGORIES = 7;
+const railAmount = "h-8 px-3 text-[12px]";
 
 // Desktop: the 272px filter rail (Desktop artboard).
 export function FilterRail({
@@ -172,7 +173,7 @@ export function FilterRail({
         href={toggleCity(filters, c.key)}
         pressed={selected}
         className={cn(
-          "flex h-11 w-full items-center gap-2.5 rounded-[10px] px-3 text-left text-[13.5px]",
+          "flex h-9 w-full items-center gap-2.5 rounded-[9px] px-3 text-left text-[13px]",
           selected ? "bg-brand-ink font-bold text-brand-card" : "font-semibold text-brand-ink hover:bg-brand-card"
         )}
       >
@@ -190,16 +191,16 @@ export function FilterRail({
 
   return (
     <aside className="hidden w-[272px] shrink-0 border-r-2 border-brand-ink lg:block" aria-label="Филтри">
-      {/* Stays in view and scrolls on its own; at its end the page scrolls on,
-          so the last group is never cut off below the fold. */}
-      <div className="sticky top-0 max-h-screen overflow-y-auto px-6 pb-10 pt-[18px]">
+      {/* Stays in view and scrolls on its own. Its height leaves out the
+          78px header, so its end is on screen even with the page at the top. */}
+      <div className="sticky top-0 max-h-[calc(100dvh-78px)] overflow-y-auto overscroll-contain px-6 pb-6 pt-3">
         <RailGroup title="Категории" open>
           <div className="flex flex-col gap-0.5">
             <FilterButton
               href={browseHref(filters, { kategorii: [] })}
               pressed={!filters.kategorii.length}
               className={cn(
-                "flex h-11 items-center gap-2.5 rounded-[10px] px-3 text-left text-[13.5px]",
+                "flex h-9 items-center gap-2.5 rounded-[9px] px-3 text-left text-[13px]",
                 !filters.kategorii.length ? "bg-brand-ink font-bold text-brand-card" : "font-semibold text-brand-ink hover:bg-brand-card"
               )}
             >
@@ -214,7 +215,7 @@ export function FilterRail({
                   href={toggleCategory(filters, c)}
                   pressed={selected}
                   className={cn(
-                    "flex h-11 items-center gap-2.5 rounded-[10px] px-3 text-left text-[13.5px]",
+                    "flex h-9 items-center gap-2.5 rounded-[9px] px-3 text-left text-[13px]",
                     selected ? "bg-brand-ink font-bold text-brand-card" : "font-semibold text-brand-ink hover:bg-brand-card"
                   )}
                 >
@@ -235,11 +236,11 @@ export function FilterRail({
         </RailGroup>
 
         <RailGroup title="Сума" open>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             <FilterButton
               href={browseHref(filters, { suma: [] })}
               pressed={!filters.suma.length}
-              className={cn(amountBase, !filters.suma.length ? "bg-brand-amber" : "bg-brand-card")}
+              className={cn(amountBase, railAmount, !filters.suma.length ? "bg-brand-amber" : "bg-brand-card")}
             >
               Всяка
             </FilterButton>
@@ -250,7 +251,7 @@ export function FilterRail({
                   key={b.key}
                   href={toggleAmount(filters, b.key)}
                   pressed={selected}
-                  className={cn(amountBase, selected ? "bg-brand-amber" : "bg-brand-card")}
+                  className={cn(amountBase, railAmount, selected ? "bg-brand-amber" : "bg-brand-card")}
                 >
                   {b.label}
                 </FilterButton>
@@ -269,11 +270,11 @@ export function FilterRail({
                   key={d.key}
                   href={browseHref(filters, { dostavka: next })}
                   pressed={checked}
-                  className="flex min-h-11 items-center gap-2.5 text-left text-[14px] font-semibold text-brand-ink"
+                  className="flex min-h-9 items-center gap-2.5 text-left text-[13px] font-semibold text-brand-ink"
                 >
                   <span
                     aria-hidden
-                    className={cn("size-[22px] shrink-0 rounded-[6px] border-2 border-brand-ink", checked ? "bg-brand-mint" : "bg-brand-card")}
+                    className={cn("size-[18px] shrink-0 rounded-[5px] border-2 border-brand-ink", checked ? "bg-brand-mint" : "bg-brand-card")}
                   />
                   {d.label}
                 </FilterButton>
@@ -314,11 +315,11 @@ export function FilterRail({
 function RailGroup({ title, open, children }: { title: React.ReactNode; open?: boolean; children: React.ReactNode }) {
   return (
     <details open={open} className="group/rail border-b-2 border-brand-hair last:border-b-0">
-      <summary className="flex min-h-11 cursor-pointer list-none items-center gap-1.5 py-2 font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink [&::-webkit-details-marker]:hidden">
+      <summary className="flex min-h-10 cursor-pointer list-none items-center gap-1.5 py-1.5 font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink [&::-webkit-details-marker]:hidden">
         {title}
         <ChevronDown aria-hidden className="ml-auto size-4 transition-transform group-open/rail:rotate-180" />
       </summary>
-      <div className="pb-5 pt-1">{children}</div>
+      <div className="pb-4">{children}</div>
     </details>
   );
 }
