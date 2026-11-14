@@ -4,15 +4,17 @@ import { ImageIcon, Upload } from "lucide-react";
 import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { updateShopEditorial } from "@/actions/editorial";
 import { clearShopImage, importShopImage, uploadShopImage } from "@/actions/media";
 import { Button } from "@/components/ui/button";
 import type { ActionResult } from "@/lib/action-result";
 import type { Suggestion } from "@/lib/suggestions";
 import { cn } from "@/lib/utils";
 
-import { fieldClass } from "./autosave";
+import { FieldLabel, fieldClass, useAutosave } from "./autosave";
 
-const ACCEPT = "image/png,image/jpeg,image/webp,image/gif,image/x-icon";
+// SVG is accepted and stored as a PNG (see src/actions/media.ts).
+const ACCEPT = "image/png,image/jpeg,image/webp,image/gif,image/x-icon,image/svg+xml,.svg";
 
 type Kind = "logo" | "cover";
 
@@ -23,11 +25,14 @@ export function ImagePicker({
   kind,
   url,
   suggestions,
+  position = 50,
 }: {
   shopId: string;
   kind: Kind;
   url: string | null;
   suggestions: Suggestion[] | null;
+  // Cover only: the vertical crop on the shop page (sql/013).
+  position?: number;
 }) {
   const [current, setCurrent] = useState(url);
   const [remote, setRemote] = useState("");
@@ -137,6 +142,8 @@ export function ImagePicker({
         </div>
       </div>
 
+      {kind === "cover" && current ? <CoverPosition shopId={shopId} url={current} initial={position} /> : null}
+
       {suggestions?.length ? (
         <div className="space-y-1">
           <div className="text-[11px] text-muted-foreground">От обхождането:</div>
@@ -161,6 +168,39 @@ export function ImagePicker({
       ) : suggestions ? (
         <div className="text-[11px] text-muted-foreground">Няма предложения от обхождането.</div>
       ) : null}
+    </div>
+  );
+}
+
+// Up / down crop of the cover, previewed at the shop page's desktop shape
+// (wide, about 3.3:1). Saved when the slider is let go.
+function CoverPosition({ shopId, url, initial }: { shopId: string; url: string; initial: number }) {
+  const field = useAutosave((value) => updateShopEditorial(shopId, { cover_position: value }), String(initial));
+  const value = Number(field.value) || 0;
+  const id = `cover-position-${shopId}`;
+  return (
+    <div className="space-y-1.5 rounded-md border bg-background p-2">
+      <FieldLabel htmlFor={id} label="Позиция на корицата" hint="коя част се вижда на страницата" state={field.state} />
+      <div className="relative aspect-[3.3/1] w-full overflow-hidden rounded-md border-2 border-foreground">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={url} alt="" className="size-full object-cover" style={{ objectPosition: `center ${value}%` }} />
+      </div>
+      <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
+        <span>горе</span>
+        <input
+          id={id}
+          type="range"
+          min={0}
+          max={100}
+          step={1}
+          value={value}
+          onChange={(event) => field.change(event.target.value)}
+          onPointerUp={field.flush}
+          onBlur={field.flush}
+          className="w-full accent-foreground"
+        />
+        <span>долу</span>
+      </div>
     </div>
   );
 }

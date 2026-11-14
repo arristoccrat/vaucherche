@@ -237,7 +237,13 @@ export function EditorialForm({ shop, categories }: { shop: ShopListRow; categor
 
         <div className="space-y-5">
           <ImagePicker shopId={id} kind="logo" url={shop.logo_url} suggestions={loaded?.logos ?? null} />
-          <ImagePicker shopId={id} kind="cover" url={shop.cover_url} suggestions={loaded?.covers ?? null} />
+          <ImagePicker
+            shopId={id}
+            kind="cover"
+            url={shop.cover_url}
+            suggestions={loaded?.covers ?? null}
+            position={shop.cover_position ?? 50}
+          />
         </div>
       </div>
     </div>

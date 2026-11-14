@@ -145,7 +145,16 @@ export default async function ShopPage({ params }: { params: { slug: string } })
             style={{ backgroundColor: category.bg, color: onColor }}
           >
             {shop.cover_url ? (
-              <Image src={shop.cover_url} alt="" fill priority sizes="(min-width: 1024px) 950px, 100vw" className="object-cover" />
+              <Image
+                src={shop.cover_url}
+                alt=""
+                fill
+                priority
+                sizes="(min-width: 1024px) 950px, 100vw"
+                className="object-cover"
+                // The admin's crop: which part of the photo stays in view.
+                style={{ objectPosition: `center ${shop.cover_position ?? 50}%` }}
+              />
             ) : (
               <>
                 <Icon className="size-8 opacity-80" aria-hidden />

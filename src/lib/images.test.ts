@@ -60,3 +60,14 @@ describe("parseEuroList", () => {
     expect(parseEuro(" ")).toBeNull();
   });
 });
+
+describe("looksLikeSvg", () => {
+  const enc = (s: string) => new TextEncoder().encode(s);
+  it("spots SVG documents with or without a prolog", async () => {
+    const { looksLikeSvg } = await import("./images");
+    expect(looksLikeSvg(enc('<svg xmlns="http://www.w3.org/2000/svg"></svg>'))).toBe(true);
+    expect(looksLikeSvg(enc('﻿<?xml version="1.0"?>\n<!-- logo -->\n<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "x">\n<svg>'))).toBe(true);
+    expect(looksLikeSvg(enc("<html><svg></svg></html>"))).toBe(false);
+    expect(looksLikeSvg(enc("GIF89a"))).toBe(false);
+  });
+});

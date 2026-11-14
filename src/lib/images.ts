@@ -6,7 +6,8 @@ export const MAX_IMAGE_BYTES = 2 * 1024 * 1024; // matches the shop-media bucket
 export type ImageType = { mime: string; ext: string };
 
 // Identify the format from the bytes, not from the claimed content type or
-// file name. SVG is deliberately not accepted (it can carry scripts).
+// file name. SVG is never stored as SVG (it can carry scripts): see
+// looksLikeSvg, and the PNG conversion in src/actions/media.ts.
 export function sniffImage(bytes: Uint8Array): ImageType | null {
   const b = (i: number) => bytes[i];
   if (bytes.length < 12) return null;
@@ -21,6 +22,16 @@ export function sniffImage(bytes: Uint8Array): ImageType | null {
   }
   if (b(0) === 0x00 && b(1) === 0x00 && b(2) === 0x01 && b(3) === 0x00) return { mime: "image/x-icon", ext: "ico" };
   return null;
+}
+
+// An SVG document: optional BOM, XML declaration, comments and doctype, then
+// an <svg> root. Checked on the first 4 KB of text.
+export function looksLikeSvg(bytes: Uint8Array): boolean {
+  const head = new TextDecoder("utf-8", { fatal: false })
+    .decode(bytes.subarray(0, 4096))
+    .replace(/^\uFEFF/, "")
+    .trimStart();
+  return /^(<\?xml[^>]*\?>\s*)?(<!--[\s\S]*?-->\s*)*(<!DOCTYPE\s+svg[^>]*>\s*)?(<!--[\s\S]*?-->\s*)*<svg[\s>]/i.test(head);
 }
 
 // Only public http(s) hosts: no localhost, private ranges, link-local
