@@ -24,7 +24,7 @@ export type AmountKey = (typeof AMOUNT_BUCKETS)[number]["key"];
 export const DELIVERY = [
   { key: "digital", label: "Дигитален" },
   { key: "delivery", label: "Физически с доставка" },
-  { key: "in_store", label: "В магазин" },
+  { key: "in_store", label: "В магазин или обект" },
 ] as const;
 export type DeliveryKey = (typeof DELIVERY)[number]["key"];
 

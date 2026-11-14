@@ -62,7 +62,7 @@ type Fact = { icon: typeof Mail; title: string; detail: string };
 const RECEIVE_WORDS: Record<DeliveryKey, string> = {
   digital: "по имейл",
   delivery: "с доставка до адрес",
-  in_store: "от магазина",
+  in_store: "от магазина или обекта",
 };
 
 function receiveFact(methods: readonly string[] | null): Fact | null {
