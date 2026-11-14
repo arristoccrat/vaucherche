@@ -20,7 +20,7 @@ export type OfferField = (typeof OFFER_FIELDS)[number];
 export const DELIVERY_OPTIONS = [
   { key: "digital", label: "Дигитално" },
   { key: "delivery", label: "Доставка" },
-  { key: "in_store", label: "В магазин" },
+  { key: "in_store", label: "В магазин или обект" },
 ] as const;
 export type DeliveryKey = (typeof DELIVERY_OPTIONS)[number]["key"];
 
