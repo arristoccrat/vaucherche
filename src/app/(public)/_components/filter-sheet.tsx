@@ -3,8 +3,8 @@
 import { SlidersHorizontal, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-// Mobile filters: a button that opens a sheet from the bottom, a little over
-// half the screen tall, holding the same groups as the desktop rail. Each
+// Mobile filters: a button that opens a sheet from the bottom, about
+// 80% of the screen tall, holding the same groups as the desktop rail. Each
 // choice navigates (the URL is the state) and the sheet stays open, so
 // several can be picked; "Покажи" closes it on the updated list.
 export function FilterSheet({
@@ -70,7 +70,7 @@ export function FilterSheet({
             role="dialog"
             aria-modal="true"
             aria-label="Филтри"
-            className="sheet-up absolute inset-x-0 bottom-0 flex max-h-[62dvh] flex-col rounded-t-[24px] border-t-2 border-brand-ink bg-brand-ground"
+            className="sheet-up absolute inset-x-0 bottom-0 flex max-h-[80dvh] flex-col rounded-t-[24px] border-t-2 border-brand-ink bg-brand-ground"
           >
             <div className="flex items-center justify-between border-b-2 border-brand-hair px-5 pb-2 pt-3">
               <h2 className="font-display text-[16px] font-bold text-brand-ink">Филтри</h2>

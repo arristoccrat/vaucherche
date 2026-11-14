@@ -35,7 +35,7 @@ name in any URL:
   The desktop filter rail is sticky and scrolls on its own; each group is a
   foldable `<details>` (`RailGroup`), the city group last and folded unless a
   city is chosen. On mobile the same groups (`FilterGroups`) open in a
-  bottom sheet (`filter-sheet.tsx`, about 60% of the screen) that stays open
+  bottom sheet (`filter-sheet.tsx`, up to 80% of the screen) that stays open
   while choices navigate. The queries in
   `(public)/_lib/browse.ts` read
   `shop_voucher_range` (`sql/006`), always paginated with `.range()`.
