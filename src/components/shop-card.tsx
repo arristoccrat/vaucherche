@@ -1,7 +1,9 @@
+import { MapPin } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 import { onColorHex, tintHex, type Category } from "@/lib/categories";
+import { localLabel } from "@/lib/cities";
 import { formatEur, formatEurRange } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +28,9 @@ export type ShopCardData = {
   is_digital: boolean | null;
   is_physical: boolean | null;
   validity_months: number | null;
+  // Used on the spot in one place (sql/012).
+  local_only?: boolean | null;
+  city?: string | null;
 };
 
 const amount = new Intl.NumberFormat("bg-BG", { maximumFractionDigits: 2 });
@@ -70,6 +75,8 @@ export function ShopCard({
   const shown = amounts.slice(0, 3);
   const more = amounts.length - shown.length;
   const meta = [deliveryLabel(shop), validityLabel(shop.validity_months)].filter(Boolean).join(" · ");
+  // "Само в Пловдив" leads the line: it limits who can use the voucher.
+  const local = localLabel(shop.local_only, shop.city);
   // Ink letters on light colours, the colour itself on dark ones (both clear 4.5:1 on white).
   const monogramColor = category.on === "ink" ? onColorHex("ink") : category.bg;
 
@@ -162,8 +169,17 @@ export function ShopCard({
           </p>
         ) : null}
 
-        {meta ? (
-          <p className="mt-auto pt-3 text-[12.5px] font-medium text-brand-body">{meta}</p>
+        {meta || local ? (
+          <p className="mt-auto flex flex-wrap items-center gap-x-1.5 pt-3 text-[12.5px] font-medium text-brand-body">
+            {local ? (
+              <span className="inline-flex items-center gap-1 font-bold text-brand-ink">
+                <MapPin className="size-3.5 shrink-0" aria-hidden />
+                {local}
+              </span>
+            ) : null}
+            {local && meta ? <span aria-hidden>·</span> : null}
+            {meta ? <span>{meta}</span> : null}
+          </p>
         ) : null}
       </div>
     </article>

@@ -86,6 +86,10 @@ Phase 0 RLS policies and indexes from the admin spec):
   `/tarsene` searches (name, domain, subcategory, both descriptions,
   category name, product titles). View only; run after 010. Until it is run
   the search falls back to name, domain, subcategory and description.
+- `sql/012_city.sql` — `shops.local_only` and `shops.city` ("Само в
+  Пловдив"), set in the admin ("Къде се ползва"), shown on cards and shop
+  pages and filtered by `?grad=`; also appended to `shop_voucher_range`.
+  Run after 011, **before** deploying the version that reads it.
 
 **Pipeline rules the admin relies on** (in the crawler / AI scripts, outside
 this repo):
@@ -152,7 +156,7 @@ shop count (about 19,974) with its query time in the header.
 
 ### Launch checklist (public site)
 
-1. Every file in `sql/` up to `011` has been run (see **Database changes**).
+1. Every file in `sql/` up to `012` has been run (see **Database changes**).
 2. In `/admin/queue`, publish the shops that pass the gate. Nothing
    publishes itself.
 3. Preview the real site on production with `/?preview=<PREVIEW_TOKEN>`:

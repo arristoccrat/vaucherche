@@ -1,7 +1,8 @@
-import { X } from "lucide-react";
+import { MapPin, X } from "lucide-react";
 import Link from "next/link";
 
 import { onColorHex, type Category } from "@/lib/categories";
+import { CITIES, findCity, type CityKey } from "@/lib/cities";
 import { cn } from "@/lib/utils";
 
 import {
@@ -14,6 +15,7 @@ import {
   type AmountKey,
   type BrowseFilters,
 } from "../_lib/browse-params";
+import type { VisibleCity } from "../_lib/categories";
 
 import { FilterButton } from "./filter-button";
 
@@ -35,16 +37,36 @@ function toggleAmount(filters: BrowseFilters, key: AmountKey) {
   return browseHref(filters, { suma: toggled(filters.suma, key, AMOUNT_ORDER) });
 }
 
+const CITY_ORDER: CityKey[] = CITIES.map((c) => c.key);
+function toggleCity(filters: BrowseFilters, key: CityKey) {
+  return browseHref(filters, { grad: toggled(filters.grad, key, CITY_ORDER) });
+}
+
+// A city with fewer published shops than this goes under "Още … града", so
+// the rail lists only places where there is a real choice.
+const MIN_CITY_SHOPS = 8;
+function splitCities(cities: VisibleCity[], chosen: readonly CityKey[]) {
+  let shown = cities.filter((c) => c.count >= MIN_CITY_SHOPS);
+  // Early on no city may reach the bar: show the biggest few anyway.
+  if (!shown.length) shown = cities.slice(0, 4);
+  // A chosen city always stays in view.
+  shown = cities.filter((c) => shown.includes(c) || chosen.includes(c.key));
+  return { shown, more: cities.filter((c) => !shown.includes(c)) };
+}
+
 const isSelected = (filters: BrowseFilters, category: Category) => filters.kategorii.some((c) => c.key === category.key);
 
 // Mobile: two horizontally scrolling chip rows (Main / Filtered artboards).
 export function ChipRows({
   filters,
   categories,
+  cities,
 }: {
   filters: BrowseFilters;
   // Categories with published shops, biggest first.
   categories: Category[];
+  // Cities with published local shops, most first.
+  cities: VisibleCity[];
 }) {
   return (
     <div className="space-y-2.5 lg:hidden">
@@ -95,6 +117,30 @@ export function ChipRows({
           );
         })}
       </div>
+      {cities.length ? (
+        <div>
+          <p className="flex items-center gap-1.5 font-ui text-[13px] font-bold text-brand-ink">
+            <MapPin className="size-4" aria-hidden />
+            За конкретен град
+          </p>
+          <div className="-mx-4 mt-1.5 flex gap-[7px] overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+            {cities.map((c) => {
+              const selected = filters.grad.includes(c.key);
+              return (
+                <FilterButton
+                  key={c.key}
+                  href={toggleCity(filters, c.key)}
+                  pressed={selected}
+                  className={cn(chipBase, chipHit, selected ? "bg-brand-ink text-brand-card" : "bg-brand-card text-brand-ink")}
+                >
+                  {c.label}
+                  {selected ? <X className="size-3.5" aria-label="махни" /> : null}
+                </FilterButton>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -107,13 +153,36 @@ export function FilterRail({
   counts,
   total,
   categories,
+  cities,
 }: {
   filters: BrowseFilters;
   counts: Record<string, number>;
   total: number;
   // Categories with published shops, biggest first.
   categories: Category[];
+  // Cities with published local shops, most first.
+  cities: VisibleCity[];
 }) {
+  const { shown: shownCities, more: moreCities } = splitCities(cities, filters.grad);
+  const cityRow = (c: VisibleCity) => {
+    const selected = filters.grad.includes(c.key);
+    return (
+      <FilterButton
+        key={c.key}
+        href={toggleCity(filters, c.key)}
+        pressed={selected}
+        className={cn(
+          "flex h-11 w-full items-center gap-2.5 rounded-[10px] px-3 text-left text-[13.5px]",
+          selected ? "bg-brand-ink font-bold text-brand-card" : "font-semibold text-brand-ink hover:bg-brand-card"
+        )}
+      >
+        {c.label}
+        <span className={cn("ml-auto font-num text-[11.5px]", selected ? "opacity-80" : "text-brand-quiet")}>
+          {c.count.toLocaleString("bg-BG")}
+        </span>
+      </FilterButton>
+    );
+  };
   const visible = categories.slice(0, RAIL_CATEGORIES);
   // Chosen categories stay in view even when they are not among the biggest.
   for (const chosen of filters.kategorii) if (!visible.some((c) => c.key === chosen.key)) visible.push(chosen);
@@ -186,6 +255,26 @@ export function FilterRail({
         })}
       </div>
 
+      {cities.length ? (
+        <>
+          <hr className="my-5 border-t-2 border-brand-hair" />
+          <h2 className="flex items-center gap-1.5 font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink">
+            <MapPin className="size-4" aria-hidden />
+            За конкретен град
+          </h2>
+          <div className="mt-3 flex flex-col gap-0.5">{shownCities.map(cityRow)}</div>
+          {moreCities.length ? (
+            <details className="group mt-1">
+              <summary className="cursor-pointer list-none px-3 py-2 text-[13px] font-bold text-brand-mint-deep hover:underline">
+                Още {moreCities.length} {moreCities.length === 1 ? "град" : "града"} <span className="group-open:hidden">→</span>
+              </summary>
+              <div className="flex flex-col gap-0.5">{moreCities.map(cityRow)}</div>
+            </details>
+          ) : null}
+          <p className="mt-2 text-[12px] leading-snug text-brand-quiet">Само магазините, които се ползват на място в града.</p>
+        </>
+      ) : null}
+
       <hr className="my-5 border-t-2 border-brand-hair" />
       <h2 className="font-display text-[13px] font-bold tracking-[-0.01em] text-brand-ink">Получаване</h2>
       <div className="mt-3 flex flex-col gap-1">
@@ -231,6 +320,12 @@ export function ActiveFilters({ filters }: { filters: BrowseFilters }) {
       label: b.key === "po-izbor" ? "Сума по избор" : b.label,
       href: toggleAmount(filters, b.key),
       className: "bg-brand-amber text-brand-ink",
+    })),
+    ...filters.grad.map((key) => ({
+      key: `g-${key}`,
+      label: findCity(key)?.label ?? key,
+      href: toggleCity(filters, key),
+      className: "bg-brand-ink text-brand-card",
     })),
     ...DELIVERY.filter((d) => filters.dostavka.includes(d.key)).map((d) => ({
       key: `d-${d.key}`,

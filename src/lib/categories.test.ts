@@ -53,3 +53,15 @@ describe("tintHex", () => {
     expect(tintHex("red")).toBe("#FFFFFF");
   });
 });
+
+describe("city labels", () => {
+  it("reads a local shop's scope", async () => {
+    const { localLabel, inCity } = await import("@/lib/cities");
+    expect(localLabel(true, "plovdiv")).toBe("Само в Пловдив");
+    expect(localLabel(true, "vratsa")).toBe("Само във Враца");
+    expect(localLabel(true, "varna")).toBe("Само във Варна");
+    expect(localLabel(true, null)).toBe("Само на място");
+    expect(localLabel(false, "sofia")).toBeNull();
+    expect(inCity("София")).toBe("в София");
+  });
+});

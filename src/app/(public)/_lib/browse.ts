@@ -7,9 +7,9 @@ export const PAGE_SIZE = 24;
 
 // Everything a card shows; nothing else leaves the database.
 const CARD_SELECT =
-  "id, slug, name, domain, description, logo_url, cover_url, category, subcategory, min_eur, max_eur, denominations_eur, custom_amount, is_digital, is_physical, validity_months";
+  "id, slug, name, domain, description, logo_url, cover_url, category, subcategory, min_eur, max_eur, denominations_eur, custom_amount, is_digital, is_physical, validity_months, local_only, city";
 
-type FilterParts = Pick<BrowseFilters, "kategorii" | "suma" | "dostavka">;
+type FilterParts = Pick<BrowseFilters, "kategorii" | "suma" | "dostavka" | "grad">;
 
 // Structural type so the same filters apply to the list and the counts.
 interface Filterable<Self> {
@@ -22,6 +22,7 @@ function applyFilters<Q extends Filterable<Q>>(query: Q, filters: FilterParts): 
   // RLS already hides unpublished shops; the explicit filter is belt and braces.
   let q = query.eq("published", true);
   if (filters.kategorii.length) q = q.in("category", filters.kategorii.map((c) => c.key));
+  if (filters.grad.length) q = q.in("city", filters.grad);
   // Any chosen amount and any chosen way of receiving it.
   const choices = allOf([amountFilter(filters.suma), deliveryFilter(filters.dostavka)]);
   if (choices) q = q.or(choices);
@@ -86,6 +87,25 @@ export async function categoryCounts() {
     if (data.length < 1000) break;
   }
   return { counts, total };
+}
+
+// Published shops per city, for the "За конкретен град" filter. Paged like
+// categoryCounts.
+export async function cityCounts() {
+  const counts: Record<string, number> = {};
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await publicClient()
+      .from("shops")
+      .select("city")
+      .eq("published", true)
+      .not("city", "is", null)
+      .order("id")
+      .range(from, from + 999);
+    if (error) throw new Error(error.message);
+    for (const row of data) if (row.city) counts[row.city] = (counts[row.city] ?? 0) + 1;
+    if (data.length < 1000) break;
+  }
+  return counts;
 }
 
 // Every published shop's slug and last update, for the sitemap. Paged in

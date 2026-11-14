@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { NOT_SIGNED_IN, type ActionResult } from "@/lib/action-result";
 import { getUser } from "@/lib/auth";
+import { findCity } from "@/lib/cities";
 import { PUBLIC_DATA_TAG } from "@/lib/site";
 import { readCategoriesUncached } from "@/lib/queries/categories";
 import { SHOP_FACETS_TAG } from "@/lib/queries/shops";
@@ -63,6 +64,9 @@ const editorialSchema = z
     gift_appeal: slug,
     // The shop page's button: "Купи от …" or "Повече на …" (sql/010).
     cta_kind: z.enum(["buy", "more"]),
+    // Where the voucher is used (sql/012): "" = online / the whole country,
+    // "local" = on the spot, city unknown, or a city key from cities.ts.
+    city_scope: z.string().trim().max(40),
   })
   .partial()
   .refine((patch) => Object.keys(patch).length > 0, { message: "Няма промени." });
@@ -92,10 +96,20 @@ export async function updateShopEditorial(
     }
   }
 
+  // city_scope is two columns in the table.
+  const { city_scope: scope, ...columns } = parsed.data;
+  let scopeColumns: { local_only: boolean; city: string | null } | Record<string, never> = {};
+  if (scope !== undefined) {
+    if (scope === "") scopeColumns = { local_only: false, city: null };
+    else if (scope === "local") scopeColumns = { local_only: true, city: null };
+    else if (findCity(scope)) scopeColumns = { local_only: true, city: scope };
+    else return { ok: false, error: "Изберете град от списъка." };
+  }
+
   const supabase = createAdminClient();
   const { error } = await supabase
     .from("shops")
-    .update({ ...parsed.data, updated_at: new Date().toISOString() })
+    .update({ ...columns, ...scopeColumns, updated_at: new Date().toISOString() })
     .eq("id", parsedId.data);
   if (error) return { ok: false, error: `Грешка при запис: ${error.message}` };
 
