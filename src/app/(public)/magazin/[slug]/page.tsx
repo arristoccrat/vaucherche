@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 
 import { RichText } from "@/components/rich-text";
 import { categoryOrFallback, onColorHex } from "@/lib/categories";
-import { localLabel } from "@/lib/cities";
+import { localDetail, localLabel } from "@/lib/cities";
 import { ctaLabel } from "@/lib/cta";
 import { categoryIcon } from "@/lib/category-icons";
 import { formatEur, formatEurRange } from "@/lib/format";
@@ -76,7 +76,7 @@ function receiveFact(methods: readonly string[] | null): Fact | null {
 
 function facts({ offer, shop }: PublishedShop): Fact[] {
   const local = localLabel(shop.local_only, shop.city);
-  const localFact: Fact[] = local ? [{ icon: MapPin, title: local, detail: "ползва се на място в обекта" }] : [];
+  const localFact: Fact[] = local ? [{ icon: MapPin, title: local, detail: localDetail(shop.local_kind) }] : [];
   if (!offer) return localFact;
   const list: Fact[] = [];
   // What the voucher is; how it reaches the buyer is the "Получаване" card.

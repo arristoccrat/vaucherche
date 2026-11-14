@@ -65,3 +65,12 @@ describe("city labels", () => {
     expect(inCity("София")).toBe("в София");
   });
 });
+
+describe("local detail", () => {
+  it("reads on the spot or delivery, defaulting to on the spot", async () => {
+    const { localDetail } = await import("@/lib/cities");
+    expect(localDetail("delivery")).toBe("доставка само в града");
+    expect(localDetail("on_site")).toBe("ползва се на място в обекта");
+    expect(localDetail(null)).toBe("ползва се на място в обекта");
+  });
+});

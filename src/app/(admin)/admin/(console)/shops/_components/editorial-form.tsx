@@ -6,7 +6,7 @@ import { useState } from "react";
 import { updateShopEditorial, type EditorialField } from "@/actions/editorial";
 import { Button } from "@/components/ui/button";
 import { describeCategory, type CategoryOption } from "@/lib/categories";
-import { CITIES } from "@/lib/cities";
+import { CITIES, LOCAL_KINDS } from "@/lib/cities";
 import { GIFT_APPEALS, GIFT_APPEAL_LABELS, isGiftAppeal } from "@/lib/domain";
 import type { ShopListRow } from "@/lib/queries/shops";
 import type { CrawlSuggestions } from "@/lib/suggestions";
@@ -61,6 +61,7 @@ export function EditorialForm({ shop, categories }: { shop: ShopListRow; categor
   const category = useEditorial(id, "category", shop.category ?? "");
   const subcategory = useEditorial(id, "subcategory", shop.subcategory ?? "");
   const cityScope = useEditorial(id, "city_scope", shop.local_only ? (shop.city ?? "local") : "");
+  const localKind = useEditorial(id, "local_kind", shop.local_kind ?? "on_site");
   const appeal = useEditorial(id, "gift_appeal", shop.gift_appeal ?? "");
   const [suggestions, setSuggestions] = useState<SuggestionsState>({ kind: "idle" });
 
@@ -215,6 +216,20 @@ export function EditorialForm({ shop, categories }: { shop: ShopListRow; categor
                 ))}
               </optgroup>
             </select>
+            {cityScope.value ? (
+              <select
+                aria-label="Как се ползва в града"
+                value={localKind.value}
+                onChange={(event) => localKind.change(event.target.value, true)}
+                className={fieldClass}
+              >
+                {LOCAL_KINDS.map((k) => (
+                  <option key={k.key} value={k.key}>
+                    {k.label}
+                  </option>
+                ))}
+              </select>
+            ) : null}
           </div>
 
           <div className="space-y-1">
