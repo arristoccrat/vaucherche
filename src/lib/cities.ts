@@ -64,6 +64,7 @@ export function inCity(label: string) {
 export const LOCAL_KINDS = [
   { key: "on_site", label: "Ползва се на място в обекта", detail: "ползва се на място в обекта" },
   { key: "delivery", label: "Доставка само в града", detail: "доставка само в града" },
+  { key: "both", label: "На място и с доставка в града", detail: "на място в обекта или с доставка в града" },
 ] as const;
 export type LocalKind = (typeof LOCAL_KINDS)[number]["key"];
 

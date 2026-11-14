@@ -68,7 +68,7 @@ const editorialSchema = z
     // "local" = on the spot, city unknown, or a city key from cities.ts.
     city_scope: z.string().trim().max(40),
     // On the spot or delivery in that city; sql/014.
-    local_kind: z.enum(["on_site", "delivery"]),
+    local_kind: z.enum(["on_site", "delivery", "both"]),
     // Shop page cover crop, 0 (top) to 100 (bottom); sql/013.
     cover_position: z
       .string()

@@ -97,6 +97,8 @@ Phase 0 RLS policies and indexes from the admin spec):
   `delivery`): whether a city-specific shop is used on the spot or delivers
   only in its city, shown under "Само в …" on the shop page. Run after 013,
   **before** deploying the version that reads it.
+- `sql/015_local_kind_both.sql` — `shops.local_kind` also takes `both` (on
+  the spot and delivery in the city). Run after 014, **before** deploying.
 
 **Pipeline rules the admin relies on** (in the crawler / AI scripts, outside
 this repo):
@@ -163,7 +165,7 @@ shop count (about 19,974) with its query time in the header.
 
 ### Launch checklist (public site)
 
-1. Every file in `sql/` up to `014` has been run (see **Database changes**).
+1. Every file in `sql/` up to `015` has been run (see **Database changes**).
 2. In `/admin/queue`, publish the shops that pass the gate. Nothing
    publishes itself.
 3. Preview the real site on production with `/?preview=<PREVIEW_TOKEN>`:
