@@ -17,6 +17,8 @@ export type ShopCardData = {
   domain: string | null;
   description: string | null;
   logo_url: string | null;
+  // Background behind the logo, "#rrggbb" or null for white (sql/016).
+  logo_bg?: string | null;
   cover_url: string | null;
   category: string | null;
   subcategory: string | null;
@@ -91,7 +93,12 @@ export function ShopCard({
       >
         <div
           className="relative aspect-[1.6] w-[64%] rotate-[var(--tilt)] rounded-[14px] border-2 border-brand-ink bg-brand-card shadow-[5px_6px_0_0] shadow-brand-ink transition-transform duration-200 group-hover:rotate-0"
-          style={{ "--tilt": `${tiltFor(shop.slug ?? name)}deg` } as React.CSSProperties}
+          style={
+            {
+              "--tilt": `${tiltFor(shop.slug ?? name)}deg`,
+              ...(shop.logo_url && shop.logo_bg ? { backgroundColor: shop.logo_bg } : {}),
+            } as React.CSSProperties
+          }
         >
           {shop.logo_url ? (
             <Image

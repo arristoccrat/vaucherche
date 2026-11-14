@@ -13,6 +13,7 @@ import type { CrawlSuggestions } from "@/lib/suggestions";
 
 import { FieldLabel, fieldClass, useAutosave } from "./autosave";
 import { ImagePicker } from "./image-picker";
+import { LogoBackground } from "./logo-background";
 import { RichTextField } from "./rich-text-field";
 
 type SuggestionsState =
@@ -252,6 +253,7 @@ export function EditorialForm({ shop, categories }: { shop: ShopListRow; categor
 
         <div className="space-y-5">
           <ImagePicker shopId={id} kind="logo" url={shop.logo_url} suggestions={loaded?.logos ?? null} />
+          <LogoBackground shopId={id} logoUrl={shop.logo_url} initial={shop.logo_bg ?? null} />
           <ImagePicker
             shopId={id}
             kind="cover"

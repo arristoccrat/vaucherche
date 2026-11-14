@@ -17,7 +17,7 @@ export const SHOP_FACETS_TAG = "shop-facets";
 // One round trip: shops plus their offer summary. `source_match` embeds
 // voucher_products only to filter by product source.
 const LIST_SELECT = `
-  id, domain, name, slug, description, voucher_description, logo_url, cover_url, status, status_reason,
+  id, domain, name, slug, description, voucher_description, logo_url, logo_bg, cover_url, status, status_reason,
   category, subcategory,
   gift_appeal, confidence, published, voucher_url, voucher_url_verified, cta_kind, local_only, city, local_kind, cover_position,
   voucher_url_note, voucher_type, updated_at,
