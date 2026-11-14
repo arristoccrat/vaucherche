@@ -71,6 +71,7 @@ describe("local detail", () => {
     const { localDetail } = await import("@/lib/cities");
     expect(localDetail("delivery")).toBe("доставка само в града");
     expect(localDetail("on_site")).toBe("ползва се на място в обекта");
+    expect(localDetail("both")).toBe("на място в обекта или с доставка в града");
     expect(localDetail(null)).toBe("ползва се на място в обекта");
   });
 });
