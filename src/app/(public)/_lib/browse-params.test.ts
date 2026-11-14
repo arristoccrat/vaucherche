@@ -76,3 +76,19 @@ describe("several choices per filter", () => {
     expect(categoriesLabel([sport, beauty, books])).toBe("Спорт, Красота и Книги");
   });
 });
+
+describe("validity filter", () => {
+  it("reads ?srok= in a fixed order and drops unknown values", async () => {
+    const { parseBrowseFilters } = await import("./browse-params");
+    expect(parseBrowseFilters({ srok: "bezsrochen,do-6,forever" }).srok).toEqual(["do-6", "bezsrochen"]);
+  });
+  it("matches any chosen bucket, 0 months as no expiry", async () => {
+    const { validityFilter } = await import("./browse-params");
+    expect(validityFilter([])).toBeNull();
+    expect(validityFilter(["nad-12", "bezsrochen"])).toBe("validity_months.gt.12,validity_months.eq.0");
+  });
+  it("round-trips through the URL", async () => {
+    const { browseHref, DEFAULT_FILTERS } = await import("./browse-params");
+    expect(browseHref(DEFAULT_FILTERS, { srok: ["6-12", "bezsrochen"] })).toBe("/?srok=6-12,bezsrochen");
+  });
+});

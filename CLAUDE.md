@@ -24,7 +24,8 @@ name in any URL:
   `allOf`), and the chosen ones show as removable chips above the list
   (`ActiveFilters`). `?dostavka=` (digital, delivery, in_store) matches
   the admin's "Получаване" (`delivery_methods`, crawler words included,
-  `deliveryFilter`). `?grad=` (city keys from `src/lib/cities.ts`) shows only
+  `deliveryFilter`). `?srok=` (do-6, 6-12, nad-12, bezsrochen) matches the
+  offer's `validity_months` (0 = безсрочен, `validityFilter`). `?grad=` (city keys from `src/lib/cities.ts`) shows only
   shops tied to those cities (`shops.local_only` + `city`, `sql/012`); the
   rail lists cities with 8+ shops and folds the rest under "Още N града".
   A local shop reads "Само в Пловдив" (or "Само на място" without a city,
