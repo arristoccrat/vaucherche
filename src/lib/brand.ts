@@ -5,6 +5,9 @@
 export const BRAND = {
   ground: "#FAF2EA", // page background, the logo's cream
   card: "#FFFFFF", // card and panel fill
+  // Behind shop logos: a warm off-white, so white or very pale parts of a
+  // logo still show. Light enough that ink letters keep 4.5:1.
+  logo: "#F3E8DA",
   ink: "#10302A", // borders, headings, body emphasis
   body: "#4A5A54", // body text
   // Spec value #6E7D77 is 3.90:1 on ground; darkened just enough to reach 4.5:1.
