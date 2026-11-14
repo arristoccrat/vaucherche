@@ -100,6 +100,7 @@ export type Database = {
           gift_appeal_rank: number | null;
           id: string;
           logo_url: string | null;
+          logo_bg: string | null;
           name: string;
           published: boolean | null;
           slug: string;
@@ -133,6 +134,7 @@ export type Database = {
           gift_appeal_rank?: never;
           id?: string;
           logo_url?: string | null;
+          logo_bg?: string | null;
           name: string;
           published?: boolean | null;
           slug: string;
@@ -166,6 +168,7 @@ export type Database = {
           gift_appeal_rank?: never;
           id?: string;
           logo_url?: string | null;
+          logo_bg?: string | null;
           name?: string;
           published?: boolean | null;
           slug?: string;
@@ -374,6 +377,7 @@ export type Database = {
           search_text: string | null;
           city: string | null;
           local_only: boolean | null;
+          logo_bg: string | null;
         };
         Relationships: [];
       };

@@ -7,7 +7,7 @@ export const PAGE_SIZE = 24;
 
 // Everything a card shows; nothing else leaves the database.
 const CARD_SELECT =
-  "id, slug, name, domain, description, logo_url, cover_url, category, subcategory, min_eur, max_eur, denominations_eur, custom_amount, is_digital, is_physical, validity_months, local_only, city";
+  "id, slug, name, domain, description, logo_url, logo_bg, cover_url, category, subcategory, min_eur, max_eur, denominations_eur, custom_amount, is_digital, is_physical, validity_months, local_only, city";
 
 type FilterParts = Pick<BrowseFilters, "kategorii" | "suma" | "dostavka" | "grad">;
 

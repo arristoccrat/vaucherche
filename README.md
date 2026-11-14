@@ -99,6 +99,10 @@ Phase 0 RLS policies and indexes from the admin spec):
   **before** deploying the version that reads it.
 - `sql/015_local_kind_both.sql` — `shops.local_kind` also takes `both` (on
   the spot and delivery in the city). Run after 014, **before** deploying.
+- `sql/016_logo_bg.sql` — `shops.logo_bg` (`#rrggbb`, null = white): the
+  colour behind a shop's logo on the cards and the shop page, picked in the
+  admin; `shop_voucher_range` gains it at the end. Run after 015,
+  **before** deploying the version that reads it.
 
 **Pipeline rules the admin relies on** (in the crawler / AI scripts, outside
 this repo):
@@ -165,7 +169,7 @@ shop count (about 19,974) with its query time in the header.
 
 ### Launch checklist (public site)
 
-1. Every file in `sql/` up to `015` has been run (see **Database changes**).
+1. Every file in `sql/` up to `016` has been run (see **Database changes**).
 2. In `/admin/queue`, publish the shops that pass the gate. Nothing
    publishes itself.
 3. Preview the real site on production with `/?preview=<PREVIEW_TOKEN>`:

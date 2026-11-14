@@ -169,7 +169,10 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
   identified by their bytes (`src/lib/images.ts`); SVG is never stored as
   SVG: it is drawn into a PNG with resvg (no scripts, no external files or
   URLs) and the PNG is stored. The cover's vertical crop on the shop page is
-  `shops.cover_position` (0–100, `sql/013`), a slider under the cover. Remote
+  `shops.cover_position` (0–100, `sql/013`), a slider under the cover. The
+  colour behind the logo (cards and shop page) is `shops.logo_bg`
+  (`#rrggbb` or null for white, `sql/016`), picked under the logo
+  (`logo-background.tsx`: presets or a colour picker). Remote
   fetches only to public hosts, every redirect re-checked, 2 MB / 10 s caps.
 - Voucher facts are editable (`src/actions/offers.ts`, one field per save,
   amounts entered and stored in EUR). Every save stamps

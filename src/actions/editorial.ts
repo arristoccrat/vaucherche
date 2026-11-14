@@ -58,6 +58,13 @@ const editorialSchema = z
     // Voucher description: in full on the shop page.
     voucher_description: optionalText(10_000),
     logo_url: httpUrl,
+    // Background behind the logo, "#rrggbb", or "" for white; sql/016.
+    logo_bg: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .regex(/^(#[0-9a-f]{6})?$/, { message: "Невалиден цвят." })
+      .transform((value) => value || null),
     category,
     // Shown on the public cards, so plain Bulgarian text ("Масажи").
     subcategory: optionalText(60),
