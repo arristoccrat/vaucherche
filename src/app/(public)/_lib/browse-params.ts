@@ -6,7 +6,7 @@ import { SITE_URL } from "@/lib/site";
 // Browse filters live in the URL, so every view is shareable and the server
 // renders it. One category is the path (/kategoriya/spa-i-uelnes); several
 // are a list on the home page (/?kategoriya=sport,beauty). The rest are
-// query parameters, each a comma list (?suma=0-25,po-izbor&dostavka=digital…).
+// query parameters, each a comma list (?suma=0-25,po-izbor&dostavka=digital&srok=bezsrochen…).
 // Within a filter any choice matches; filters combine with "and".
 
 export const AMOUNT_BUCKETS = [
@@ -27,6 +27,21 @@ export const DELIVERY = [
   { key: "in_store", label: "В магазин" },
 ] as const;
 export type DeliveryKey = (typeof DELIVERY)[number]["key"];
+
+// How long the voucher is valid, from the offer's validity_months (0 means
+// "безсрочен"; unknown validity matches no bucket). Disjoint, like amounts.
+export const VALIDITY_BUCKETS = [
+  { key: "do-6", label: "до 6 месеца", filter: "and(validity_months.gte.1,validity_months.lte.6)" },
+  { key: "6-12", label: "6–12 месеца", filter: "and(validity_months.gte.7,validity_months.lte.12)" },
+  { key: "nad-12", label: "над 12 месеца", filter: "validity_months.gt.12" },
+  { key: "bezsrochen", label: "Безсрочен", filter: "validity_months.eq.0" },
+] as const;
+export type ValidityKey = (typeof VALIDITY_BUCKETS)[number]["key"];
+
+export function validityFilter(keys: readonly ValidityKey[]): string | null {
+  const parts = VALIDITY_BUCKETS.filter((b) => keys.includes(b.key)).map((b) => b.filter);
+  return parts.length ? parts.join(",") : null;
+}
 
 // The PostgREST `or` filter for the chosen ways: any of them matches. A
 // digital voucher also counts when only "Дигитален" (is_digital) is set.
@@ -69,6 +84,7 @@ export type BrowseFilters = {
   kategorii: Category[];
   suma: AmountKey[];
   dostavka: DeliveryKey[];
+  srok: ValidityKey[];
   // Only shops tied to one of these cities (sql/012); online ones drop out.
   grad: CityKey[];
   podredba: SortKey;
@@ -79,6 +95,7 @@ export const DEFAULT_FILTERS: BrowseFilters = {
   kategorii: [],
   suma: [],
   dostavka: [],
+  srok: [],
   grad: [],
   podredba: "preporachani",
   stranitsa: 1,
@@ -118,6 +135,7 @@ export function parseBrowseFilters(params: Raw, categories: readonly Category[] 
     // In the buckets' order, so a URL has one spelling.
     suma: AMOUNT_BUCKETS.map((b) => b.key).filter((k) => suma.includes(k)),
     dostavka: DELIVERY.map((d) => d.key).filter((k) => dostavka.includes(k)),
+    srok: VALIDITY_BUCKETS.map((b) => b.key).filter((k) => list(params.srok).includes(k)),
     grad: CITIES.map((c) => c.key).filter((k) => list(params.grad).includes(k)),
     podredba: SORTS.some((s) => s.key === podredba) ? (podredba as SortKey) : "preporachani",
     stranitsa: Number.isFinite(stranitsa) && stranitsa > 0 ? stranitsa : 1,
@@ -139,6 +157,7 @@ export function browseHref(filters: BrowseFilters, changes: Partial<BrowseFilter
   if (next.kategorii.length > 1) params.set("kategoriya", next.kategorii.map((c) => c.key).join(","));
   if (next.suma.length) params.set("suma", next.suma.join(","));
   if (next.dostavka.length) params.set("dostavka", next.dostavka.join(","));
+  if (next.srok.length) params.set("srok", next.srok.join(","));
   if (next.grad.length) params.set("grad", next.grad.join(","));
   if (next.podredba !== DEFAULT_FILTERS.podredba) params.set("podredba", next.podredba);
   if (next.stranitsa > 1) params.set("stranitsa", String(next.stranitsa));
@@ -170,7 +189,7 @@ export function canonicalBrowseUrl(filters: BrowseFilters) {
 }
 
 export function hasActiveFilters(filters: BrowseFilters) {
-  return Boolean(filters.kategorii.length || filters.suma.length || filters.dostavka.length || filters.grad.length);
+  return Boolean(filters.kategorii.length || filters.suma.length || filters.dostavka.length || filters.srok.length || filters.grad.length);
 }
 
 // "Спорт", "Спорт и Красота", "Спорт, Красота и Книги".

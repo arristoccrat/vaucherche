@@ -9,11 +9,13 @@ import {
   AMOUNT_BUCKETS,
   DEFAULT_FILTERS,
   DELIVERY,
+  VALIDITY_BUCKETS,
   browseHref,
   toggled,
   toggledCategory,
   type AmountKey,
   type BrowseFilters,
+  type ValidityKey,
 } from "../_lib/browse-params";
 import type { VisibleCity } from "../_lib/categories";
 
@@ -36,6 +38,12 @@ function toggleCategory(filters: BrowseFilters, category: Category) {
 function toggleAmount(filters: BrowseFilters, key: AmountKey) {
   return browseHref(filters, { suma: toggled(filters.suma, key, AMOUNT_ORDER) });
 }
+
+const VALIDITY_ORDER: ValidityKey[] = VALIDITY_BUCKETS.map((b) => b.key);
+function toggleValidity(filters: BrowseFilters, key: ValidityKey) {
+  return browseHref(filters, { srok: toggled(filters.srok, key, VALIDITY_ORDER) });
+}
+const validityChipLabel = (b: (typeof VALIDITY_BUCKETS)[number]) => (b.key === "bezsrochen" ? b.label : `Срок ${b.label}`);
 
 const CITY_ORDER: CityKey[] = CITIES.map((c) => c.key);
 function toggleCity(filters: BrowseFilters, key: CityKey) {
@@ -117,6 +125,29 @@ export function ChipRows({
           );
         })}
       </div>
+      <div className="-mx-4 flex gap-[7px] overflow-x-auto px-4 pb-1 [scrollbar-width:none]">
+        <FilterButton
+          href={browseHref(filters, { srok: [] })}
+          pressed={!filters.srok.length}
+          className={cn(chipBase, chipHit, !filters.srok.length ? "bg-brand-amber text-brand-ink" : "bg-brand-card text-brand-ink")}
+        >
+          Всеки срок
+        </FilterButton>
+        {VALIDITY_BUCKETS.map((b) => {
+          const selected = filters.srok.includes(b.key);
+          return (
+            <FilterButton
+              key={b.key}
+              href={toggleValidity(filters, b.key)}
+              pressed={selected}
+              className={cn(chipBase, chipHit, "text-brand-ink", selected ? "bg-brand-amber" : "bg-brand-card")}
+            >
+              {b.label}
+              {selected ? <X className="size-3.5" aria-label="махни" /> : null}
+            </FilterButton>
+          );
+        })}
+      </div>
       {cities.length ? (
         <div>
           <p className="flex items-center gap-1.5 font-ui text-[13px] font-bold text-brand-ink">
@@ -147,6 +178,7 @@ export function ChipRows({
 
 const RAIL_CATEGORIES = 7;
 const railAmount = "h-8 px-3 text-[12px]";
+const railChip = "h-8 px-3 text-[12px] font-bold";
 
 // Desktop: the 272px filter rail (Desktop artboard).
 export function FilterRail({
@@ -283,6 +315,31 @@ export function FilterRail({
           </div>
         </RailGroup>
 
+        <RailGroup title="Срок на валидност" open>
+          <div className="flex flex-wrap gap-1.5">
+            <FilterButton
+              href={browseHref(filters, { srok: [] })}
+              pressed={!filters.srok.length}
+              className={cn(chipBase, railChip, "text-brand-ink", !filters.srok.length ? "bg-brand-amber" : "bg-brand-card")}
+            >
+              Всеки
+            </FilterButton>
+            {VALIDITY_BUCKETS.map((b) => {
+              const selected = filters.srok.includes(b.key);
+              return (
+                <FilterButton
+                  key={b.key}
+                  href={toggleValidity(filters, b.key)}
+                  pressed={selected}
+                  className={cn(chipBase, railChip, "text-brand-ink", selected ? "bg-brand-amber" : "bg-brand-card")}
+                >
+                  {b.label}
+                </FilterButton>
+              );
+            })}
+          </div>
+        </RailGroup>
+
         {cities.length ? (
           // Last and folded by default; open while a city is chosen.
           <RailGroup
@@ -349,6 +406,12 @@ export function ActiveFilters({ filters }: { filters: BrowseFilters }) {
       label: findCity(key)?.label ?? key,
       href: toggleCity(filters, key),
       className: "bg-brand-ink text-brand-card",
+    })),
+    ...VALIDITY_BUCKETS.filter((b) => filters.srok.includes(b.key)).map((b) => ({
+      key: `v-${b.key}`,
+      label: validityChipLabel(b),
+      href: toggleValidity(filters, b.key),
+      className: "bg-brand-amber text-brand-ink",
     })),
     ...DELIVERY.filter((d) => filters.dostavka.includes(d.key)).map((d) => ({
       key: `d-${d.key}`,

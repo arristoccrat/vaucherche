@@ -1,6 +1,6 @@
 import { publicClient } from "@/lib/supabase/public";
 
-import { allOf, amountFilter, deliveryFilter, type BrowseFilters } from "./browse-params";
+import { allOf, amountFilter, deliveryFilter, validityFilter, type BrowseFilters } from "./browse-params";
 import { legacySearchFilter, searchFilter } from "./search-query";
 
 export const PAGE_SIZE = 24;
@@ -9,7 +9,7 @@ export const PAGE_SIZE = 24;
 const CARD_SELECT =
   "id, slug, name, domain, description, logo_url, logo_bg, cover_url, category, subcategory, min_eur, max_eur, denominations_eur, custom_amount, is_digital, is_physical, validity_months, local_only, city";
 
-type FilterParts = Pick<BrowseFilters, "kategorii" | "suma" | "dostavka" | "grad">;
+type FilterParts = Pick<BrowseFilters, "kategorii" | "suma" | "dostavka" | "srok" | "grad">;
 
 // Structural type so the same filters apply to the list and the counts.
 interface Filterable<Self> {
@@ -23,8 +23,8 @@ function applyFilters<Q extends Filterable<Q>>(query: Q, filters: FilterParts): 
   let q = query.eq("published", true);
   if (filters.kategorii.length) q = q.in("category", filters.kategorii.map((c) => c.key));
   if (filters.grad.length) q = q.in("city", filters.grad);
-  // Any chosen amount and any chosen way of receiving it.
-  const choices = allOf([amountFilter(filters.suma), deliveryFilter(filters.dostavka)]);
+  // Any chosen amount, any chosen way of receiving it, any chosen validity.
+  const choices = allOf([amountFilter(filters.suma), deliveryFilter(filters.dostavka), validityFilter(filters.srok)]);
   if (choices) q = q.or(choices);
   return q;
 }
