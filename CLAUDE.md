@@ -92,7 +92,11 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
 - The admin's shop list shows the active statuses by default
   (`ACTIVE_STATUSES` in `src/lib/domain.ts`); `rejected` and `unreachable`
   sit in a muted "Архив" group of chips and appear when chosen or when
-  searching by domain. Hidden, never deleted.
+  searching by domain. Hidden, never deleted. The chips are one group at a
+  time (`StatusChips` with `showPublished`): a status chip opens that
+  status's unpublished shops, "Публикувани" opens the published ones, so
+  publishing a shop moves it (and its count) from its status to
+  "Публикувани".
 - `ai_confirmed` is a machine verdict (≥0.8 confidence); `confirmed` has crawler
   evidence or a human behind it. Never merge them in queries or UI.
 - Three independent booleans: `shops.voucher_url_verified` (human confirmed the

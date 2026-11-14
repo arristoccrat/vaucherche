@@ -11,7 +11,12 @@ import {
 } from "@/lib/search-params";
 import { cn } from "@/lib/utils";
 
-type Counts = { total: number; published?: number; byStatus: Record<ShopStatus, number> } | null;
+type Counts = {
+  total: number;
+  published?: number;
+  byStatus: Record<ShopStatus, number>;
+  unpublishedByStatus?: Record<ShopStatus, number>;
+} | null;
 
 // Chips are plain links: toggling one only changes the URL.
 export function StatusChips({
@@ -33,24 +38,42 @@ export function StatusChips({
   archivedStatuses?: readonly ShopStatus[];
   allLabel?: string;
   allCount?: number;
-  // A "Публикувани" chip after the statuses (it combines with them).
+  // The shop list's groups: one chip at a time, each opening its own set.
+  // The status chips hold unpublished shops only; published ones live under
+  // "Публикувани", so publishing a shop moves it from its status to there.
   showPublished?: boolean;
 }) {
+  const exclusive = showPublished;
   const publishedOnly = filters.published === "yes";
-  // "Всички" counts what it lists: the statuses shown before the archive.
-  const allTotal = allCount ?? (counts ? statuses.reduce((sum, s) => sum + counts.byStatus[s], 0) : 0);
-  const toggle = (status: ShopStatus) =>
-    filters.status.includes(status)
-      ? filters.status.filter((s) => s !== status)
-      : [...filters.status, status];
+  const statusCount = (s: ShopStatus) =>
+    counts ? (exclusive ? (counts.unpublishedByStatus ?? counts.byStatus)[s] : counts.byStatus[s]) : 0;
+  // "Всички" counts what it lists: the statuses shown before the archive
+  // (and, in the shop list, the published shops too).
+  const allTotal =
+    allCount ??
+    (counts ? statuses.reduce((sum, s) => sum + statusCount(s), 0) + (exclusive ? (counts.published ?? 0) : 0) : 0);
+  const allActive = filters.status.length === 0 && !(exclusive && filters.published);
+  const statusActive = (status: ShopStatus) =>
+    exclusive ? filters.status.length === 1 && filters.status[0] === status && filters.published !== "yes" : filters.status.includes(status);
+  const statusHref = (status: ShopStatus) => {
+    if (exclusive) {
+      return statusActive(status)
+        ? shopsHref(filters, { status: [], published: null }, view)
+        : shopsHref(filters, { status: [status], published: "no" }, view);
+    }
+    const next = filters.status.includes(status) ? filters.status.filter((s) => s !== status) : [...filters.status, status];
+    return shopsHref(filters, { status: next }, view);
+  };
+  const publishedActive = publishedOnly && filters.status.length === 0;
 
   return (
     <div className="flex flex-wrap gap-2">
       <Link
-        href={shopsHref(filters, { status: [] }, view)}
+        href={shopsHref(filters, exclusive ? { status: [], published: null } : { status: [] }, view)}
+        aria-pressed={allActive}
         className={cn(
           "rounded-full border px-3 py-1 text-sm transition-colors",
-          filters.status.length === 0
+          allActive
             ? "border-foreground bg-foreground text-background"
             : "hover:bg-accent"
         )}
@@ -61,11 +84,11 @@ export function StatusChips({
         ) : null}
       </Link>
       {statuses.map((status) => {
-        const active = filters.status.includes(status);
+        const active = statusActive(status);
         return (
           <Link
             key={status}
-            href={shopsHref(filters, { status: toggle(status) }, view)}
+            href={statusHref(status)}
             aria-pressed={active}
             className={cn(
               "rounded-full border px-3 py-1 text-sm transition-colors",
@@ -77,7 +100,7 @@ export function StatusChips({
             {STATUS_LABELS[status]}
             {counts ? (
               <span className="ml-1.5 tabular-nums opacity-70">
-                {formatCount(counts.byStatus[status])}
+                {formatCount(statusCount(status))}
               </span>
             ) : null}
           </Link>
@@ -88,11 +111,11 @@ export function StatusChips({
           <span aria-hidden className="mx-1 w-px self-stretch bg-border" />
           <span className="self-center text-xs text-muted-foreground">Архив:</span>
           {archivedStatuses.map((status) => {
-            const active = filters.status.includes(status);
+            const active = statusActive(status);
             return (
               <Link
                 key={status}
-                href={shopsHref(filters, { status: toggle(status) }, view)}
+                href={statusHref(status)}
                 aria-pressed={active}
                 className={cn(
                   "rounded-full border border-dashed px-2.5 py-0.5 text-xs transition-colors",
@@ -103,7 +126,7 @@ export function StatusChips({
               >
                 {STATUS_LABELS[status]}
                 {counts ? (
-                  <span className="ml-1.5 tabular-nums opacity-70">{formatCount(counts.byStatus[status])}</span>
+                  <span className="ml-1.5 tabular-nums opacity-70">{formatCount(statusCount(status))}</span>
                 ) : null}
               </Link>
             );
@@ -114,11 +137,11 @@ export function StatusChips({
         <>
           <span aria-hidden className="mx-1 w-px self-stretch bg-border" />
           <Link
-            href={shopsHref(filters, { published: publishedOnly ? null : "yes" }, view)}
-            aria-pressed={publishedOnly}
+            href={shopsHref(filters, publishedActive ? { status: [], published: null } : { status: [], published: "yes" }, view)}
+            aria-pressed={publishedActive}
             className={cn(
               "rounded-full border px-3 py-1 text-sm transition-colors",
-              publishedOnly
+              publishedActive
                 ? "border-emerald-600 bg-emerald-50 font-medium text-emerald-800 shadow-sm dark:bg-emerald-950 dark:text-emerald-200"
                 : "text-muted-foreground hover:bg-accent hover:text-foreground"
             )}
