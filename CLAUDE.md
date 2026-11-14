@@ -31,7 +31,9 @@ name in any URL:
   which no city filter matches) on its card and shop page; the shop page
   adds "ползва се на място в обекта", "доставка само в града" or both
   (`shops.local_kind`, `sql/014`, `015`, `LOCAL_KINDS` in `src/lib/cities.ts`).
-  The desktop filter rail is sticky and scrolls on its own. The queries in
+  The desktop filter rail is sticky and scrolls on its own; each group is a
+  foldable `<details>` (`RailGroup`), the city group last and folded unless a
+  city is chosen. The queries in
   `(public)/_lib/browse.ts` read
   `shop_voucher_range` (`sql/006`), always paginated with `.range()`.
   Public pages and `sitemap.xml` render per request (fetches stay cached):
