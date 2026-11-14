@@ -8,9 +8,10 @@ import { SORTS, browseHref, categoriesLabel, hasActiveFilters, shopCountLabel, t
 import { getVisibleCategories, getVisibleCities } from "../_lib/categories";
 
 import { BrowseEmpty } from "./browse-empty";
-import { ActiveFilters, ChipRows, FilterRail } from "./browse-filters";
+import { ActiveFilters, FilterGroups, FilterRail } from "./browse-filters";
 import { BrowsePagination } from "./browse-pagination";
 import { SortSelect } from "./filter-button";
+import { FilterSheet } from "./filter-sheet";
 
 // The browse list shared by / and /kategoriya/[path]: every filter lives in
 // the URL, every read is a cached published-only query.
@@ -24,11 +25,14 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
   // admin's order.
   const categoryOrder = [...visible].sort((a, b) => (counts[b.key] ?? 0) - (counts[a.key] ?? 0));
   const chosen = filters.kategorii;
+  const groups = { filters, counts, total: published, categories: categoryOrder, cities };
+  const activeCount =
+    filters.kategorii.length + filters.suma.length + filters.dostavka.length + filters.srok.length + filters.grad.length;
   const sortOptions = SORTS.map((s) => ({ key: s.key, label: s.label, href: browseHref(filters, { podredba: s.key }) }));
 
   return (
     <div className="mx-auto flex max-w-[1440px]">
-      <FilterRail filters={filters} counts={counts} total={published} categories={categoryOrder} cities={cities} />
+      <FilterRail {...groups} />
 
       <div className="min-w-0 flex-1 px-4 pb-10 pt-4 lg:px-9 lg:pt-[26px]">
         {chosen.length ? null : (
@@ -49,8 +53,12 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
           </div>
         </div>
 
-        <div className="mt-4 lg:hidden">
-          <ChipRows filters={filters} categories={categoryOrder} cities={cities} />
+        {/* Mobile: the filters open in a sheet from the bottom; sort beside. */}
+        <div className="mt-4 flex items-center justify-between gap-3 lg:hidden">
+          <FilterSheet activeCount={activeCount} resultLabel={shopCountLabel(total)}>
+            <FilterGroups {...groups} />
+          </FilterSheet>
+          <SortSelect value={filters.podredba} options={sortOptions} />
         </div>
 
         {hasActiveFilters(filters) ? (
@@ -59,9 +67,6 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
           </div>
         ) : null}
 
-        <div className="mt-4 flex min-h-11 items-center justify-end lg:hidden">
-          <SortSelect value={filters.podredba} options={sortOptions} />
-        </div>
 
         {shops.length ? (
           <ul className="mt-3 lg:mt-6 grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3 lg:gap-[18px]">
