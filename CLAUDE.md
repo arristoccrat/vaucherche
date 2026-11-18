@@ -26,7 +26,10 @@ name in any URL:
   the admin's "Получаване" (`delivery_methods`, crawler words included,
   `deliveryFilter`). `?srok=` (do-6, 6-12, nad-12, bezsrochen) matches the
   offer's `validity_months` (0 = безсрочен, `validityFilter`). `?grad=` (city keys from `src/lib/cities.ts`) shows only
-  shops tied to those cities (`shops.local_only` + `city`, `sql/012`); the
+  shops tied to those cities (`shops.local_only` + `city`, `sql/012`). One
+  city without categories is its own page, `/grad/<key>` (`cityPath`;
+  `/?grad=<one key>` 308s there; in the sitemap; "Подаръчни ваучери в …");
+  with a category it stays `?grad=` on the category page. The
   rail lists cities with 8+ shops and folds the rest under "Още N града".
   A local shop reads "Само в Пловдив" (or "Само на място" without a city,
   which no city filter matches) on its card and shop page; the shop page
@@ -57,6 +60,12 @@ name in any URL:
   (`searchFilter`); before 011 it falls back to the old columns. The
   query passes `normalizeQuery()` first (letters, digits, spaces only), which
   is what makes putting it into the PostgREST filter safe; keep it.
+  SEO: page titles go through the public layout's template (`%s |
+  vaucherche`), so pages give the title without the suffix. Structured data
+  lives in `(public)/_components/json-ld.tsx`: WebSite + SearchAction and
+  Organization on the home page, BreadcrumbList on category, city and shop
+  pages, ItemList on every list, and a Product with an Offer /
+  AggregateOffer in euros on a shop page that lists amounts.
 - `src/app/(admin)/admin/` — internal admin at `/admin`. Reads and writes
   Supabase; does not crawl and does not call the Anthropic API.
   `(auth)/login` is public (email + password via Supabase Auth; sign-ups

@@ -16,7 +16,7 @@ type Props = { searchParams: Record<string, string | string[] | undefined> };
 export function generateMetadata({ searchParams }: Props): Metadata {
   const query = normalizeQuery(searchParams.q);
   return {
-    title: query ? `„${query}“ — търсене | vaucherche` : "Търсене | vaucherche",
+    title: query ? `„${query}“ — търсене` : "Търсене",
     robots: { index: false, follow: true },
   };
 }

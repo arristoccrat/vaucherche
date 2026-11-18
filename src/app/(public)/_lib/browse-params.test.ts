@@ -92,3 +92,18 @@ describe("validity filter", () => {
     expect(browseHref(DEFAULT_FILTERS, { srok: ["6-12", "bezsrochen"] })).toBe("/?srok=6-12,bezsrochen");
   });
 });
+
+describe("city pages", () => {
+  it("puts one city without categories in the path, keeping the other filters", async () => {
+    const { browseHref, DEFAULT_FILTERS } = await import("./browse-params");
+    expect(browseHref(DEFAULT_FILTERS, { grad: ["plovdiv"] })).toBe("/grad/plovdiv");
+    expect(browseHref(DEFAULT_FILTERS, { grad: ["plovdiv"], suma: ["0-25"] })).toBe("/grad/plovdiv?suma=0-25");
+    expect(browseHref(DEFAULT_FILTERS, { grad: ["plovdiv", "sofia"] })).toBe("/?grad=plovdiv,sofia");
+  });
+  it("keeps a city as a filter on a category page, and points canonicals at the city page", async () => {
+    const { browseHref, canonicalBrowseUrl, DEFAULT_FILTERS } = await import("./browse-params");
+    const spa = { key: "spa", label: "Спа", path: "spa", bg: "#6FC4A2", on: "ink", icon: "Sparkles", sort_order: 1 } as never;
+    expect(browseHref(DEFAULT_FILTERS, { kategorii: [spa], grad: ["plovdiv"] })).toBe("/kategoriya/spa?grad=plovdiv");
+    expect(canonicalBrowseUrl({ ...DEFAULT_FILTERS, grad: ["varna"], suma: ["0-25"] })).toMatch(/\/grad\/varna$/);
+  });
+});

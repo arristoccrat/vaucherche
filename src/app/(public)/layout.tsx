@@ -9,7 +9,17 @@ import { SiteFooter } from "./_components/site-footer";
 import { SiteHeader } from "./_components/site-header";
 
 // Canonical and Open Graph URLs resolve against the production domain.
-export const metadata: Metadata = { metadataBase: new URL(SITE_URL) };
+// Every page title ends in "| vaucherche"; the home page uses the default.
+export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: "Подаръчни ваучери от български магазини | vaucherche",
+    template: "%s | vaucherche",
+  },
+  description:
+    "Подаръчни ваучери и карти за подарък от български магазини на едно място: суми в евро, срок на валидност и как се получават.",
+  openGraph: { siteName: "vaucherche", locale: "bg_BG", type: "website" },
+};
 
 // Before launch the middleware sends visitors to /coming-soon instead, so
 // this layout only renders for previewers (and everyone after launch).

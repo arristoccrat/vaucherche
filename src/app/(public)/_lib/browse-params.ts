@@ -1,5 +1,5 @@
 import { findCategory, type Category } from "@/lib/categories";
-import { CITIES, type CityKey } from "@/lib/cities";
+import { CITIES, findCity, type CityKey } from "@/lib/cities";
 import { DELIVERY_WORDS } from "@/lib/offer-fields";
 import { SITE_URL } from "@/lib/site";
 
@@ -146,9 +146,23 @@ export function browsePath(kategoriya: Pick<Category, "path"> | null) {
   return kategoriya ? `/kategoriya/${kategoriya.path}` : "/";
 }
 
-// One category has its own page; several are a list on the home page.
-function categoriesPath(kategorii: readonly Category[]) {
-  return kategorii.length === 1 ? browsePath(kategorii[0]) : "/";
+// One city has its own page too (/grad/plovdiv), unless a category page
+// carries it as a filter.
+export function cityPath(key: CityKey) {
+  return `/grad/${key}`;
+}
+
+// The page a set of filters lives on: one category has its own page, one
+// city (without categories) too; anything else is a list on the home page.
+function filtersPath(filters: Pick<BrowseFilters, "kategorii" | "grad">) {
+  if (filters.kategorii.length === 1) return browsePath(filters.kategorii[0]);
+  if (!filters.kategorii.length && filters.grad.length === 1) return cityPath(filters.grad[0]);
+  return "/";
+}
+
+// The city a /grad/<key> page shows, when the filters are exactly that.
+export function singleCity(filters: Pick<BrowseFilters, "kategorii" | "grad">) {
+  return !filters.kategorii.length && filters.grad.length === 1 ? findCity(filters.grad[0]) : undefined;
 }
 
 export function browseHref(filters: BrowseFilters, changes: Partial<BrowseFilters> = {}) {
@@ -158,12 +172,13 @@ export function browseHref(filters: BrowseFilters, changes: Partial<BrowseFilter
   if (next.suma.length) params.set("suma", next.suma.join(","));
   if (next.dostavka.length) params.set("dostavka", next.dostavka.join(","));
   if (next.srok.length) params.set("srok", next.srok.join(","));
-  if (next.grad.length) params.set("grad", next.grad.join(","));
+  // A single city without categories is the path, not a parameter.
+  if (next.grad.length && !singleCity(next)) params.set("grad", next.grad.join(","));
   if (next.podredba !== DEFAULT_FILTERS.podredba) params.set("podredba", next.podredba);
   if (next.stranitsa > 1) params.set("stranitsa", String(next.stranitsa));
   // Commas stay readable in the URL.
   const query = params.toString().replace(/%2C/g, ",");
-  const path = categoriesPath(next.kategorii);
+  const path = filtersPath(next);
   return query ? `${path}?${query}` : path;
 }
 
@@ -179,11 +194,11 @@ export function toggledCategory(kategorii: readonly Category[], category: Catego
     : [...kategorii, category];
 }
 
-// Search engines index the category and page only; amount, delivery, sort
-// and multi-category variants point back at it. Absolute, because Next drops
+// Search engines index the category (or single city) and page only;
+// amount, delivery, sort and multi-category variants point back at it. Absolute, because Next drops
 // the query from a relative "/?…" canonical.
 export function canonicalBrowseUrl(filters: BrowseFilters) {
-  const url = new URL(categoriesPath(filters.kategorii), SITE_URL);
+  const url = new URL(filtersPath(filters), SITE_URL);
   if (filters.stranitsa > 1) url.searchParams.set("stranitsa", String(filters.stranitsa));
   return url.toString();
 }

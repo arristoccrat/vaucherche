@@ -13,7 +13,7 @@ import { getVisibleCategories } from "../_lib/categories";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Всички категории подаръчни ваучери | vaucherche",
+  title: "Всички категории подаръчни ваучери",
   description: "Подаръчни ваучери по повод: спа, преживявания, храна, красота, книги, детски, мода и още — от български онлайн магазини.",
   alternates: { canonical: "/kategorii" },
 };
