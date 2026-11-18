@@ -151,6 +151,9 @@ export default async function ShopPage({ params }: { params: { slug: string } })
                 fill
                 priority
                 sizes="(min-width: 1024px) 950px, 100vw"
+                // Covers are often flat illustrations: the default 75 leaves
+                // smudges around their crisp edges.
+                quality={90}
                 className="object-cover"
                 // The admin's crop: which part of the photo stays in view.
                 style={{ objectPosition: `center ${shop.cover_position ?? 50}%` }}
@@ -169,7 +172,7 @@ export default async function ShopPage({ params }: { params: { slug: string } })
               style={shop.logo_url && shop.logo_bg ? { backgroundColor: shop.logo_bg } : undefined}
             >
               {shop.logo_url ? (
-                <Image src={shop.logo_url} alt={`Лого на ${name}`} fill sizes="(min-width: 1024px) 192px, 120px" className="object-contain p-3 lg:p-5" />
+                <Image src={shop.logo_url} alt={`Лого на ${name}`} fill sizes="(min-width: 1024px) 192px, 120px" quality={90} className="object-contain p-3 lg:p-5" />
               ) : (
                 <span className="font-display text-[48px] font-extrabold lg:text-[76px]" style={{ color: monogramColor }} aria-hidden>
                   {name.charAt(0).toUpperCase()}

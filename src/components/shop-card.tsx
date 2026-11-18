@@ -106,6 +106,7 @@ export function ShopCard({
               alt=""
               fill
               sizes="(min-width: 1024px) 240px, (min-width: 768px) 32vw, 64vw"
+              quality={90}
               className="object-contain p-[12%]"
               priority={priority}
             />

@@ -70,7 +70,7 @@ export function ImagePicker({
       <div className="flex items-baseline justify-between">
         <span className="text-xs font-medium">{label}</span>
         <span className="text-[11px] text-muted-foreground">
-          {kind === "logo" ? "квадратно, до 2 MB" : "широко ~16:9, до 2 MB"}
+          {kind === "logo" ? "квадратно, поне 400 px, до 2 MB" : "поне 2000 px широко, ~3:1, до 2 MB"}
         </span>
       </div>
 
