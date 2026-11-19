@@ -11,10 +11,12 @@ import {
   listShops,
 } from "@/lib/queries/shops";
 import { getAdminCategories } from "@/lib/queries/categories";
+import { getCoverOptions } from "@/lib/queries/covers";
 import { parseShopFilters, serializeShopFilters } from "@/lib/search-params";
 
 import { FilterBar } from "./_components/filter-bar";
 import { Pagination } from "./_components/pagination";
+import { CoverOptionsProvider } from "./_components/cover-options";
 import { ShopsBrowser } from "./_components/shops-browser";
 import { StatusChips } from "./_components/status-chips";
 
@@ -24,7 +26,7 @@ export default async function ShopsPage({
   searchParams: Record<string, string | string[] | undefined>;
 }) {
   const filters = parseShopFilters(searchParams);
-  const [result, counts, facets, adminCategories] = await Promise.all([
+  const [result, counts, facets, adminCategories, coverOptions] = await Promise.all([
     listShops({ ...filters, pageSize: SHOPS_PAGE_SIZE }).catch(
       (error: unknown) => ({
         error: error instanceof Error ? error.message : String(error),
@@ -33,6 +35,7 @@ export default async function ShopsPage({
     getStatusCounts(),
     getShopFacets(),
     getAdminCategories(),
+    getCoverOptions(),
   ]);
   if ("error" in result) return <QueryError message={result.error} />;
   const categories = categoryOptions(adminCategories.active, adminCategories.archived);
@@ -67,12 +70,14 @@ export default async function ShopsPage({
         </Link>
       ) : null}
 
-      <ShopsBrowser
-        categories={categories}
-        rows={result.rows}
-        total={result.total}
-        filterQuery={serializeShopFilters({ ...filters, page: 1 }).toString()}
-      />
+      <CoverOptionsProvider covers={coverOptions}>
+        <ShopsBrowser
+          categories={categories}
+          rows={result.rows}
+          total={result.total}
+          filterQuery={serializeShopFilters({ ...filters, page: 1 }).toString()}
+        />
+      </CoverOptionsProvider>
 
       <Pagination
         filters={filters}

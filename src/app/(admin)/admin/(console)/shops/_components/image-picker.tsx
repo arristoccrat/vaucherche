@@ -5,6 +5,7 @@ import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { updateShopEditorial } from "@/actions/editorial";
+import { applyLibraryCover } from "@/actions/covers";
 import { clearShopImage, importShopImage, uploadShopImage } from "@/actions/media";
 import { Button } from "@/components/ui/button";
 import type { ActionResult } from "@/lib/action-result";
@@ -12,6 +13,7 @@ import type { Suggestion } from "@/lib/suggestions";
 import { cn } from "@/lib/utils";
 
 import { FieldLabel, fieldClass, useAutosave } from "./autosave";
+import { useCoverOptions } from "./cover-options";
 
 // SVG is accepted and stored as a PNG (see src/actions/media.ts).
 const ACCEPT = "image/png,image/jpeg,image/webp,image/gif,image/x-icon,image/svg+xml,.svg";
@@ -39,6 +41,8 @@ export function ImagePicker({
   const [pending, startTransition] = useTransition();
   const fileRef = useRef<HTMLInputElement>(null);
   const label = kind === "logo" ? "Лого" : "Корица";
+  const library = useCoverOptions();
+  const fromLibrary = kind === "cover" ? library.find((c) => c.url === current) : undefined;
 
   const run = (call: () => Promise<ActionResult<{ url: string } | null>>, success: string) =>
     startTransition(async () => {
@@ -118,6 +122,27 @@ export function ImagePicker({
               </Button>
             ) : null}
           </div>
+          {kind === "cover" && library.length ? (
+            <select
+              aria-label="Корица от библиотеката"
+              value={fromLibrary?.id ?? ""}
+              disabled={pending}
+              onChange={(event) => {
+                const id = event.target.value;
+                if (id) run(() => applyLibraryCover(shopId, id), "Корица: от библиотеката");
+              }}
+              className={fieldClass}
+            >
+              <option value="" disabled>
+                {current ? "Своя корица — избери от библиотеката…" : "От библиотеката…"}
+              </option>
+              {library.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          ) : null}
           <div className="flex gap-2">
             <input
               value={remote}

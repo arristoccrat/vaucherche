@@ -84,6 +84,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      cover_library: {
+        Row: {
+          id: string;
+          name: string;
+          url: string;
+          created_at: string;
+          archived_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          url: string;
+          created_at?: string;
+          archived_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          url?: string;
+          created_at?: string;
+          archived_at?: string | null;
+        };
+        Relationships: [];
+      };
       shops: {
         Row: {
           affiliate_merchant_id: string | null;

@@ -11,6 +11,7 @@ import {
   listShops,
 } from "@/lib/queries/shops";
 import { getAdminCategories } from "@/lib/queries/categories";
+import { getCoverOptions } from "@/lib/queries/covers";
 import {
   QUEUE_VIEW,
   parseShopFilters,
@@ -20,6 +21,7 @@ import {
 
 import { FilterBar } from "../shops/_components/filter-bar";
 import { Pagination } from "../shops/_components/pagination";
+import { CoverOptionsProvider } from "../shops/_components/cover-options";
 import { ShopsBrowser } from "../shops/_components/shops-browser";
 import { StatusChips } from "../shops/_components/status-chips";
 
@@ -41,7 +43,7 @@ export default async function QueuePage({
     published: "no",
   };
 
-  const [result, counts, facets, adminCategories] = await Promise.all([
+  const [result, counts, facets, adminCategories, coverOptions] = await Promise.all([
     listShops({ ...effective, pageSize: SHOPS_PAGE_SIZE }).catch(
       (error: unknown) => ({
         error: error instanceof Error ? error.message : String(error),
@@ -50,6 +52,7 @@ export default async function QueuePage({
     getQueueCounts(),
     getShopFacets(),
     getAdminCategories(),
+    getCoverOptions(),
   ]);
   if ("error" in result) return <QueryError message={result.error} />;
   const categories = categoryOptions(adminCategories.active, adminCategories.archived);
@@ -97,13 +100,15 @@ export default async function QueuePage({
         </Link>
       ) : null}
 
-      <ShopsBrowser
-        categories={categories}
-        rows={result.rows}
-        total={result.total}
-        filterQuery={serializeShopFilters({ ...effective, page: 1 }).toString()}
-        showPublishChecklist
-      />
+      <CoverOptionsProvider covers={coverOptions}>
+        <ShopsBrowser
+          categories={categories}
+          rows={result.rows}
+          total={result.total}
+          filterQuery={serializeShopFilters({ ...effective, page: 1 }).toString()}
+          showPublishChecklist
+        />
+      </CoverOptionsProvider>
 
       <Pagination
         filters={filters}
