@@ -184,7 +184,12 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
   `shops.cover_position` (0–100, `sql/013`), a slider under the cover. The
   colour behind the logo (cards and shop page) is `shops.logo_bg`
   (`#rrggbb` or null for white, `sql/016`), picked under the logo
-  (`logo-background.tsx`: presets or a colour picker). Remote
+  (`logo-background.tsx`: presets or a colour picker). Covers that repeat
+  live in a library (`cover_library`, `sql/017`, `/admin/covers`,
+  `src/actions/covers.ts`): uploaded once with a name, picked for a shop
+  from "От библиотеката" under its cover, which writes the library URL to
+  `shops.cover_url` (looked up on the server). Deleting archives. Storage
+  uploads for both go through `src/lib/media-store.ts`. Remote
   fetches only to public hosts, every redirect re-checked, 2 MB / 10 s caps.
 - Voucher facts are editable (`src/actions/offers.ts`, one field per save,
   amounts entered and stored in EUR). Every save stamps

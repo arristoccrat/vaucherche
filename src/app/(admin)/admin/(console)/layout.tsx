@@ -12,6 +12,7 @@ const NAV = [
   { href: "/admin/shops", label: "Магазини" },
   { href: "/admin/queue", label: "Опашка" },
   { href: "/admin/categories", label: "Категории" },
+  { href: "/admin/covers", label: "Корици" },
   { href: "/admin/ops", label: "Операции" },
 ];
 

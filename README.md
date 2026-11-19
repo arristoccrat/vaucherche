@@ -103,6 +103,10 @@ Phase 0 RLS policies and indexes from the admin spec):
   colour behind a shop's logo on the cards and the shop page, picked in the
   admin; `shop_voucher_range` gains it at the end. Run after 015,
   **before** deploying the version that reads it.
+- `sql/017_cover_library.sql` — `cover_library`: covers uploaded once in
+  `/admin/covers` with a name and picked for any shop (admin only, RLS on
+  with no policies). Run after 016, **before** deploying the version that
+  reads it.
 
 **Pipeline rules the admin relies on** (in the crawler / AI scripts, outside
 this repo):
@@ -169,7 +173,7 @@ shop count (about 19,974) with its query time in the header.
 
 ### Launch checklist (public site)
 
-1. Every file in `sql/` up to `016` has been run (see **Database changes**).
+1. Every file in `sql/` up to `017` has been run (see **Database changes**).
 2. In `/admin/queue`, publish the shops that pass the gate. Nothing
    publishes itself.
 3. Preview the real site on production with `/?preview=<PREVIEW_TOKEN>`:

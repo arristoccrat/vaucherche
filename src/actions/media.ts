@@ -6,10 +6,10 @@ import { z } from "zod";
 import { NOT_SIGNED_IN, type ActionResult } from "@/lib/action-result";
 import { getUser } from "@/lib/auth";
 import { PUBLIC_DATA_TAG } from "@/lib/site";
-import { MAX_IMAGE_BYTES, isSafeRemoteUrl, looksLikeSvg, sniffImage } from "@/lib/images";
+import { MAX_IMAGE_BYTES, isSafeRemoteUrl } from "@/lib/images";
+import { storeMediaBytes } from "@/lib/media-store";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const BUCKET = "shop-media";
 const FETCH_TIMEOUT_MS = 10_000;
 const MAX_REDIRECTS = 3;
 
@@ -25,35 +25,9 @@ function refresh(shopId: string) {
   revalidatePath(`/admin/shops/${shopId}`);
 }
 
-function toArrayBuffer(bytes: Uint8Array): ArrayBuffer {
-  const copy = new Uint8Array(bytes.byteLength);
-  copy.set(bytes);
-  return copy.buffer;
-}
-
 function imagePatch(kind: ImageKind, url: string | null) {
   const updated_at = new Date().toISOString();
   return kind === "logo" ? { logo_url: url, updated_at } : { cover_url: url, updated_at };
-}
-
-// SVG is never stored as SVG (it can carry scripts and links): it is drawn
-// into a PNG with resvg, which runs no scripts and loads no external files
-// or URLs, so only the shapes and text of the drawing survive.
-async function rasterizeSvg(bytes: Uint8Array, kind: ImageKind): Promise<Uint8Array | string> {
-  try {
-    const { Resvg } = await import("@resvg/resvg-js");
-    const svg = new TextDecoder().decode(bytes);
-    const png = new Resvg(svg, {
-      fitTo: { mode: "width", value: kind === "logo" ? 800 : 2000 },
-      font: { loadSystemFonts: true },
-    })
-      .render()
-      .asPng();
-    if (png.byteLength > MAX_IMAGE_BYTES) return "SVG файлът става над 2 MB като PNG.";
-    return new Uint8Array(png);
-  } catch {
-    return "SVG файлът не можа да се прочете.";
-  }
 }
 
 // Store bytes in the shop-media bucket and point the shop at the copy, so the
@@ -63,30 +37,11 @@ async function storeImage(
   kind: ImageKind,
   input: Uint8Array
 ): Promise<ActionResult<{ url: string }>> {
-  let bytes = input;
-  if (bytes.byteLength > MAX_IMAGE_BYTES) return fail("Файлът е над 2 MB.");
-  let type = sniffImage(bytes);
-  if (!type && looksLikeSvg(bytes)) {
-    const png = await rasterizeSvg(bytes, kind);
-    if (typeof png === "string") return fail(png);
-    bytes = png;
-    type = { mime: "image/png", ext: "png" };
-  }
-  if (!type) return fail("Неподдържан формат. Позволени са PNG, JPEG, WebP, GIF, ICO и SVG.");
+  const stored = await storeMediaBytes(`shops/${shopId}/${kind}`, kind === "logo" ? 800 : 2000, input);
+  if (!stored.ok) return stored;
+  const { url } = stored.data;
 
-  const supabase = createAdminClient();
-  const path = `shops/${shopId}/${kind}-${Date.now()}.${type.ext}`;
-  const { error: uploadError } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, toArrayBuffer(bytes), {
-      contentType: type.mime,
-      cacheControl: "31536000",
-      upsert: false,
-    });
-  if (uploadError) return fail(`Грешка при качване: ${uploadError.message}`);
-
-  const url = supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
-  const { error } = await supabase
+  const { error } = await createAdminClient()
     .from("shops")
     .update(imagePatch(kind, url))
     .eq("id", shopId);
