@@ -16,7 +16,7 @@ type Props = {
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
   const { category } = await resolveCategoryPath(params.path);
   if (!category) return {};
-  const title = `${category.label}: подаръчни ваучери | vaucherche`;
+  const title = `${category.label} — подаръчни ваучери и карти за подарък`;
   const description = `Подаръчни ваучери в категория „${category.label}“ от български онлайн магазини: суми в евро, валидност и начин на доставка.`;
   return {
     title,

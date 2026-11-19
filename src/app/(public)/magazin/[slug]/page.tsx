@@ -13,7 +13,7 @@ import { formatEur, formatEurRange } from "@/lib/format";
 import { deliveryKeys, type DeliveryKey } from "@/lib/offer-fields";
 import { parseRichText } from "@/lib/rich-text";
 
-import { BreadcrumbJsonLd } from "../../_components/json-ld";
+import { BreadcrumbJsonLd, VoucherJsonLd } from "../../_components/json-ld";
 import { browsePath } from "../../_lib/browse-params";
 import { outboundHref } from "../../_lib/outbound";
 import { getVisibleCategories } from "../../_lib/categories";
@@ -37,13 +37,26 @@ function fallbackDescription({ shop, amounts }: PublishedShop) {
   return `Подаръчни ваучери от ${shop.domain}${range}.`;
 }
 
+// "Alpluscosmetics — подаръчен ваучер от 25 €": the shop name first, as
+// people search it, then what it is and where the amounts start.
+function priceTitle(name: string, [low]: [number | null, number | null]) {
+  return `${name} — подаръчен ваучер${low != null ? ` от ${formatEur(low)}` : ""}`;
+}
+
+// The lowest and highest amount on offer in euros: the denominations,
+// widened by a custom amount's limits.
+function priceBounds({ amounts, customRange }: PublishedShop): [number | null, number | null] {
+  const values = [...amounts, customRange?.min, customRange?.max].filter((v): v is number => v != null && v > 0);
+  return values.length ? [Math.min(...values), Math.max(...values)] : [null, null];
+}
+
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const data = await getPublishedShop(params.slug);
-  if (!data) return { title: "Магазинът не е намерен — vaucherche" };
+  if (!data) return { title: "Магазинът не е намерен" };
   const name = displayName(data.shop);
   const description = data.shop.description?.trim() || fallbackDescription(data);
   return {
-    title: `${name} — подаръчни ваучери | vaucherche`,
+    title: priceTitle(name, priceBounds(data)),
     description,
     alternates: { canonical: `/magazin/${data.shop.slug}` },
     openGraph: {
@@ -122,6 +135,14 @@ export default async function ShopPage({ params }: { params: { slug: string } })
           ...(hasCategoryPage ? [{ name: category.label, path: browsePath(category) }] : []),
           { name, path: `/magazin/${shop.slug}` },
         ]}
+      />
+      <VoucherJsonLd
+        name={name}
+        slug={shop.slug ?? ""}
+        description={description}
+        image={shop.logo_url ?? shop.cover_url}
+        low={priceBounds(data)[0]}
+        high={priceBounds(data)[1]}
       />
       <nav aria-label="Навигация" className="flex items-center gap-2 text-[13.5px] font-semibold">
         <Link href="/" className="flex min-h-11 items-center gap-1 text-brand-ink hover:underline">

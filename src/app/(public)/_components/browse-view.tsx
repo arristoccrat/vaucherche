@@ -2,14 +2,24 @@ import Link from "next/link";
 
 import { ShopCard } from "@/components/shop-card";
 import { categoryOrFallback } from "@/lib/categories";
+import { inCity } from "@/lib/cities";
 
 import { PAGE_SIZE, listPublishedShops } from "../_lib/browse";
-import { SORTS, browseHref, categoriesLabel, hasActiveFilters, shopCountLabel, type BrowseFilters } from "../_lib/browse-params";
+import {
+  SORTS,
+  browseHref,
+  categoriesLabel,
+  hasActiveFilters,
+  shopCountLabel,
+  singleCity,
+  type BrowseFilters,
+} from "../_lib/browse-params";
 import { getVisibleCategories, getVisibleCities } from "../_lib/categories";
 
 import { BrowseEmpty } from "./browse-empty";
 import { ActiveFilters, FilterGroups, FilterRail } from "./browse-filters";
 import { BrowsePagination } from "./browse-pagination";
+import { ShopListJsonLd } from "./json-ld";
 import { SortSelect } from "./filter-button";
 import { FilterSheet } from "./filter-sheet";
 
@@ -25,6 +35,8 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
   // admin's order.
   const categoryOrder = [...visible].sort((a, b) => (counts[b.key] ?? 0) - (counts[a.key] ?? 0));
   const chosen = filters.kategorii;
+  const city = singleCity(filters);
+  const heading = chosen.length ? categoriesLabel(chosen) : city ? `Ваучери ${inCity(city.label)}` : "Всички ваучери";
   const groups = { filters, counts, total: published, categories: categoryOrder, cities };
   const activeCount =
     filters.kategorii.length + filters.suma.length + filters.dostavka.length + filters.srok.length + filters.grad.length;
@@ -41,7 +53,7 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
         <div className="mt-1 flex flex-wrap items-end justify-between gap-4 lg:mt-0">
           <div>
             <h1 className="font-display text-[26px] font-extrabold tracking-[-0.02em] text-brand-ink lg:text-[30px]">
-              {chosen.length ? categoriesLabel(chosen) : "Всички ваучери"}
+              {heading}
             </h1>
             {/* The shops the current filters show. */}
             <p className="mt-1 font-num text-sm font-semibold text-brand-ink lg:text-[15px]" aria-live="polite">
@@ -68,6 +80,7 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
         ) : null}
 
 
+        <ShopListJsonLd shops={shops} offset={(filters.stranitsa - 1) * PAGE_SIZE} />
         {shops.length ? (
           <ul className="mt-3 lg:mt-6 grid grid-cols-1 gap-3.5 sm:grid-cols-2 xl:grid-cols-3 lg:gap-[18px]">
             {shops.map((shop, i) => (

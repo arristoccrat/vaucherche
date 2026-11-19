@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { permanentRedirect } from "next/navigation";
 
 import { BrowseView } from "./_components/browse-view";
-import { canonicalBrowseUrl, parseBrowseFilters, browseHref } from "./_lib/browse-params";
+import { SiteJsonLd } from "./_components/json-ld";
+import { canonicalBrowseUrl, parseBrowseFilters, browseHref, singleCity } from "./_lib/browse-params";
 import { getPublicCategories } from "./_lib/categories";
 
 type Props = { searchParams: Record<string, string | string[] | undefined> };
@@ -22,8 +23,15 @@ export function generateMetadata({ searchParams }: Props): Metadata {
 
 export default async function HomePage({ searchParams }: Props) {
   const filters = parseBrowseFilters(searchParams, await getPublicCategories());
-  // One category has its own page; ?kategoriya=<one key> lands there.
-  // Several stay here as a list.
-  if (filters.kategorii.length === 1) permanentRedirect(browseHref(filters, { stranitsa: filters.stranitsa }));
-  return <BrowseView filters={filters} />;
+  // One category has its own page; ?kategoriya=<one key> lands there. So
+  // does one city (?grad=<one key> → /grad/<key>). Several stay here.
+  if (filters.kategorii.length === 1 || singleCity(filters)) {
+    permanentRedirect(browseHref(filters, { stranitsa: filters.stranitsa }));
+  }
+  return (
+    <>
+      <SiteJsonLd />
+      <BrowseView filters={filters} />
+    </>
+  );
 }
