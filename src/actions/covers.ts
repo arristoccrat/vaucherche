@@ -8,6 +8,7 @@ import { getUser } from "@/lib/auth";
 import { MAX_IMAGE_BYTES } from "@/lib/images";
 import { storeMediaBytes } from "@/lib/media-store";
 import { PUBLIC_DATA_TAG } from "@/lib/site";
+import { findExistingCovers } from "@/lib/queries/covers";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // The cover library (sql/017, /admin/covers): upload once with a name, then
@@ -99,4 +100,19 @@ export async function applyLibraryCover(shopId: string, coverId: string): Promis
   revalidatePath(`/admin/shops/${parsed.data.shopId}`);
   revalidatePath("/admin/covers");
   return { ok: true, data: { url: cover.url } };
+}
+
+// Puts the covers shops already have into the library (one per URL, named
+// after a shop that uses it; rename them afterwards). Shops keep their
+// covers as they are.
+export async function importExistingCovers(): Promise<ActionResult<{ added: number }>> {
+  if (!(await getUser())) return NOT_SIGNED_IN;
+  const existing = await findExistingCovers();
+  if (!existing.length) return { ok: true, data: { added: 0 } };
+  const { error } = await createAdminClient()
+    .from("cover_library")
+    .insert(existing.map((c) => ({ name: c.name, url: c.url })));
+  if (error) return fail(`Грешка при запис: ${error.message}`);
+  refreshLibrary();
+  return { ok: true, data: { added: existing.length } };
 }

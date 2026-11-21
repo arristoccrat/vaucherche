@@ -4,10 +4,10 @@ import { Upload } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import { renameLibraryCover, setLibraryCoverArchived, uploadLibraryCover } from "@/actions/covers";
+import { importExistingCovers, renameLibraryCover, setLibraryCoverArchived, uploadLibraryCover } from "@/actions/covers";
 import { Button } from "@/components/ui/button";
 import type { ActionResult } from "@/lib/action-result";
-import type { LibraryCover } from "@/lib/queries/covers";
+import type { ExistingCover, LibraryCover } from "@/lib/queries/covers";
 import { cn } from "@/lib/utils";
 
 const ACCEPT = "image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.svg";
@@ -32,12 +32,13 @@ function useRun() {
   return { pending, run };
 }
 
-export function CoverLibrary({ covers }: { covers: Cover[] }) {
+export function CoverLibrary({ covers, existing }: { covers: Cover[]; existing: ExistingCover[] }) {
   const active = covers.filter((c) => !c.archivedAt);
   const archived = covers.filter((c) => c.archivedAt);
   return (
     <div className="space-y-8">
       <UploadForm />
+      {existing.length ? <ExistingCovers covers={existing} /> : null}
       {active.length ? (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {active.map((c) => (
@@ -168,5 +169,52 @@ function CoverItem({ cover }: { cover: Cover }) {
         </Button>
       </div>
     </li>
+  );
+}
+
+// Covers shops already have but the library does not: added in one go, each
+// named after a shop that uses it (rename them in the grid afterwards).
+function ExistingCovers({ covers }: { covers: ExistingCover[] }) {
+  const { pending, run } = useRun();
+  return (
+    <section className={cn("space-y-3 rounded-xl border border-dashed p-4", pending && "opacity-60")}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-medium">Корици, които магазините вече имат</h2>
+          <p className="text-xs text-muted-foreground">
+            {covers.length} {covers.length === 1 ? "корица не е" : "корици не са"} в библиотеката. Ще получат името на
+            магазина; после може да ги преименуваш.
+          </p>
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          disabled={pending}
+          onClick={() =>
+            run(
+              () => importExistingCovers(),
+              covers.length === 1 ? "Корицата е добавена в библиотеката" : "Кориците са добавени в библиотеката"
+            )
+          }
+        >
+          Добави всички ({covers.length})
+        </Button>
+      </div>
+      <ul className="flex gap-2 overflow-x-auto pb-1">
+        {covers.slice(0, 24).map((c) => (
+          <li key={c.url} className="w-36 shrink-0 space-y-1" title={c.name}>
+            {/* eslint-disable-next-line @next/next/no-img-element -- our own storage copy */}
+            <img src={c.url} alt="" className="aspect-[3.3/1] w-full rounded-md border object-cover" />
+            <div className="truncate text-[11px] text-muted-foreground">
+              {c.name}
+              {c.shops > 1 ? ` · ${c.shops} маг.` : ""}
+            </div>
+          </li>
+        ))}
+        {covers.length > 24 ? (
+          <li className="flex w-24 shrink-0 items-center justify-center text-xs text-muted-foreground">+{covers.length - 24}</li>
+        ) : null}
+      </ul>
+    </section>
   );
 }

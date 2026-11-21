@@ -1,11 +1,11 @@
-import { getCoverLibrary } from "@/lib/queries/covers";
+import { findExistingCovers, getCoverLibrary } from "@/lib/queries/covers";
 
 import { CoverLibrary } from "./_components/cover-library";
 
 // Covers uploaded once, with a name, and picked for any shop from a list on
 // its cover (sql/017).
 export default async function CoversPage() {
-  const { covers, missingTable } = await getCoverLibrary();
+  const [{ covers, missingTable }, existing] = await Promise.all([getCoverLibrary(), findExistingCovers()]);
   const active = covers.filter((c) => !c.archivedAt);
 
   return (
@@ -22,7 +22,7 @@ export default async function CoversPage() {
           Таблицата с корици още не съществува. Пусни <code>sql/017_cover_library.sql</code> в Supabase SQL Editor.
         </p>
       ) : (
-        <CoverLibrary covers={covers} />
+        <CoverLibrary covers={covers} existing={existing} />
       )}
     </div>
   );
