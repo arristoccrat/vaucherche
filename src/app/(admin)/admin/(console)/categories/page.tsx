@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { formatCount } from "@/lib/format";
-import { getAdminCategories } from "@/lib/queries/categories";
+import { getAdminCategories, getCategoryContents } from "@/lib/queries/categories";
 import { getCategoryCounts } from "@/lib/queries/shops";
 import { DEFAULT_SHOP_FILTERS, shopsHref } from "@/lib/search-params";
 
@@ -10,7 +10,11 @@ import { CategoriesManager } from "./_components/categories-manager";
 // Categories: add, rename, recolour, reorder and delete (archive). A category
 // with no published shops stays here but is hidden on the site.
 export default async function CategoriesPage() {
-  const [{ active, archived, missingTable }, counts] = await Promise.all([getAdminCategories(), getCategoryCounts()]);
+  const [{ active, archived, missingTable }, counts, { contents, missingColumns }] = await Promise.all([
+    getAdminCategories(),
+    getCategoryCounts(),
+    getCategoryContents(),
+  ]);
 
   const byValue: Record<string, { total: number; published: number }> = {};
   for (const c of counts?.byCategory ?? []) byValue[c.value] = { total: c.total, published: c.published };
@@ -41,6 +45,12 @@ export default async function CategoriesPage() {
           Editor, за да можеш да ги редактираш. Дотогава сайтът ползва вградените 18.
         </p>
       ) : null}
+      {!missingTable && missingColumns ? (
+        <p className="rounded-lg border border-amber-500/50 bg-amber-500/10 p-3 text-sm">
+          За да пишеш текст и въпроси за страниците на категориите, пусни <code>sql/018_category_content.sql</code> в
+          Supabase SQL Editor.
+        </p>
+      ) : null}
 
       <CategoriesManager
         active={active}
@@ -48,6 +58,8 @@ export default async function CategoriesPage() {
         counts={byValue}
         readOnly={missingTable}
         listHref={hrefs}
+        contents={contents}
+        contentReadOnly={missingTable || missingColumns}
       />
 
       <p className="text-sm text-muted-foreground">

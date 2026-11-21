@@ -15,8 +15,10 @@ import {
 import { Button } from "@/components/ui/button";
 import type { ActionResult } from "@/lib/action-result";
 import type { Category } from "@/lib/categories";
+import { EMPTY_CONTENT, type CategoryContent } from "@/lib/category-content";
 import { formatCount } from "@/lib/format";
 
+import { CategoryContentForm } from "./category-content-form";
 import { CategoryForm } from "./category-form";
 
 type Counts = Record<string, { total: number; published: number }>;
@@ -103,14 +105,20 @@ export function CategoriesManager({
   counts,
   readOnly,
   listHref,
+  contents,
+  contentReadOnly,
 }: {
   active: Category[];
   archived: Archived[];
   counts: Counts;
   readOnly: boolean;
   listHref: Record<string, { all: string; published: string }>;
+  // Page copy by key (sql/018); read-only until the columns exist.
+  contents: Record<string, CategoryContent>;
+  contentReadOnly: boolean;
 }) {
   const [editing, setEditing] = useState<string | null>(null);
+  const [writing, setWriting] = useState<string | null>(null);
   const [archiving, setArchiving] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const { pending, run } = useRun();
@@ -146,6 +154,21 @@ export function CategoriesManager({
                 </tr>
               );
             }
+            if (writing === category.key) {
+              return (
+                <tr key={category.key}>
+                  <td colSpan={5} className="py-3">
+                    <CategoryContentForm
+                      categoryKey={category.key}
+                      label={category.label}
+                      initial={contents[category.key] ?? EMPTY_CONTENT}
+                      onDone={() => setWriting(null)}
+                    />
+                  </td>
+                </tr>
+              );
+            }
+            const content = contents[category.key];
             return (
               <tr key={category.key} className="align-top">
                 <td className="py-2 pr-3">
@@ -155,6 +178,9 @@ export function CategoriesManager({
                   </span>
                   <span className="text-xs text-muted-foreground">
                     ключ <code>{category.key}</code>
+                    {content?.intro || content?.faq.length
+                      ? ` · текст${content.faq.length ? `, ${content.faq.length} въпроса` : ""}`
+                      : " · без текст"}
                   </span>
                   {archiving === category.key ? (
                     <div className="mt-2">
@@ -224,6 +250,15 @@ export function CategoriesManager({
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => setEditing(category.key)}>
                         Редактирай
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={contentReadOnly}
+                        title={contentReadOnly ? "Пусни sql/018_category_content.sql" : "Текст и въпроси на страницата"}
+                        onClick={() => setWriting(category.key)}
+                      >
+                        Текст
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => setArchiving(category.key)}>
                         Изтрий

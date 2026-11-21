@@ -111,3 +111,20 @@ export function VoucherJsonLd({
     />
   );
 }
+
+// A category page's questions and answers (sql/018), as shown on the page.
+export function FaqJsonLd({ items }: { items: { q: string; a: string }[] }) {
+  if (!items.length) return null;
+  return (
+    <JsonLd
+      data={{
+        "@type": "FAQPage",
+        mainEntity: items.map((item) => ({
+          "@type": "Question",
+          name: item.q,
+          acceptedAnswer: { "@type": "Answer", text: item.a },
+        })),
+      }}
+    />
+  );
+}

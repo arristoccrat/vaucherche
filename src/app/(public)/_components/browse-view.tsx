@@ -25,7 +25,16 @@ import { FilterSheet } from "./filter-sheet";
 
 // The browse list shared by / and /kategoriya/[path]: every filter lives in
 // the URL, every read is a cached published-only query.
-export async function BrowseView({ filters }: { filters: BrowseFilters }) {
+export async function BrowseView({
+  filters,
+  intro,
+  footer,
+}: {
+  filters: BrowseFilters;
+  // A page's own copy: under the heading, and after the list.
+  intro?: React.ReactNode;
+  footer?: React.ReactNode;
+}) {
   const [{ shops, total }, { categories, visible, counts, total: published }, cities] = await Promise.all([
     listPublishedShops(filters),
     getVisibleCategories(),
@@ -64,6 +73,7 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
             <SortSelect value={filters.podredba} options={sortOptions} />
           </div>
         </div>
+        {intro}
 
         {/* Mobile: the filters open in a sheet from the bottom; sort beside. */}
         <div className="mt-4 flex items-center justify-between gap-3 lg:hidden">
@@ -108,6 +118,7 @@ export async function BrowseView({ filters }: { filters: BrowseFilters }) {
           pageSize={PAGE_SIZE}
           hrefFor={(stranitsa) => browseHref(filters, { stranitsa })}
         />
+        {footer}
       </div>
     </div>
   );
