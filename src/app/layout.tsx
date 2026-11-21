@@ -14,7 +14,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "vaucherche — подаръчни ваучери от български магазини",
+  title: "vaucherche — подаръчни ваучери за всеки повод",
   description:
     "Подаръчните ваучери на българските онлайн магазини на едно място: суми, срок на валидност и начин на доставка.",
 };

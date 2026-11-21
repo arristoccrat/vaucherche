@@ -15,7 +15,7 @@ export const alt = "Подаръчен ваучер във vaucherche";
 export default async function Image({ params }: { params: { slug: string } }) {
   const [data, { visible }] = await Promise.all([getPublishedShop(params.slug), getVisibleCategories()]);
   if (!data) {
-    return ogImage({ title: "Подаръчни ваучери", subtitle: "от български магазини", wash: tintHex(BRAND.mint) });
+    return ogImage({ title: "Подаръчни ваучери", subtitle: "за всеки повод", wash: tintHex(BRAND.mint) });
   }
   const { shop, amounts, customRange } = data;
   const category = categoryOrFallback(visible, shop.category);
