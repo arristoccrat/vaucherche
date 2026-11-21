@@ -23,6 +23,8 @@ const nextConfig = {
     serverActions: { bodySizeLimit: "3mb" },
     // Native SVG renderer used by the logo / cover upload (src/actions/media.ts).
     serverComponentsExternalPackages: ["@resvg/resvg-js"],
+    // Share images read their fonts from src/lib/fonts/og at request time.
+    outputFileTracingIncludes: { "/**/opengraph-image*": ["./src/lib/fonts/og/*.ttf"] },
   },
   async headers() {
     // The admin is an internal tool: never indexed, never framed, no

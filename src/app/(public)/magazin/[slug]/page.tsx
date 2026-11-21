@@ -64,7 +64,6 @@ export async function generateMetadata({ params }: { params: { slug: string } })
       description,
       type: "website",
       locale: "bg_BG",
-      images: data.shop.cover_url ? [data.shop.cover_url] : undefined,
     },
   };
 }

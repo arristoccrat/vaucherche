@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description:
     "Подаръчни ваучери и карти за подарък от български магазини на едно място: суми в евро, срок на валидност и как се получават.",
   openGraph: { siteName: "vaucherche", locale: "bg_BG", type: "website" },
+  // Large share previews on X too; the image is each page's opengraph-image.
+  twitter: { card: "summary_large_image" },
 };
 
 // Before launch the middleware sends visitors to /coming-soon instead, so
