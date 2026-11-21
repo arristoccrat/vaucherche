@@ -65,7 +65,12 @@ name in any URL:
   lives in `(public)/_components/json-ld.tsx`: WebSite + SearchAction and
   Organization on the home page, BreadcrumbList on category, city and shop
   pages, ItemList on every list, and a Product with an Offer /
-  AggregateOffer in euros on a shop page that lists amounts.
+  AggregateOffer in euros on a shop page that lists amounts. A category
+  page's first page shows its intro under the heading and its questions at
+  the bottom (FAQPage data): `categories.intro` + `faq` (`sql/018`,
+  `src/lib/category-content.ts`), written in `/admin/categories` ("Текст").
+  Without an intro it shows a line written from the facts; the intro is
+  also the page's meta description.
 - `src/app/(admin)/admin/` — internal admin at `/admin`. Reads and writes
   Supabase; does not crawl and does not call the Anthropic API.
   `(auth)/login` is public (email + password via Supabase Auth; sign-ups

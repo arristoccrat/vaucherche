@@ -107,6 +107,10 @@ Phase 0 RLS policies and indexes from the admin spec):
   `/admin/covers` with a name and picked for any shop (admin only, RLS on
   with no policies). Run after 016, **before** deploying the version that
   reads it.
+- `sql/018_category_content.sql` — `categories.intro` and `categories.faq`:
+  the copy and questions on a category's page, written in the admin. Run
+  after 017; the site works without it (no copy) but the admin can't save
+  copy until it runs.
 
 **Pipeline rules the admin relies on** (in the crawler / AI scripts, outside
 this repo):
@@ -173,7 +177,7 @@ shop count (about 19,974) with its query time in the header.
 
 ### Launch checklist (public site)
 
-1. Every file in `sql/` up to `017` has been run (see **Database changes**).
+1. Every file in `sql/` up to `018` has been run (see **Database changes**).
 2. In `/admin/queue`, publish the shops that pass the gate. Nothing
    publishes itself.
 3. Preview the real site on production with `/?preview=<PREVIEW_TOKEN>`:

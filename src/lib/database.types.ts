@@ -14,6 +14,8 @@ export type Database = {
     Tables: {
       categories: {
         Row: {
+          intro: string | null;
+          faq: Json;
           archived_at: string | null;
           bg: string;
           created_at: string;
@@ -27,6 +29,8 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          intro?: string | null;
+          faq?: Json;
           archived_at?: string | null;
           bg: string;
           created_at?: string;
@@ -40,6 +44,8 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          intro?: string | null;
+          faq?: Json;
           archived_at?: string | null;
           bg?: string;
           created_at?: string;

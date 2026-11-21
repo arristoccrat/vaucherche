@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { NOT_SIGNED_IN, type ActionResult } from "@/lib/action-result";
 import { getUser } from "@/lib/auth";
+import { categoryContentSchema, isMissingContentColumns, type CategoryContent } from "@/lib/category-content";
 import { categoryInputSchema, nextPreviousPaths, type CategoryInput } from "@/lib/category-input";
 import { CATEGORIES_TAG, readCategoriesUncached } from "@/lib/queries/categories";
 import { SHOP_COUNTS_TAG, SHOP_FACETS_TAG } from "@/lib/queries/shops";
@@ -199,6 +200,27 @@ export async function restoreCategory(key: string): Promise<ActionResult<null>> 
       updated_at: new Date().toISOString(),
     })
     .eq("key", parsedKey.data);
+  if (error) return failed(error.message);
+  refresh();
+  return { ok: true, data: null };
+}
+
+// A category page's intro and questions (sql/018). Saved whole: the form
+// sends the intro and the full list.
+export async function updateCategoryContent(key: string, input: CategoryContent): Promise<ActionResult<null>> {
+  if (!(await getUser())) return NOT_SIGNED_IN;
+  const parsedKey = keySchema.safeParse(key);
+  const parsed = categoryContentSchema.safeParse(input);
+  if (!parsedKey.success) return { ok: false, error: "Невалидни данни." };
+  if (!parsed.success) return { ok: false, error: firstIssue(parsed.error) };
+
+  const { error } = await createAdminClient()
+    .from("categories")
+    .update({ intro: parsed.data.intro || null, faq: parsed.data.faq })
+    .eq("key", parsedKey.data);
+  if (isMissingContentColumns(error)) {
+    return { ok: false, error: "Колоните за текст още не съществуват: пусни sql/018_category_content.sql в Supabase." };
+  }
   if (error) return failed(error.message);
   refresh();
   return { ok: true, data: null };

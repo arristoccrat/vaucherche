@@ -75,3 +75,13 @@ describe("local detail", () => {
     expect(localDetail(null)).toBe("ползва се на място в обекта");
   });
 });
+
+describe("category content", () => {
+  it("keeps valid questions, drops broken ones and trims the intro", async () => {
+    const { contentFromRow } = await import("@/lib/category-content");
+    expect(contentFromRow(null)).toEqual({ intro: "", faq: [] });
+    expect(
+      contentFromRow({ intro: "  Текст ", faq: [{ q: "Колко е валиден?", a: "12 месеца." }, { q: "" }, "x", { q: "Q", a: 5 }] })
+    ).toEqual({ intro: "Текст", faq: [{ q: "Колко е валиден?", a: "12 месеца." }] });
+  });
+});

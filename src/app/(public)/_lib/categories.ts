@@ -11,6 +11,7 @@ import {
   type Category,
 } from "@/lib/categories";
 import { CITIES } from "@/lib/cities";
+import { EMPTY_CONTENT, contentFromRow, isMissingContentColumns, type CategoryContent } from "@/lib/category-content";
 import { publicClient } from "@/lib/supabase/public";
 
 import { categoryCounts, cityCounts } from "./browse";
@@ -54,3 +55,12 @@ export async function resolveCategoryPath(path: string) {
     movedTo: findCategoryByPath(categories, path) ? undefined : findCategoryByPreviousPath(categories, path),
   };
 }
+
+// The copy on a category page (sql/018): intro and FAQ. Empty until the
+// columns exist or an editor writes something.
+export const getCategoryContent = cache(async (key: string): Promise<CategoryContent> => {
+  const { data, error } = await publicClient().from("categories").select("intro, faq").eq("key", key).maybeSingle();
+  if (error && (isMissingTable(error) || isMissingContentColumns(error))) return EMPTY_CONTENT;
+  if (error) throw new Error(error.message);
+  return contentFromRow(data);
+});

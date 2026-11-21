@@ -11,6 +11,7 @@ import {
   isMissingTable,
   type Category,
 } from "@/lib/categories";
+import { contentFromRow, isMissingContentColumns, type CategoryContent } from "@/lib/category-content";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Every category edit revalidates this tag (src/actions/categories.ts).
@@ -57,4 +58,13 @@ export async function getAdminCategories() {
 // For Server Actions, after their own getUser() check: always fresh.
 export async function readCategoriesUncached() {
   return readCategories();
+}
+
+// Each category's page copy (sql/018), by key. Empty until the columns exist.
+export async function getCategoryContents(): Promise<{ contents: Record<string, CategoryContent>; missingColumns: boolean }> {
+  await requireUser();
+  const { data, error } = await createAdminClient().from("categories").select("key, intro, faq").range(0, 999);
+  if (error && (isMissingTable(error) || isMissingContentColumns(error))) return { contents: {}, missingColumns: true };
+  if (error) throw new Error(error.message);
+  return { contents: Object.fromEntries(data.map((row) => [row.key, contentFromRow(row)])), missingColumns: false };
 }
