@@ -8,6 +8,7 @@ import { importExistingCovers, renameLibraryCover, setLibraryCoverArchived, uplo
 import { Button } from "@/components/ui/button";
 import type { ActionResult } from "@/lib/action-result";
 import type { ExistingCover, LibraryCover } from "@/lib/queries/covers";
+import { shrinkImage } from "@/lib/shrink-image";
 import { cn } from "@/lib/utils";
 
 const ACCEPT = "image/png,image/jpeg,image/webp,image/gif,image/svg+xml,.svg";
@@ -74,10 +75,13 @@ function UploadForm() {
 
   const submit = () => {
     if (!file) return void toast.error("Избери файл.");
-    const form = new FormData();
-    form.set("name", name);
-    form.set("file", file);
-    run(() => uploadLibraryCover(form), "Корицата е качена", () => {
+    run(async () => {
+      // Big files are made smaller here first (no 2 MB limit for the editor).
+      const form = new FormData();
+      form.set("name", name);
+      form.set("file", await shrinkImage(file, 2400));
+      return uploadLibraryCover(form);
+    }, "Корицата е качена", () => {
       setName("");
       setFile(null);
     });
@@ -92,7 +96,7 @@ function UploadForm() {
             // eslint-disable-next-line @next/next/no-img-element -- local preview before upload
             <img src={preview} alt="" className="size-full object-cover" />
           ) : (
-            <span className="text-[11px] text-muted-foreground">поне 2000 px, ~3:1</span>
+            <span className="text-[11px] text-muted-foreground">поне 2000 px, ~3:1, всякакъв размер</span>
           )}
         </div>
         <input

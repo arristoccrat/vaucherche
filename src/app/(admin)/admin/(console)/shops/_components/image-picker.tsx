@@ -10,6 +10,7 @@ import { clearShopImage, importShopImage, uploadShopImage } from "@/actions/medi
 import { Button } from "@/components/ui/button";
 import type { ActionResult } from "@/lib/action-result";
 import type { Suggestion } from "@/lib/suggestions";
+import { shrinkImage } from "@/lib/shrink-image";
 import { cn } from "@/lib/utils";
 
 import { FieldLabel, fieldClass, useAutosave } from "./autosave";
@@ -59,13 +60,15 @@ export function ImagePicker({
       }
     });
 
-  const upload = (file: File) => {
-    const form = new FormData();
-    form.set("shopId", shopId);
-    form.set("kind", kind);
-    form.set("file", file);
-    run(() => uploadShopImage(form), `${label}: качено`);
-  };
+  const upload = (file: File) =>
+    run(async () => {
+      // Big files are made smaller here first, so any size can be picked.
+      const form = new FormData();
+      form.set("shopId", shopId);
+      form.set("kind", kind);
+      form.set("file", await shrinkImage(file, kind === "logo" ? 1000 : 2400));
+      return uploadShopImage(form);
+    }, `${label}: качено`);
 
   const copyFrom = (source: string) => run(() => importShopImage(shopId, kind, source), `${label}: копирано`);
 
@@ -74,7 +77,7 @@ export function ImagePicker({
       <div className="flex items-baseline justify-between">
         <span className="text-xs font-medium">{label}</span>
         <span className="text-[11px] text-muted-foreground">
-          {kind === "logo" ? "квадратно, поне 400 px, до 2 MB" : "поне 2000 px широко, ~3:1, до 2 MB"}
+          {kind === "logo" ? "квадратно, поне 400 px" : "поне 2000 px широко, ~3:1"}
         </span>
       </div>
 
