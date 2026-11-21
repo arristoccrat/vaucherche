@@ -70,7 +70,12 @@ name in any URL:
   the bottom (FAQPage data): `categories.intro` + `faq` (`sql/018`,
   `src/lib/category-content.ts`), written in `/admin/categories` ("Текст").
   Without an intro it shows a line written from the facts; the intro is
-  also the page's meta description.
+  also the page's meta description. Share images (Open Graph 1200×630) are
+  `opengraph-image.tsx` files for the home, category, city and shop pages,
+  drawn by `(public)/_lib/og.tsx` with next/og from static TTF fonts in
+  `src/lib/fonts/og` (next/og cannot read woff2; `outputFileTracingIncludes`
+  in `next.config.mjs` ships them). Page metadata must not set
+  `openGraph.images`, or it hides these.
 - `src/app/(admin)/admin/` — internal admin at `/admin`. Reads and writes
   Supabase; does not crawl and does not call the Anthropic API.
   `(auth)/login` is public (email + password via Supabase Auth; sign-ups

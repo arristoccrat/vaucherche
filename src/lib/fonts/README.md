@@ -19,3 +19,17 @@ fonttools varLib.instancer "Unbounded[wght].ttf" wght=600:800 -o unbounded.ttf
 pyftsubset unbounded.ttf --flavor=woff2 --layout-features='*' \
   --unicodes="U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0300-0301,U+0400-045F,U+0490-0491,U+04B0-04B1,U+2000-206F,U+20AC,U+20BD,U+2116,U+2122,U+2190-2199,U+2212,U+2215,U+FEFF,U+FFFD"
 ```
+
+## Share images (`og/`)
+
+next/og (Satori) reads TTF/OTF/WOFF but not woff2, and static fonts only, so
+the share images use static TTF instances made from the woff2 files above:
+
+```
+fonttools varLib.instancer Unbounded-wght600-800.woff2 wght=800  -> og/Unbounded-ExtraBold.ttf
+fonttools varLib.instancer Manrope-wght400-800.woff2   wght=500  -> og/Manrope-Medium.ttf
+fonttools varLib.instancer Manrope-wght400-800.woff2   wght=800  -> og/Manrope-ExtraBold.ttf
+IBMPlexMono-SemiBold.woff2 saved unflavoured                     -> og/IBMPlexMono-SemiBold.ttf
+```
+
+(same subset and licence as above).
