@@ -47,3 +47,38 @@ export async function getCoverOptions(): Promise<CoverOption[]> {
   if (error) throw new Error(error.message);
   return data;
 }
+
+export type ExistingCover = { url: string; name: string; shops: number };
+
+// Covers shops already have (shops.cover_url) that are not in the library
+// yet, one per URL, named after the first shop that uses it. Only our own
+// storage copies. Read in pages of 1000.
+export async function findExistingCovers(): Promise<ExistingCover[]> {
+  await requireUser();
+  const supabase = createAdminClient();
+  const { data: library, error: libraryError } = await supabase.from("cover_library").select("url").range(0, 9999);
+  if (libraryError) {
+    if (isMissingTable(libraryError)) return [];
+    throw new Error(libraryError.message);
+  }
+  const inLibrary = new Set(library.map((row) => row.url));
+  const found = new Map<string, ExistingCover>();
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase
+      .from("shops")
+      .select("cover_url, name, domain")
+      .not("cover_url", "is", null)
+      .order("id")
+      .range(from, from + 999);
+    if (error) throw new Error(error.message);
+    for (const row of data) {
+      const url = row.cover_url;
+      if (!url || inLibrary.has(url) || !url.includes("/storage/v1/object/public/shop-media/")) continue;
+      const seen = found.get(url);
+      if (seen) seen.shops += 1;
+      else found.set(url, { url, name: (row.name?.trim() || row.domain || "Корица").slice(0, 80), shops: 1 });
+    }
+    if (data.length < 1000) break;
+  }
+  return Array.from(found.values()).sort((a, b) => b.shops - a.shops || a.name.localeCompare(b.name, "bg"));
+}

@@ -198,7 +198,10 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
   live in a library (`cover_library`, `sql/017`, `/admin/covers`,
   `src/actions/covers.ts`): uploaded once with a name, picked for a shop
   from "От библиотеката" under its cover, which writes the library URL to
-  `shops.cover_url` (looked up on the server). Deleting archives. Storage
+  `shops.cover_url` (looked up on the server). Deleting archives. Covers
+  shops already have (our storage copies not yet in the library) are added
+  in one go from `/admin/covers` ("Добави всички"), named after a shop that
+  uses each. Storage
   uploads for both go through `src/lib/media-store.ts`. Remote
   fetches only to public hosts, every redirect re-checked, 2 MB / 10 s caps.
 - Voucher facts are editable (`src/actions/offers.ts`, one field per save,
