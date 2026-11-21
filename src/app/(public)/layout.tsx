@@ -13,11 +13,11 @@ import { SiteHeader } from "./_components/site-header";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Подаръчни ваучери от български магазини | vaucherche",
+    default: "Подаръчни ваучери за всеки повод | vaucherche",
     template: "%s | vaucherche",
   },
   description:
-    "Подаръчни ваучери и карти за подарък от български магазини на едно място: суми в евро, срок на валидност и как се получават.",
+    "Подаръчни ваучери и карти за подарък за всеки повод: спа, преживявания, ресторанти, красота и още. Суми в евро, срок на валидност и как се получават.",
   openGraph: { siteName: "vaucherche", locale: "bg_BG", type: "website" },
   // Large share previews on X too; the image is each page's opengraph-image.
   twitter: { card: "summary_large_image" },

@@ -13,7 +13,7 @@ export const alt = "Подаръчни ваучери по категория в
 // its name and how many shops it has.
 export default async function Image({ params }: { params: { path: string } }) {
   const [{ category }, { counts }] = await Promise.all([resolveCategoryPath(params.path), getVisibleCategories()]);
-  if (!category) return ogImage({ title: "Подаръчни ваучери", subtitle: "от български магазини", wash: BRAND.card });
+  if (!category) return ogImage({ title: "Подаръчни ваучери", subtitle: "за всеки повод", wash: BRAND.card });
   const color = category.on === "ink" ? onColorHex("ink") : category.bg;
   return ogImage({
     title: category.label,
