@@ -202,7 +202,11 @@ ever read published shops. Fonts for both groups come from `src/lib/fonts.ts`.
   shops already have (our storage copies not yet in the library) are added
   in one go from `/admin/covers` ("Добави всички"), named after a shop that
   uses each. Storage
-  uploads for both go through `src/lib/media-store.ts`. Remote
+  uploads for both go through `src/lib/media-store.ts`. The bucket takes
+  2 MB per file and Vercel refuses bodies over 4.5 MB, so the admin shrinks
+  bigger picks in the browser first (`src/lib/shrink-image.ts`: at most
+  2400 px wide for covers, 1000 for logos, WebP) and any file size can be
+  chosen. Remote
   fetches only to public hosts, every redirect re-checked, 2 MB / 10 s caps.
 - Voucher facts are editable (`src/actions/offers.ts`, one field per save,
   amounts entered and stored in EUR). Every save stamps
